@@ -122,20 +122,85 @@
         border-radius: 4px;
     }
     
-    /* 炫彩主题预览 */
+    /* 清新灰预览（固定颜色，不随当前主题变化） */
     .theme-preview-light {
-        background: var(--card-bg);
+        background: #ebe8e3;
+        border-color: #cec8c1;
     }
-    
+    .theme-preview-light .theme-preview-header {
+        background: linear-gradient(135deg, #8b959b, #727d84);
+    }
     .theme-preview-light .theme-preview-content {
-        background: var(--bg-secondary);
+        background: #eceae6;
     }
-    
     .theme-preview-light .theme-preview-card {
-        background: var(--card-bg);
-        border: 1px solid var(--border-color);
+        background: #ebe8e3;
+        border: 1px solid #cec8c1;
     }
     
+    /* 深邃紫预览（莫兰迪色系） */
+    .theme-preview-gradient {
+        background: #E8E5E8;
+        border-color: #C8C4C8;
+    }
+    .theme-preview-gradient .theme-preview-header {
+        background: linear-gradient(135deg, #7C6E90, #9A8EAE);
+    }
+    .theme-preview-gradient .theme-preview-content {
+        background: #E5E2E8;
+    }
+    .theme-preview-gradient .theme-preview-card {
+        background: #E8E5E8;
+        border: 1px solid #C8C4C8;
+    }
+
+    /* 海洋蓝预览（莫兰迪色系） */
+    .theme-preview-ocean {
+        background: #E5E7E8;
+        border-color: #C4C6C8;
+    }
+    .theme-preview-ocean .theme-preview-header {
+        background: linear-gradient(135deg, #6B8DA0, #8DABBC);
+    }
+    .theme-preview-ocean .theme-preview-content {
+        background: #E3E7E8;
+    }
+    .theme-preview-ocean .theme-preview-card {
+        background: #E5E7E8;
+        border: 1px solid #C4C6C8;
+    }
+
+    /* 青春绿预览（莫兰迪色系） */
+    .theme-preview-green {
+        background: #E5E8E5;
+        border-color: #C4C8C4;
+    }
+    .theme-preview-green .theme-preview-header {
+        background: linear-gradient(135deg, #7DA07D, #9DBD9D);
+    }
+    .theme-preview-green .theme-preview-content {
+        background: #E3E8E3;
+    }
+    .theme-preview-green .theme-preview-card {
+        background: #E5E8E5;
+        border: 1px solid #C4C8C4;
+    }
+
+    /* 温暖黄预览（莫兰迪色系） */
+    .theme-preview-yellow {
+        background: #E8E5DF;
+        border-color: #C8C5BE;
+    }
+    .theme-preview-yellow .theme-preview-header {
+        background: linear-gradient(135deg, #B89B75, #D0B892);
+    }
+    .theme-preview-yellow .theme-preview-content {
+        background: #E8E5DF;
+    }
+    .theme-preview-yellow .theme-preview-card {
+        background: #E8E5DF;
+        border: 1px solid #C8C5BE;
+    }
     
     
     .theme-info {

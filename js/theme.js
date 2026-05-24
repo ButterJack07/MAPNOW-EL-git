@@ -24,10 +24,70 @@ function editTheme() {
                         </div>
                     </div>
                     <div class="theme-info">
-                        <div class="theme-name">✨ 炫彩主题</div>
-                        <div class="theme-desc">明亮清新，蓝紫配色</div>
+                        <div class="theme-name">清新灰</div>
+                        <div class="theme-desc">清爽简约，自然舒适</div>
                     </div>
                     <div class="theme-check">${currentTheme === 'light' ? '✓' : ''}</div>
+                </div>
+
+                <div class="theme-option ${currentTheme === 'gradient' ? 'active' : ''}" onclick="selectTheme('gradient', event)">
+                    <div class="theme-preview theme-preview-gradient">
+                        <div class="theme-preview-header"></div>
+                        <div class="theme-preview-content">
+                            <div class="theme-preview-card"></div>
+                            <div class="theme-preview-card"></div>
+                        </div>
+                    </div>
+                    <div class="theme-info">
+                        <div class="theme-name">深邃紫</div>
+                        <div class="theme-desc">深邃优雅，神秘质感</div>
+                    </div>
+                    <div class="theme-check">${currentTheme === 'gradient' ? '✓' : ''}</div>
+                </div>
+
+                <div class="theme-option ${currentTheme === 'ocean' ? 'active' : ''}" onclick="selectTheme('ocean', event)">
+                    <div class="theme-preview theme-preview-ocean">
+                        <div class="theme-preview-header"></div>
+                        <div class="theme-preview-content">
+                            <div class="theme-preview-card"></div>
+                            <div class="theme-preview-card"></div>
+                        </div>
+                    </div>
+                    <div class="theme-info">
+                        <div class="theme-name">海洋蓝</div>
+                        <div class="theme-desc">清新海洋，自由辽阔</div>
+                    </div>
+                    <div class="theme-check">${currentTheme === 'ocean' ? '✓' : ''}</div>
+                </div>
+
+                <div class="theme-option ${currentTheme === 'green' ? 'active' : ''}" onclick="selectTheme('green', event)">
+                    <div class="theme-preview theme-preview-green">
+                        <div class="theme-preview-header"></div>
+                        <div class="theme-preview-content">
+                            <div class="theme-preview-card"></div>
+                            <div class="theme-preview-card"></div>
+                        </div>
+                    </div>
+                    <div class="theme-info">
+                        <div class="theme-name">青春绿</div>
+                        <div class="theme-desc">活力生机，自然清新</div>
+                    </div>
+                    <div class="theme-check">${currentTheme === 'green' ? '✓' : ''}</div>
+                </div>
+
+                <div class="theme-option ${currentTheme === 'yellow' ? 'active' : ''}" onclick="selectTheme('yellow', event)">
+                    <div class="theme-preview theme-preview-yellow">
+                        <div class="theme-preview-header"></div>
+                        <div class="theme-preview-content">
+                            <div class="theme-preview-card"></div>
+                            <div class="theme-preview-card"></div>
+                        </div>
+                    </div>
+                    <div class="theme-info">
+                        <div class="theme-name">温暖黄</div>
+                        <div class="theme-desc">温暖治愈，阳光活力</div>
+                    </div>
+                    <div class="theme-check">${currentTheme === 'yellow' ? '✓' : ''}</div>
                 </div>
             </div>
         </div>
@@ -77,11 +137,27 @@ function selectTheme(theme, mouseEvent) {
 
 /**
  * 应用界面主题
- * @param {string} theme - 主题标识符（light 或 dark）
+ * @param {string} theme - 主题标识符
  */
 function applyTheme(theme) {
     const html = document.documentElement;
-    html.removeAttribute('data-theme');
+    const themeNames = {
+        light: '清新灰',
+        gradient: '深邃紫',
+        ocean: '海洋蓝',
+        green: '青春绿',
+        yellow: '温暖黄'
+    };
+    if (theme === 'light') {
+        html.removeAttribute('data-theme');
+    } else {
+        html.setAttribute('data-theme', theme);
+    }
+    const el = document.getElementById('settingsTheme');
+    if (el) {
+        el.textContent = themeNames[theme] || '清新灰';
+    }
     if (map && map.setMapStyleId) map.setMapStyleId('style1');
+    if (typeof updateMyRange === 'function') updateMyRange();
     console.log(`🎨 应用主题: ${theme}`);
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>此刻地图 v10.0.1</title>
+    <title>此刻地图 A1.0.3</title>
     <script src="js/utils.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/publish.js"></script>
@@ -33,6 +33,8 @@
         <link rel="stylesheet" href="css/panel-notifications.css">
         <link rel="stylesheet" href="css/chat.css">
         <link rel="stylesheet" href="css/theme-overrides.css">
+        <link rel="stylesheet" href="css/theme-gradient.css">
+        <link rel="stylesheet" href="css/theme-extras.css">
         <link rel="stylesheet" href="css/floating-nav.css">
 
 </head>
@@ -211,9 +213,9 @@
             <!-- 顶部导航栏 -->
 <!-- 用户中心头部 -->
 <div class="user-center-header">
-    <button class="uc-back-btn" onclick="closeUserCenter()">
-        ← 返回
-    </button>
+<button class="uc-icon-btn" onclick="closeUserCenter()" title="返回">
+    ↩️
+</button>
     <div class="uc-header-actions">
         <!-- ⭐ 新增：➕号菜单按钮 -->
         <div class="uc-menu-wrapper" style="position: relative;">
@@ -235,16 +237,11 @@
             </div>
         </div>
         
-        <button class="uc-icon-btn" onclick="openChatList()" title="私聊" style="position: relative;">
-            💬
-            <span class="notification-badge" id="chatBadge" style="display: none;">0</span>
-        </button>
-        
         <button class="uc-icon-btn" onclick="openInbox()" title="收件箱" style="position: relative;">
             📨
             <span class="notification-badge" id="inboxBadge" style="display: none;">0</span>
         </button>
-        <button class="uc-icon-btn" onclick="openVipCenter()" title="会员中心">💎</button>
+        <button class="uc-icon-btn" onclick="openVipCenter()" title="会员中心">👑</button>
         <button class="uc-icon-btn" onclick="openSettings()" title="设置">
             ⚙️
         </button>
@@ -291,22 +288,22 @@
             <!-- 统计标签栏 -->
             <div class="uc-tabs">
                 <button class="uc-tab active" data-tab="published" onclick="switchUCTab('published')">
-                    我发布的
+                    📤<span class="uc-tab-label">我的发布</span>
                 </button>
                 <button class="uc-tab" data-tab="likes" onclick="switchUCTab('likes')">
-                    点赞
+                    ❤️<span class="uc-tab-label">我的点赞</span>
                 </button>
                 <button class="uc-tab" data-tab="favorites" onclick="switchUCTab('favorites')">
-                    收藏
+                    ⭐<span class="uc-tab-label">我的收藏</span>
                 </button>
                 <button class="uc-tab" data-tab="comments" onclick="switchUCTab('comments')">
-                    评论
+                    💬<span class="uc-tab-label">我的评论</span>
                 </button>
                 <button class="uc-tab" data-tab="history" onclick="switchUCTab('history')">
-                    浏览记录
+                    👁️<span class="uc-tab-label">历史浏览</span>
                 </button>
                 <button class="uc-tab" data-tab="search" onclick="switchUCTab('search')">
-                    搜索
+                    🔍<span class="uc-tab-label">气泡搜索</span>
                 </button>
             </div>
             
@@ -379,49 +376,57 @@
             <!-- 关闭按钮 -->
             <button class="vip-modal-close" onclick="closeVipModal()">×</button>
             
-            <!-- 标题 -->
-            <h2 class="vip-modal-title">开通会员</h2>
+            <!-- 标题 + 到期信息 -->
+            <div class="vip-header" id="vipHeader">
+                <h2 class="vip-modal-title">👑 会员中心</h2>
+                <div class="vip-expire-info" id="vipExpireInfo" style="display:none;"></div>
+            </div>
+
+            <!-- 终身会员专属展示区 -->
+            <div class="vip-lifetime-showcase" id="vipLifetimeShowcase" style="display:none;"></div>
             
             <!-- 会员套餐 -->
-            <div class="vip-plans">
-                <!-- 试用会员 -->
-                <div class="vip-plan-card trial-plan">
-                    <div class="vip-plan-badge">🎁</div>
-                    <div class="vip-plan-name">试用</div>
-                    <div class="vip-plan-duration">体验1小时</div>
-                    <div class="vip-plan-price">免费</div>
-                    <div class="vip-plan-desc">供开发人员测试用</div>
-                    <button class="vip-plan-btn vip-btn-active" onclick="activateTrialVip()">
-                        立即开通
-                    </button>
-                </div>
-                
+            <div class="vip-plans" id="vipPlans">
                 <!-- 月卡 -->
                 <div class="vip-plan-card">
                     <div class="vip-plan-badge">💎</div>
-                    <div class="vip-plan-name">月卡</div>
-                    <div class="vip-plan-duration">30天</div>
-                    <div class="vip-plan-price">¥0.99</div>
-                    <div class="vip-plan-desc">享受完整会员权益</div>
-                    <button class="vip-plan-btn vip-btn-disabled" disabled>
-                        敬请期待
-                    </button>
+                    <div class="vip-plan-info">
+                        <div class="vip-plan-name">月卡</div>
+                        <div class="vip-plan-duration">30天</div>
+                    </div>
+                    <div class="vip-plan-price">¥1.8</div>
+                    <button class="vip-plan-btn vip-btn-active" onclick="openPaymentModal('monthly')">立即购买</button>
                 </div>
                 
                 <!-- 年卡 -->
+                <div class="vip-plan-card">
+                    <div class="vip-plan-badge">👑</div>
+                    <div class="vip-plan-info">
+                        <div class="vip-plan-name">年卡</div>
+                        <div class="vip-plan-duration">365天</div>
+                    </div>
+                    <div class="vip-plan-price">¥8.8</div>
+                    <button class="vip-plan-btn vip-btn-active" onclick="openPaymentModal('yearly')">立即购买</button>
+                </div>
+
+                <!-- 终身 -->
                 <div class="vip-plan-card premium-plan">
                     <div class="vip-recommended-badge">推荐</div>
-                    <div class="vip-plan-badge">👑</div>
-                    <div class="vip-plan-name">年卡</div>
-                    <div class="vip-plan-duration">365天</div>
-                    <div class="vip-plan-price">¥9.99</div>
-                    <div class="vip-plan-desc">性价比最高</div>
-                    <button class="vip-plan-btn vip-btn-disabled" disabled>
-                        敬请期待
-                    </button>
+                    <div class="vip-plan-badge">🌟</div>
+                    <div class="vip-plan-info">
+                        <div class="vip-plan-name">终身</div>
+                        <div class="vip-plan-duration">永久有效</div>
+                    </div>
+                    <div class="vip-plan-price">¥18.8</div>
+                    <button class="vip-plan-btn vip-btn-active" onclick="openPaymentModal('lifetime')">立即购买</button>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- ⭐ 支付弹窗（模拟微信支付） -->
+    <div class="payment-overlay" id="paymentOverlay" style="display: none;">
+        <div class="payment-container"></div>
     </div>
 
     <!-- ⭐ 设置页面 -->
@@ -433,120 +438,126 @@
             </div>
             
             <div class="settings-list">
-                <div class="settings-item" onclick="changeAvatarFromSettings()">
-                    <div class="settings-label">头像</div>
+                <div class="settings-item" onclick="changeAvatar()">
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">👤</span>
+                        <span class="settings-label">头像</span>
+                    </div>
                     <div class="settings-value">
                         <span id="settingsAvatar">👤</span>
-                        <span class="settings-arrow">→</span>
+                        <span class="settings-arrow">›</span>
                     </div>
                 </div>
+                <div class="settings-divider"></div>
                 
                 <div class="settings-item" onclick="editNickname()">
-                    <div class="settings-label">昵称</div>
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">✏️</span>
+                        <span class="settings-label">昵称</span>
+                    </div>
                     <div class="settings-value">
                         <span id="settingsNickname">未设置</span>
-                        <span class="settings-arrow">→</span>
+                        <span class="settings-arrow">›</span>
                     </div>
                 </div>
-                
-                <div class="settings-item" onclick="editBackground()">
-                    <div class="settings-label">背景图</div>
-                    <div class="settings-value">
-                        <span class="settings-arrow">→</span>
-                    </div>
-                </div>
+                <div class="settings-divider"></div>
                 
                 <div class="settings-item" onclick="editBio()">
-                    <div class="settings-label">个人简介</div>
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">📝</span>
+                        <span class="settings-label">个人简介</span>
+                    </div>
                     <div class="settings-value">
-                        <span class="settings-arrow">→</span>
+                        <span class="settings-arrow">›</span>
                     </div>
                 </div>
+                <div class="settings-divider"></div>
 
                 <div class="settings-item" onclick="editGender()">
-                    <div class="settings-label">性别</div>
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">⚤</span>
+                        <span class="settings-label">性别</span>
+                    </div>
                     <div class="settings-value">
                         <span id="settingsGender">保密</span>
-                        <span class="settings-arrow">→</span>
+                        <span class="settings-arrow">›</span>
                     </div>
                 </div>
+                <div class="settings-divider"></div>
                 
                 <div class="settings-item" onclick="editBirthday()">
-                    <div class="settings-label">生日</div>
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">🎂</span>
+                        <span class="settings-label">生日</span>
+                    </div>
                     <div class="settings-value">
                         <span id="settingsBirthday">未设置</span>
-                        <span class="settings-arrow">→</span>
+                        <span class="settings-arrow">›</span>
                     </div>
                 </div>
+                <div class="settings-divider"></div>
                 
                 <div class="settings-item" onclick="editRegion()">
-                    <div class="settings-label">地区</div>
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">📍</span>
+                        <span class="settings-label">地区</span>
+                    </div>
                     <div class="settings-value">
                         <span id="settingsRegion">未设置</span>
-                        <span class="settings-arrow">→</span>
+                        <span class="settings-arrow">›</span>
                     </div>
                 </div>
+                <div class="settings-divider"></div>
                 
                 <div class="settings-item" onclick="editTheme()">
-                    <div class="settings-label">界面风格</div>
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">🎨</span>
+                        <span class="settings-label">界面风格</span>
+                    </div>
                     <div class="settings-value">
-                        <span id="settingsTheme">亮色模式</span>
-                        <span class="settings-arrow">→</span>
+                        <span id="settingsTheme">清新灰</span>
+                        <span class="settings-arrow">›</span>
                     </div>
                 </div>
-
-                <div class="settings-item" onclick="editClusterMode()">
-                    <div class="settings-label">气泡聚合方式</div>
-                    <div class="settings-value">
-                        <span id="settingsClusterMode">列表模式</span>
-                        <span class="settings-arrow">→</span>
-                    </div>
-                </div>
-                
-                <div class="settings-item">
-                    <div class="settings-label">实名认证</div>
-                    <div class="settings-value">
-                        <span style="color: #7b5f5d;">未认证</span>
-                        <span class="settings-arrow">→</span>
-                    </div>
-                </div>
-                
-                <div class="settings-item">
-                    <div class="settings-label">商家认证</div>
-                    <div class="settings-value">
-                        <span class="settings-arrow">→</span>
-                    </div>
-                </div>
-                
-                <!-- ⭐ v9.7.5: 新增关于应用和隐私政策 -->
-                <div class="settings-section-divider"></div>
+                <div class="settings-divider"></div>
                 
                 <div class="settings-item" onclick="openAboutApp()">
-                    <div class="settings-label">📱 关于应用</div>
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">📱</span>
+                        <span class="settings-label">关于应用</span>
+                    </div>
                     <div class="settings-value">
-                        <span class="settings-arrow">→</span>
+                        <span class="settings-arrow">›</span>
                     </div>
                 </div>
+                <div class="settings-divider"></div>
                 
                 <div class="settings-item" onclick="openPrivacyPolicy()">
-                    <div class="settings-label">🔒 隐私政策</div>
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">🔒</span>
+                        <span class="settings-label">隐私政策</span>
+                    </div>
                     <div class="settings-value">
-                        <span class="settings-arrow">→</span>
+                        <span class="settings-arrow">›</span>
                     </div>
                 </div>
-                
-                <div class="settings-section-divider"></div>
+                <div class="settings-divider"></div>
                 
                 <div class="settings-item settings-logout" onclick="logout()">
-                    <div class="settings-label">退出登录</div>
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">🚪</span>
+                        <span class="settings-label">退出登录</span>
+                    </div>
                     <div class="settings-value">
-                        <span class="settings-arrow">→</span>
+                        <span class="settings-arrow">›</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+</svg>
+</div>
 
 <!-- ⭐ v9.7.5: 关于应用弹窗 -->
 <div class="info-modal-overlay" id="aboutAppOverlay" style="display: none;">
@@ -564,7 +575,7 @@
             
             <div class="info-section">
                 <h3 class="info-section-title">版本信息</h3>
-                <p class="info-section-content">版本号：v9.7.5</p>
+                <p class="info-section-content">版本号：A1.0.3</p>
                 <p class="info-section-content">更新日期：2026-03-08</p>
             </div>
             
@@ -764,60 +775,10 @@
 </div>
 
 
-<!-- ⭐ 收件箱弹窗 -->
-<div class="inbox-overlay" id="inboxOverlay" style="display: none;">
-    <div class="inbox-container">
-        <button class="inbox-close" onclick="closeInbox()">×</button>
-        <h2 class="inbox-title">收件箱</h2>
-        
-        <!-- 顶部标签行 -->
-        <div class="inbox-tabs">
-            <div class="inbox-tab" data-tab="like" onclick="switchInboxTab('like')">
-                <span class="tab-icon">❤️</span>
-                <span class="tab-label">点赞</span>
-                <span class="tab-badge" id="tabLikeBadge">0</span>
-            </div>
-            <div class="inbox-tab" data-tab="favorite" onclick="switchInboxTab('favorite')">
-                <span class="tab-icon">⭐</span>
-                <span class="tab-label">收藏</span>
-                <span class="tab-badge" id="tabFavoriteBadge">0</span>
-            </div>
-            <div class="inbox-tab" data-tab="comment" onclick="switchInboxTab('comment')">
-                <span class="tab-icon">💬</span>
-                <span class="tab-label">评论</span>
-                <span class="tab-badge" id="tabCommentBadge">0</span>
-            </div>
-        </div>
-        
-        <!-- 内容区域（抽屉） -->
-        <div class="inbox-content" id="inboxContent">
-            <!-- 点赞内容 -->
-            <div class="inbox-content-panel active" id="inboxLikePanel">
-                <div class="inbox-empty">暂无点赞消息</div>
-            </div>
-            
-            <!-- 收藏内容 -->
-            <div class="inbox-content-panel" id="inboxFavoritePanel">
-                <div class="inbox-empty">暂无收藏消息</div>
-            </div>
-            
-            <!-- 评论内容 -->
-            <div class="inbox-content-panel" id="inboxCommentPanel">
-                <div class="inbox-empty">暂无评论消息</div>
-            </div>
-            
-            <!-- 私聊内容（禁用） -->
-
-        </div>
-    </div>
-</div>
-
-
-
     <!-- ⭐ 通知列表弹窗 -->
     <div class="notifications-overlay" id="notificationsOverlay" style="display: none;">
         <div class="notifications-container">
-            <button class="notifications-back" onclick="backToInbox()">←</button>
+            <button class="notifications-back" onclick="backToChatList()">←</button>
             <h2 class="notifications-title" id="notificationsTitle">通知列表</h2>
             
             <div class="notifications-list" id="notificationsList">
@@ -826,13 +787,32 @@
         </div>
     </div>
 
-    <!-- ⭐ v9.4.0: 私聊列表页面 -->
+    <!-- ⭐ v9.4.0: 私聊列表页面（含收件箱） -->
     <div class="chat-list-overlay" id="chatListOverlay" style="display: none;">
         <div class="chat-list-container">
             <div class="chat-list-header">
                 <button class="chat-back" onclick="closeChatList()">←</button>
                 <h2>私聊</h2>
             </div>
+            <!-- 收件箱区域（位于私聊列表上方） -->
+            <div class="chat-inbox-section">
+                <div class="chat-inbox-item" onclick="showNotificationsList('like')">
+                    <span class="chat-inbox-icon">❤️</span>
+                    <span class="chat-inbox-label">点赞</span>
+                    <span class="chat-inbox-badge" id="tabLikeBadge">0</span>
+                </div>
+                <div class="chat-inbox-item" onclick="showNotificationsList('favorite')">
+                    <span class="chat-inbox-icon">⭐</span>
+                    <span class="chat-inbox-label">收藏</span>
+                    <span class="chat-inbox-badge" id="tabFavoriteBadge">0</span>
+                </div>
+                <div class="chat-inbox-item" onclick="showNotificationsList('comment')">
+                    <span class="chat-inbox-icon">💬</span>
+                    <span class="chat-inbox-label">评论</span>
+                    <span class="chat-inbox-badge" id="tabCommentBadge">0</span>
+                </div>
+            </div>
+            <div class="chat-inbox-divider"></div>
             <div class="chat-list" id="chatList">
                 <div class="uc-empty">暂无私聊<br><small style="color: var(--text-tertiary); font-size: 12px; margin-top: 10px; display: block;">通过用户信息卡或气泡信息卡发起私聊</small></div>
             </div>
@@ -988,6 +968,7 @@
     
     <script>
 
+    const APP_VERSION = 'A1.0.3'; // 升级时修改第三个数字
     let socket = null;
     let map = null;
     let currentUser = null;
@@ -1018,46 +999,6 @@
     let searchTimer = null;
 
 
-    // ⭐ 气泡类型配置（图标和颜色）
-    const BUBBLE_CONFIG = {
-        recommend: {
-            icon: '👍',
-            name: '推荐',
-            color: '#FF6B35',
-            gradient: 'linear-gradient(135deg, #FF6B35 0%, #F7931E 100%)'
-        },
-        help: {
-            icon: '🆘',
-            name: '求助',
-            color: '#FFD93D',
-            gradient: 'linear-gradient(135deg, #FFD93D 0%, #FFA500 100%)'
-        },
-        team: {
-            icon: '👥',
-            name: '组队',
-            color: '#4A90E2',
-            gradient: 'linear-gradient(135deg, #4A90E2 0%, #357ABD 100%)'
-        },
-        group: {
-            icon: '💬',
-            name: '建群',
-            color: '#6BCF7F',
-            gradient: 'linear-gradient(135deg, #6BCF7F 0%, #4CAF50 100%)'
-        },
-        warning: {
-            icon: '⚠️',
-            name: '避雷',
-            color: '#9B59B6',
-            gradient: 'linear-gradient(135deg, #9B59B6 0%, #8E44AD 100%)'
-        },
-        news: {
-            icon: '📰',
-            name: '见闻',
-            color: '#FF85A1',
-            gradient: 'linear-gradient(135deg, #FF85A1 0%, #FF6B9D 100%)'
-        }
-    };
-
     // 位置相关变量
     let locationMode = 'gps'; // 'gps' 或 'manual'
     let manualPosition = null;
@@ -1073,89 +1014,7 @@
     let userRangeCircles = {}; // 存储其他用户的范围圆圈
     let onlineUsers = {}; // 在线用户信息 {userId: {lat, lng, nickname, avatar, range, invisible}}
 
-    // ── 头像图标缓存 ──────────────────────────────────────────────
-    const avatarIconCache = {};
 
-    /**
-     * 将用户头像渲染为圆形 PNG DataURL（用于地图标记）。
-     * 支持 emoji 文字头像与 Base64 图片头像。
-     * @param {string} avatar   - 头像字符串（emoji 或 data:image/… base64）
-     * @param {number} size     - 画布尺寸（px）
-     * @param {string} border   - 外圈颜色（CSS 颜色）
-     * @param {boolean} dot     - 是否显示右上角绿色在线小圆点
-     * @returns {Promise<string>} PNG DataURL
-     */
-    function generateAvatarIconUrl(avatar, size, border, dot) {
-        const key = `${avatar}_${size}_${border}_${dot}`;
-        if (avatarIconCache[key]) return Promise.resolve(avatarIconCache[key]);
-
-        return new Promise(resolve => {
-            const canvas = document.createElement('canvas');
-            canvas.width  = size;
-            canvas.height = size;
-            const ctx = canvas.getContext('2d');
-            const c = size / 2, r = c - 3;
-
-            function finish() {
-                // 在线小圆点
-                if (dot) {
-                    ctx.beginPath();
-                    ctx.arc(size - 7, 7, 5, 0, Math.PI * 2);
-                    ctx.fillStyle = '#00E676';
-                    ctx.fill();
-                    ctx.strokeStyle = 'white';
-                    ctx.lineWidth = 1.5;
-                    ctx.stroke();
-                }
-                const url = canvas.toDataURL('image/png');
-                avatarIconCache[key] = url;
-                resolve(url);
-            }
-
-            // 外圈
-            ctx.beginPath();
-            ctx.arc(c, c, r + 2, 0, Math.PI * 2);
-            ctx.fillStyle = border || '#FFAA00';
-            ctx.fill();
-
-            const isImg = avatar && avatar.startsWith('data:image');
-            if (isImg) {
-                const img = new Image();
-                img.onload = () => {
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(c, c, r, 0, Math.PI * 2);
-                    ctx.clip();
-                    ctx.drawImage(img, c - r, c - r, r * 2, r * 2);
-                    ctx.restore();
-                    finish();
-                };
-                img.onerror = () => {
-                    // 加载失败降级为 emoji
-                    ctx.beginPath();
-                    ctx.arc(c, c, r, 0, Math.PI * 2);
-                    ctx.fillStyle = 'white';
-                    ctx.fill();
-                    ctx.font = `${r * 1.2}px Arial`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText('👤', c, c + 1);
-                    finish();
-                };
-                img.src = avatar;
-            } else {
-                ctx.beginPath();
-                ctx.arc(c, c, r, 0, Math.PI * 2);
-                ctx.fillStyle = 'white';
-                ctx.fill();
-                ctx.font = `${r * 1.2}px Arial`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(avatar || '👤', c, c + 1);
-                finish();
-            }
-        });
-    }
 let visibleRange = 1000; // 可见范围，单位米
 let lastManualLocationName = ''; // 最近一次搜索定位名称
     
@@ -1203,278 +1062,14 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
 
     // 设置页面逻辑在 js/settings.js
 
-// ==================== 收件箱标签切换 ====================
-    let currentInboxTab = 'like';
-
-    // 切换收件箱标签
-    function switchInboxTab(tabName) {
-        // 更新标签高亮
-        document.querySelectorAll('.inbox-tab').forEach(tab => tab.classList.remove('active'));
-        const activeTab = document.querySelector(`.inbox-tab[data-tab="${tabName}"]`);
-        if (activeTab) activeTab.classList.add('active');
-
-        // 展开内容区
-        document.getElementById('inboxContent').style.maxHeight = '400px';
-
-        // 切换面板
-        document.querySelectorAll('.inbox-content-panel').forEach(p => p.classList.remove('active'));
-        const panelMap = { like: 'inboxLikePanel', favorite: 'inboxFavoritePanel', comment: 'inboxCommentPanel' };
-        const panelId = panelMap[tabName];
-        if (panelId) document.getElementById(panelId)?.classList.add('active');
-
-        // 查询该类型通知
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({ type: 'queryNotificationsByType', notificationType: tabName }));
-        }
-
-        currentInboxTab = tabName;
-    }
 
 
-    // 切换添加菜单
-    function toggleAddMenu() {
-        const menu = document.getElementById('addMenu');
-        if (menu.style.display === 'none' || menu.style.display === '') {
-    menu.style.display = 'block';
-        } else {
-    menu.style.display = 'none';
-        }
-    }
-
-    // 点击其他地方关闭菜单
-    document.addEventListener('click', function(event) {
-        const menu = document.getElementById('addMenu');
-        const menuBtn = event.target.closest('.uc-menu-wrapper');
-    
-        if (!menuBtn && menu && menu.style.display === 'block') {
-    menu.style.display = 'none';
-        }
-    });
-
-    // 添加好友（待开发）
-    function addFriend() {
-        document.getElementById('addMenu').style.display = 'none';
-    }
-
-    // 发起群聊（待开发）
-    function createGroupChat() {
-        document.getElementById('addMenu').style.display = 'none';
-    }
-
-    // 切换用户名片卡展开/收起
-    function toggleUserCard() {
-        const container = document.getElementById('userCardContainer');
-        const btn = document.getElementById('chatDropdownBtn');
-    
-        container.classList.toggle('expanded');
-        btn.classList.toggle('rotated');
-    }
-
-    // 更新用户名片卡信息（在打开聊天窗口时调用）
-    function updateUserCard(user) {
-        console.log('📇 更新名片卡:', user);
-    
-        if (!user) {
-    console.error('❌ 用户数据为空');
-    return;
-        }
-    
-        // 更新大头像
-        document.getElementById('userCardAvatar').innerHTML = renderAvatarPreview(user.avatar || '👤');
-    
-        // 更新用户名
-        document.getElementById('userCardName').textContent = user.username || '未知用户';
-    
-        // 更新用户ID
-        document.getElementById('userCardId').textContent = 'ID: ' + (user.userId || user.id || '未知');
-    
-        // 更新个人简介
-        const bioText = user.bio || '这个人很懒，什么都没有留下～';
-        document.getElementById('userCardBio').innerHTML = `“${escapeHtml(bioText).replace(/\n/g, '<br>')}”`;
-    
-        // 更新性别
-        const genderMap = {
-    '男': { icon: '👨', text: '男' },
-    '女': { icon: '👩', text: '女' },
-    '保密': { icon: '🔒', text: '保密' }
-        };
-        const gender = genderMap[user.gender] || genderMap['保密'];
-        document.getElementById('userCardGender').innerHTML = `
-    <span class="detail-icon">${gender.icon}</span>
-    <span class="detail-text">${gender.text}</span>
-        `;
-    
-        // 更新生日
-        const birthday = user.birthday ? new Date(user.birthday).toLocaleDateString('zh-CN') : '未设置';
-        document.getElementById('userCardBirthday').innerHTML = `
-    <span class="detail-icon">🎂</span>
-    <span class="detail-text">${birthday}</span>
-        `;
-    
-        // 更新地区
-        const region = user.region || '未设置';
-        document.getElementById('userCardRegion').innerHTML = `
-    <span class="detail-icon">📍</span>
-    <span class="detail-text">${region}</span>
-        `;
-    
-        // 更新状态
-        const statusMap = {
-    1: { icon: '🎉', text: '空闲可约' },
-    2: { icon: '🚶', text: '正在路上' },
-    3: { icon: '🎪', text: '活动ing' },
-    4: { icon: '🤝', text: '乐于助人' },
-    5: { icon: '👥', text: '寻找同伴' },
-    6: { icon: '🔕', text: '暂时勿扰' }
-        };
-        const status = statusMap[user.status] || statusMap[2];
-        document.getElementById('userCardStatus').innerHTML = `
-    <span class="detail-icon">${status.icon}</span>
-    <span class="detail-text">${status.text}</span>
-        `;
-    
-        // 更新VIP标识
-        const vipBadge = document.getElementById('userCardVipBadge');
-        if (user.isVip) {
-    vipBadge.style.display = 'inline-block';
-        } else {
-    vipBadge.style.display = 'none';
-        }
-    
-        console.log('✅ 名片卡更新完成');
-    }
 
 
-    // 添加好友（待实现）
-    function addFriendFromCard() {
-    }
-
-    // 举报用户（待实现）
-    function reportUser() {
-    }
-
-
-    // 显示搜索建议
-    function displaySearchSuggestions(places) {
-        // 判断是哪个搜索框在请求
-        const locationSuggestions = document.getElementById('locationSuggestions');
-        const rangeSearchResults = document.getElementById('rangeSearchResults');
-    
-        // 如果位置选择弹窗是打开的，显示在 locationSuggestions
-        if (document.getElementById('locationModal').style.display === 'flex') {
-    // 原来的逻辑
-    locationSuggestions.innerHTML = '';
-        
-    if (!places || places.length === 0) {
-        locationSuggestions.innerHTML = '<div class="suggestion-item" style="text-align: center; color: var(--text-tertiary);">未找到相关地点</div>';
-        return;
-    }
-        
-    places.forEach(place => {
-        const item = document.createElement('div');
-        item.className = 'suggestion-item';
-        item.innerHTML = `
-            <div class="suggestion-name">${escapeHtml(place.name)}</div>
-            <div class="suggestion-address">${escapeHtml(place.address || place.district || '')}</div>
-        `;
-        item.onclick = () => selectLocationFromSearch(place);
-        locationSuggestions.appendChild(item);
-    });
-        } 
-        // 如果范围面板是打开的，显示在 rangeSearchResults
-        else if (document.getElementById('rangePanelOverlay').style.display === 'flex') {
-    rangeSearchResults.innerHTML = '';
-        
-    if (!places || places.length === 0) {
-        rangeSearchResults.innerHTML = '<div style="padding: 8px; text-align: center; color: var(--text-tertiary);">未找到相关地点</div>';
-        return;
-    }
-        
-    places.forEach(place => {
-        const item = document.createElement('div');
-        item.style.cssText = 'padding: 8px 10px; border-bottom: 1px solid #e0e0e0; cursor: pointer; font-size: 12px; transition: background 0.2s;';
-        item.onmouseover = () => item.style.background = '#e0e0e0';
-        item.onmouseout = () => item.style.background = 'white';
-        item.onclick = () => selectRangeLocation(place);
-            
-        item.innerHTML = `
-            <div style="font-weight: 600; color: var(--text-primary);">${escapeHtml(place.name || '未知地点')}</div>
-            <div style="font-size: 11px; color: var(--text-secondary);">${escapeHtml(place.address || place.district || '')}</div>
-        `;
-        rangeSearchResults.appendChild(item);
-    });
-        }
-    }
-
-    // 从搜索结果中选择位置（范围面板专用）- 不弹窗版本
-    function selectRangeLocation(place) {
-        console.log('📍 范围面板选择地点:', place);
-    
-        // 更新手动位置
-        manualPosition = {
-    lat: place.lat,
-    lng: place.lng
-        };
-        lastManualLocationName = place.name || place.address || '';
-
-        if (isGlobalMode) {
-            deactivateGlobalMode();
-        }
-    
-        // 切换到手动模式（但不要打开位置选择弹窗）
-        if (locationMode !== 'manual') {
-    // 直接设置模式，不调用 setLocationMode 因为那会打开弹窗
-    locationMode = 'manual';
-        
-    // 更新UI按钮状态
-    const gpsCircleBtn = document.getElementById('gpsModeBtn');
-    const manualCircleBtn = document.getElementById('manualModeBtn');
-    if (gpsCircleBtn) gpsCircleBtn.classList.remove('active');
-    if (manualCircleBtn) manualCircleBtn.classList.add('active');
-        
-    // 停止GPS监控
-    stopGPSWatching();
-        }
-    
-        // 更新我的位置
-        updateMyPosition(manualPosition);
-    
-        // 更新范围面板的位置显示（兼容旧节点）
-        const rangeDisplay = document.getElementById('rangeLocationDisplay');
-        if (rangeDisplay) {
-            rangeDisplay.innerHTML = `${escapeHtml(place.name || '当前位置')}`;
-        }
-    
-        // 在搜索框中显示选中的地点名称
-        document.getElementById('rangeSearchInput').value = place.name || '';
-    
-        // 清空搜索结果
-        document.getElementById('rangeSearchResults').innerHTML = '';
-    
-        // 移动地图到选择的位置
-        if (map) {
-    map.panTo(new qq.maps.LatLng(place.lat, place.lng));
-    map.setZoom(15);
-        }
-
-        updateModeTopBanner();
-    
-    }
 
     // 范围面板 UI 逻辑在 js/range-panel.js
 
-// 添加在文件末尾（约第12500行）
-    function filterBubbles(bubbles) {
-        // 如果没有筛选设置，直接返回原数组
-        if (!filterSettings || filterSettings.types.length === 0) {
-            return bubbles;
-        }
-        
-        // 按类型筛选
-        return bubbles.filter(bubble => 
-            filterSettings.types.includes(bubble.type)
-        );
-    }
+
 
 // 添加在文件末尾，约第5100行
 

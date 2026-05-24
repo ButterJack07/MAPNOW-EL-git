@@ -192,3 +192,16 @@ function applyFilter() {
 }
 
 // ==================== 筛选气泡功能 ====================
+
+// 按类型筛选气泡
+function filterBubbles(bubbles) {
+    // 如果没有筛选设置，直接返回原数组
+    if (!filterSettings || filterSettings.types.length === 0) {
+        return bubbles;
+    }
+    
+    // 按类型筛选
+    return bubbles.filter(bubble => 
+        filterSettings.types.includes(bubble.type)
+    );
+}

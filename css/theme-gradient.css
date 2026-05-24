@@ -1,0 +1,334 @@
+/* ==================== 深邃紫（莫兰迪色系） ==================== */
+[data-theme="gradient"] {
+    --primary-color: #8B7E9E;
+    --primary-gradient-start: #7C6E90;
+    --primary-gradient-end: #9A8EAE;
+    --secondary-color: #9A8EAE;
+
+    --bg-primary: #F0EEF0;
+    --bg-secondary: #E5E2E8;
+    --bg-tertiary: #D8D4DE;
+
+    --text-primary: #4A474A;
+    --text-secondary: #646164;
+    --text-tertiary: #888488;
+
+    --border-color: #C8C4C8;
+    --border-light: #DAD6DA;
+
+    --card-bg: #E8E5E8;
+    --card-shadow: rgba(120, 110, 140, 0.12);
+
+    --overlay-bg: rgba(50, 45, 55, 0.42);
+    --success-color: #8B7E9E;
+    --error-color: #A58380;
+    --warning-color: #A59A84;
+    --info-color: #8F979E;
+
+    --motion-fast: 160ms;
+    --motion-base: 240ms;
+    --motion-slow: 340ms;
+    --motion-panel: 280ms;
+    --motion-wow: 520ms;
+    --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-out-emphasis: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+    --dock-bg: #E5E2E8;
+    --dock-container-bg: rgba(229, 226, 232, 0.55);
+    --dock-border: rgba(200, 196, 200, 0.65);
+    --dock-active-bg: #8B7E9E;
+    --dock-active-text: #F6F5F1;
+    --dock-active-outline: #9A8EAE;
+    --btn-soft-bg: #D4D0D6;
+    --btn-soft-bg-hover: #C8C4CA;
+    --btn-soft-border: #BDB8C0;
+    --panel-unified-width: 400px;
+    --panel-active-bg: #8B7E9E;
+    --panel-active-text: #F6F5F1;
+    --panel-active-border: #7C6E90;
+
+    --bubble-cluster-bg: linear-gradient(135deg, #9A8EAE 0%, #7C6E90 100%);
+    --bubble-cluster-border: rgba(255, 255, 255, 0.6);
+    --bubble-cluster-shadow: rgba(120, 110, 140, 0.28);
+    --bubble-cluster-glow: radial-gradient(circle, rgba(139, 126, 158, 0.45) 0%, rgba(139, 126, 158, 0) 72%);
+}
+
+/* ── 背景氛围 ──────────────────────────────────────────── */
+[data-theme="gradient"] body::before {
+    background:
+        radial-gradient(40% 65% at 20% 15%, rgba(139, 126, 158, 0.18), transparent 70%),
+        radial-gradient(45% 70% at 80% 10%, rgba(154, 142, 174, 0.15), transparent 72%) !important;
+}
+
+/* ── 地图底图 ──────────────────────────────────────────── */
+[data-theme="gradient"] #mapContainer {
+    background: #D5D2D8 !important;
+}
+
+/* ── Header 背景 ───────────────────────────────────────── */
+[data-theme="gradient"] .settings-header,
+[data-theme="gradient"] .info-modal-header,
+[data-theme="gradient"] .chat-list-header,
+[data-theme="gradient"] .chat-header,
+[data-theme="gradient"] .modal-header,
+[data-theme="gradient"] .theme-modal-header,
+[data-theme="gradient"] .user-center-header,
+[data-theme="gradient"] .uc-tabs,
+[data-theme="gradient"] .publish-panel-header,
+[data-theme="gradient"] .range-panel-header,
+[data-theme="gradient"] .chat-tabs {
+    background: #D8D4DE !important;
+}
+
+/* ── 面板 / 列表项背景 ─────────────────────────────────── */
+[data-theme="gradient"] .settings-item,
+[data-theme="gradient"] .uc-menu-item,
+[data-theme="gradient"] .inbox-tab,
+[data-theme="gradient"] .notification-item,
+[data-theme="gradient"] .info-section,
+[data-theme="gradient"] .settings-list > div,
+[data-theme="gradient"] .vip-plan-card {
+    background: #E5E2E8 !important;
+    border-color: var(--border-light) !important;
+}
+
+/* ── 输入框 ────────────────────────────────────────────── */
+[data-theme="gradient"] input,
+[data-theme="gradient"] textarea,
+[data-theme="gradient"] select,
+[data-theme="gradient"] .publish-panel-container .input-field input,
+[data-theme="gradient"] .publish-panel-container .input-field textarea,
+[data-theme="gradient"] .chat-panel-container .chat-input-area textarea,
+[data-theme="gradient"] .chat-panel-container .chat-input-area input {
+    background: #ECEAEE !important;
+    border-color: var(--border-color) !important;
+}
+
+/* ── 输入框聚焦轮廓 ────────────────────────────────────── */
+[data-theme="gradient"] input:focus,
+[data-theme="gradient"] textarea:focus,
+[data-theme="gradient"] select:focus,
+[data-theme="gradient"] button:focus-visible,
+[data-theme="gradient"] a:focus-visible {
+    outline-color: #8B7E9E !important;
+}
+
+/* ── 通用按钮 ──────────────────────────────────────────── */
+[data-theme="gradient"] .auth-btn,
+[data-theme="gradient"] .publish-btn,
+[data-theme="gradient"] .chat-input-area button,
+[data-theme="gradient"] .uc-status-btn,
+[data-theme="gradient"] .uc-vip-btn,
+[data-theme="gradient"] .uc-record-btn,
+[data-theme="gradient"] .quick-btn,
+[data-theme="gradient"] .action-btn,
+[data-theme="gradient"] button[class*="btn"],
+[data-theme="gradient"] .publish-panel-container .wizard-btn,
+[data-theme="gradient"] .publish-panel-container .toggle-custom-btn,
+[data-theme="gradient"] .publish-panel-container button[onclick="publishBubble()"],
+[data-theme="gradient"] #publishPanel button[onclick="publishBubble()"],
+[data-theme="gradient"] #rangePanel button[onclick*="confirmRangeChange"],
+[data-theme="gradient"] #rangeModal button[onclick*="confirmRangeChange"],
+[data-theme="gradient"] #rangeModal button[onclick*="activateGlobalMode"],
+[data-theme="gradient"] #filterModal button[onclick*="applyFilter"],
+[data-theme="gradient"] .settings-back,
+[data-theme="gradient"] .vip-modal-close,
+[data-theme="gradient"] .info-modal-close,
+[data-theme="gradient"] .notifications-back,
+[data-theme="gradient"] .chat-back,
+[data-theme="gradient"] .modal-close,
+[data-theme="gradient"] .theme-modal-close,
+[data-theme="gradient"] .chat-dropdown-btn,
+[data-theme="gradient"] .publish-panel-header button,
+[data-theme="gradient"] .chat-close-btn,
+[data-theme="gradient"] .range-panel-header button,
+[data-theme="gradient"] #filterModal button,
+[data-theme="gradient"] #rangeModal button,
+[data-theme="gradient"] #locationModal button,
+[data-theme="gradient"] #rangePanel button {
+    background: var(--btn-soft-bg) !important;
+    border-color: var(--btn-soft-border) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="gradient"] .auth-btn:hover,
+[data-theme="gradient"] .publish-btn:hover,
+[data-theme="gradient"] .chat-input-area button:hover,
+[data-theme="gradient"] .uc-status-btn:hover,
+[data-theme="gradient"] .uc-vip-btn:hover,
+[data-theme="gradient"] .uc-record-btn:hover,
+[data-theme="gradient"] .quick-btn:hover,
+[data-theme="gradient"] .action-btn:hover,
+[data-theme="gradient"] button[class*="btn"]:hover,
+[data-theme="gradient"] .publish-panel-header button:hover,
+[data-theme="gradient"] .chat-close-btn:hover,
+[data-theme="gradient"] .range-panel-header button:hover {
+    background: var(--btn-soft-bg-hover) !important;
+}
+
+/* ── 发布面板 ──────────────────────────────────────────── */
+[data-theme="gradient"] .publish-panel-container .time-section {
+    background: #E5E2E8 !important;
+    border-color: var(--border-light) !important;
+}
+
+[data-theme="gradient"] .publish-panel-container .type-circle,
+[data-theme="gradient"] .publish-panel-container .time-chip {
+    background: #ECEAEE !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="gradient"] .publish-panel-container .type-circle.active,
+[data-theme="gradient"] .publish-panel-container .time-chip.active {
+    background: var(--panel-active-bg) !important;
+    border-color: var(--panel-active-border) !important;
+}
+
+[data-theme="gradient"] .publish-panel-container .wizard-dot {
+    background: #C8C4C8 !important;
+}
+
+[data-theme="gradient"] .publish-panel-container .wizard-dot.active {
+    background: var(--primary-color) !important;
+}
+
+/* ── 聊天面板 ──────────────────────────────────────────── */
+[data-theme="gradient"] .chat-tab-content {
+    background: #ECEAEE !important;
+}
+
+[data-theme="gradient"] .chat-input-area {
+    background: #E5E2E8 !important;
+    border-top-color: var(--border-light) !important;
+}
+
+[data-theme="gradient"] .chat-tab:hover {
+    background: #D8D4DE !important;
+}
+
+[data-theme="gradient"] .chat-tab.active {
+    background: var(--panel-active-bg) !important;
+    border-bottom-color: var(--panel-active-border) !important;
+    color: var(--panel-active-text) !important;
+}
+
+[data-theme="gradient"] .chat-panel-container .chat-message,
+[data-theme="gradient"] .chat-message,
+[data-theme="gradient"] .msg-item,
+[data-theme="gradient"] .uc-record-item,
+[data-theme="gradient"] .notification-item,
+[data-theme="gradient"] .bubble-item,
+[data-theme="gradient"] .record-card {
+    background: #ECEAEE !important;
+    border-color: var(--border-light) !important;
+}
+
+[data-theme="gradient"] .chat-panel-container .chat-message.my-message,
+[data-theme="gradient"] .chat-message.my-message,
+[data-theme="gradient"] .msg-item.self {
+    background: #DAD6DE !important;
+    border-color: #C8C4C8 !important;
+}
+
+/* ── 用户中心 ──────────────────────────────────────────── */
+[data-theme="gradient"] .uc-bio {
+    background: #E5E2E8 !important;
+    border-color: var(--border-light) !important;
+}
+
+[data-theme="gradient"] .auth-tab.active,
+[data-theme="gradient"] .chat-tab.active,
+[data-theme="gradient"] .uc-tab.active {
+    background: #ECEAEE !important;
+    border-color: var(--border-color) !important;
+}
+
+/* ── 范围面板 ──────────────────────────────────────────── */
+[data-theme="gradient"] #rangePanel input[type="range"] {
+    background: #C8C4C8 !important;
+}
+
+[data-theme="gradient"] #rangePanel input[type="range"]::-webkit-slider-thumb,
+[data-theme="gradient"] #rangeModal input[type="range"]::-webkit-slider-thumb,
+[data-theme="gradient"] #rangePanel input[type="range"]::-moz-range-thumb,
+[data-theme="gradient"] #rangeModal input[type="range"]::-moz-range-thumb {
+    border-color: #8B7E9E !important;
+    background: #F0EEF0 !important;
+}
+
+[data-theme="gradient"] #rangePanel input[type="range"]::-webkit-slider-runnable-track,
+[data-theme="gradient"] #rangeModal input[type="range"]::-webkit-slider-runnable-track,
+[data-theme="gradient"] #rangePanel input[type="range"]::-moz-range-track,
+[data-theme="gradient"] #rangeModal input[type="range"]::-moz-range-track {
+    background: linear-gradient(90deg, #C8C4C8 0%, #BDB8C0 100%) !important;
+}
+
+[data-theme="gradient"] #rangePanel .range-panel-content [style*="display: grid"] button,
+[data-theme="gradient"] #rangeModal [style*="display: grid"] button {
+    background: #ECEAEE !important;
+    border-color: var(--border-color) !important;
+}
+
+/* ── 滚动条 ────────────────────────────────────────────── */
+[data-theme="gradient"] .settings-list,
+[data-theme="gradient"] .info-modal-body,
+[data-theme="gradient"] .inbox-content,
+[data-theme="gradient"] .notifications-list,
+[data-theme="gradient"] .chat-list,
+[data-theme="gradient"] .modal-body {
+    scrollbar-color: #C8C4C8 transparent !important;
+}
+
+/* ── 状态消息 ──────────────────────────────────────────── */
+[data-theme="gradient"] .status-message.success {
+    background: rgba(139, 126, 158, 0.14) !important;
+    color: #6A5E7A !important;
+    border-color: rgba(139, 126, 158, 0.38) !important;
+}
+
+[data-theme="gradient"] .status-message.error {
+    background: rgba(165, 131, 128, 0.14) !important;
+    color: #7B5F5D !important;
+    border-color: rgba(165, 131, 128, 0.38) !important;
+}
+
+/* ── 危险按钮文字 ──────────────────────────────────────── */
+[data-theme="gradient"] .user-card-btn-danger,
+[data-theme="gradient"] .uc-delete-btn,
+[data-theme="gradient"] .uc-btn-delete {
+    color: #6F4B4B !important;
+}
+
+/* ── 模式顶部栏 ────────────────────────────────────────── */
+[data-theme="gradient"] #modeTopBanner {
+    background: rgba(216, 212, 222, 0.92) !important;
+    border-color: var(--btn-soft-border) !important;
+}
+
+/* ── Dock栏 ────────────────────────────────────────────── */
+[data-theme="gradient"] .floating-buttons {
+    background: var(--dock-container-bg) !important;
+    border-color: var(--dock-border) !important;
+}
+
+[data-theme="gradient"] .float-btn.active,
+[data-theme="gradient"] .mobile-user-btn.active {
+    background: var(--dock-active-bg) !important;
+    color: var(--dock-active-text) !important;
+    outline-color: var(--dock-active-outline) !important;
+}
+
+/* ── 气泡聚合 ──────────────────────────────────────────── */
+[data-theme="gradient"] .bubble-cluster {
+    background: var(--bubble-cluster-bg) !important;
+    border-color: var(--bubble-cluster-border) !important;
+    box-shadow: 0 4px 12px var(--bubble-cluster-shadow) !important;
+}
+
+[data-theme="gradient"] .bubble-cluster:hover {
+    box-shadow: 0 6px 20px var(--bubble-cluster-shadow) !important;
+}
+
+[data-theme="gradient"] .bubble-cluster-glow {
+    background: var(--bubble-cluster-glow) !important;
+}

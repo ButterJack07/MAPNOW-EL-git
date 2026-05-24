@@ -25,26 +25,13 @@ function updateNotificationBadge(count) {
 }
 
 function openInbox() {
-    document.getElementById('inboxOverlay').style.display = 'flex';
-    switchInboxTab('like');
-
-    currentInboxTab = null;
-
-    document.querySelectorAll('.inbox-tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-
-    document.querySelectorAll('.inbox-content-panel').forEach(panel => {
-        panel.classList.remove('active');
-    });
-
-    document.getElementById('inboxContent').style.maxHeight = '0';
+    openChatList();
     queryInboxUnread();
     console.log('📨 打开收件箱');
 }
 
 function closeInbox() {
-    document.getElementById('inboxOverlay').style.display = 'none';
+    document.getElementById('chatListOverlay').style.display = 'none';
 }
 
 function queryInboxUnread() {
@@ -57,10 +44,6 @@ function queryInboxUnread() {
     console.log('📨 查询收件箱未读数');
 }
 
-/**
- * 更新收件箱（通知）小红点，并同步刷新主界面头像入口总角标。
- * @param {number} count - 未读通知总数
- */
 function updateInboxBadge(count) {
     const badge = document.getElementById('inboxBadge');
     if (badge) {
@@ -74,10 +57,6 @@ function updateInboxBadge(count) {
     refreshHeaderBadge();
 }
 
-/**
- * 刷新主界面头像按钮上的总角标（私信未读 + 通知未读）。
- * 任何角标变化后都应调用此函数。
- */
 function refreshHeaderBadge() {
     const chatCount = parseInt(document.getElementById('chatBadge')?.textContent || '0', 10);
     const inboxCount = parseInt(document.getElementById('inboxBadge')?.textContent || '0', 10);
@@ -100,7 +79,7 @@ function showNotificationsList(type) {
         return;
     }
 
-    document.getElementById('inboxOverlay').style.display = 'none';
+    document.getElementById('chatListOverlay').style.display = 'none';
     document.getElementById('notificationsOverlay').style.display = 'flex';
 
     const titles = {
@@ -121,22 +100,17 @@ function showNotificationsList(type) {
     console.log(`📨 查看${type}通知`);
 }
 
-function backToInbox() {
+function backToChatList() {
     document.getElementById('notificationsOverlay').style.display = 'none';
-    document.getElementById('inboxOverlay').style.display = 'flex';
+    document.getElementById('chatListOverlay').style.display = 'flex';
 }
 
 function displayNotificationsList(notifications, type) {
-    let panelId = '';
-    if (type === 'like') panelId = 'inboxLikePanel';
-    else if (type === 'favorite') panelId = 'inboxFavoritePanel';
-    else if (type === 'comment') panelId = 'inboxCommentPanel';
-
-    const container = document.getElementById(panelId);
+    const container = document.getElementById('notificationsList');
     if (!container) return;
 
     if (notifications.length === 0) {
-        container.innerHTML = '<div class="inbox-empty">暂无通知</div>';
+        container.innerHTML = '<div class="uc-empty">暂无通知</div>';
         return;
     }
 
@@ -173,13 +147,12 @@ function displayNotificationsList(notifications, type) {
 
     container.innerHTML = html;
 
-    if (type === 'like') {
-        document.getElementById('tabLikeBadge').textContent = '0';
-    } else if (type === 'favorite') {
-        document.getElementById('tabFavoriteBadge').textContent = '0';
-    } else if (type === 'comment') {
-        document.getElementById('tabCommentBadge').textContent = '0';
+    const badgeMap = { like: 'tabLikeBadge', favorite: 'tabFavoriteBadge', comment: 'tabCommentBadge' };
+    const badgeId = badgeMap[type];
+    if (badgeId) {
+        const badge = document.getElementById(badgeId);
+        if (badge) badge.textContent = '0';
     }
 
-    console.log(`✅ 显示 ${notifications.length} 条${type}通知到面板`);
+    console.log(`✅ 显示 ${notifications.length} 条${type}通知`);
 }

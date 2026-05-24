@@ -34,6 +34,11 @@
     --ease-out-emphasis: cubic-bezier(0.2, 0.8, 0.2, 1);
 
     --dock-bg: #ebe8e3;
+    --dock-container-bg: rgba(235, 232, 227, 0.55);
+    --dock-border: rgba(201, 194, 186, 0.65);
+    --dock-active-bg: #9a938b;
+    --dock-active-text: #f6f3ee;
+    --dock-active-outline: #a29d95;
     --btn-soft-bg: #d8d3cc;
     --btn-soft-bg-hover: #ccc7c0;
     --btn-soft-border: #c1bbb3;
@@ -41,6 +46,11 @@
     --panel-active-bg: #9a938b;
     --panel-active-text: #f6f3ee;
     --panel-active-border: #857f77;
+
+    --bubble-cluster-bg: linear-gradient(135deg, #c8c1b8 0%, #a8a099 100%);
+    --bubble-cluster-border: rgba(255, 255, 255, 0.6);
+    --bubble-cluster-shadow: rgba(0, 0, 0, 0.28);
+    --bubble-cluster-glow: radial-gradient(circle, rgba(196, 189, 181, 0.45) 0%, rgba(196, 189, 181, 0) 72%);
 }
 
 * {
@@ -702,12 +712,12 @@ body::before {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #c8c1b8 0%, #a8a099 100%);
+    background: var(--bubble-cluster-bg);
     color: #fff;
-    border: 2px solid rgba(255,255,255,0.6);
+    border: 2px solid var(--bubble-cluster-border);
     font-size: 14px;
     font-weight: 800;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.28);
+    box-shadow: 0 4px 12px var(--bubble-cluster-shadow);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     animation: bubbleAppear 0.5s ease-out, bubbleFloat 3s ease-in-out infinite;
@@ -717,7 +727,7 @@ body::before {
 
 .bubble-cluster:hover {
     transform: scale(1.15);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.38);
+    box-shadow: 0 6px 20px var(--bubble-cluster-shadow);
 }
 
 .bubble-spider {
@@ -741,7 +751,7 @@ body::before {
     position: absolute;
     inset: -3px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(196, 189, 181, 0.45) 0%, rgba(196, 189, 181, 0) 72%);
+    background: var(--bubble-cluster-glow);
     pointer-events: none;
 }
 

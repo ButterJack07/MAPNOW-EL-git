@@ -1213,181 +1213,6 @@
     }
 
 
-    // 编辑背景图（优化版）
-    function editBackground() {
-        const colors = [
-    { name: '海洋蓝', color: '#667eea' },
-    { name: '神秘紫', color: '#764ba2' },
-    { name: '樱花粉', color: '#f093fb' },
-    { name: '天空蓝', color: '#4facfe' },
-    { name: '薄荷绿', color: '#43e97b' },
-    { name: '珊瑚橙', color: '#fa709a' },
-    { name: '阳光黄', color: '#fee140' },
-    { name: '青瓷绿', color: '#30cfd0' },
-    { name: '热情红', color: '#ff6b6b' },
-    { name: '湖水蓝', color: '#4ecdc4' },
-    { name: '深海蓝', color: '#45b7d1' },
-    { name: '玫瑰红', color: '#f38181' }
-        ];
-    
-        const modal = document.createElement('div');
-        modal.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 20000;
-        `;
-    
-        modal.innerHTML = `
-    <div class="bg-modal-content" style="
-        background: var(--card-bg);
-        border-radius: 20px;
-        padding: 25px;
-        width: 90%;
-        max-width: 500px;
-        animation: slideUp 0.3s ease;
-    ">
-        <h3 style="color: var(--text-primary); margin-bottom: 20px; font-size: 18px;">选择背景色</h3>
-            
-        <!-- 颜色网格 -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-            ${colors.map(color => `
-                <div onclick="selectBackgroundColor('${color.color}')" 
-                     class="color-option"
-                     data-color="${color.color}"
-                     style="
-                        padding: 15px;
-                        background: ${color.color};
-                        border-radius: 10px;
-                        cursor: pointer;
-                        text-align: center;
-                        color: white;
-                        font-weight: 600;
-                        transition: all 0.3s;
-                        border: 2px solid transparent;
-                     "
-                     onmouseover="this.style.transform='scale(1.05)';this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)';"
-                     onmouseout="this.style.transform='scale(1)';this.style.boxShadow='none';">
-                    ${color.name}
-                </div>
-            `).join('')}
-        </div>
-            
-        <!-- 自定义颜色 -->
-        <div style="margin-bottom: 20px;">
-            <label style="display: block; color: var(--text-secondary); font-size: 13px; margin-bottom: 8px;">自定义颜色</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="color" id="customColorInput" value="${currentUser.background || '#667eea'}" 
-                       style="width: 60px; height: 40px; border: 2px solid var(--border-color); border-radius: 5px; cursor: pointer;">
-                <input type="text" id="customColorHex" value="${currentUser.background || '#667eea'}" 
-                       placeholder="#RRGGBB" 
-                       style="flex: 1; padding: 8px 12px; border: 2px solid var(--border-color); border-radius: 5px; outline: none; font-size: 13px;"
-                       oninput="document.getElementById('customColorInput').value = this.value"
-                       onfocus="this.style.borderColor='#667eea'"
-                       onblur="this.style.borderColor='#e0e0e0'">
-            </div>
-        </div>
-            
-        <!-- 预览 -->
-        <div style="margin-bottom: 20px; padding: 15px; border-radius: 10px; background: ${currentUser.background || '#667eea'}; color: white; text-align: center;" id="bgPreview">
-            <div style="font-size: 20px; margin-bottom: 5px;">🎨 预览效果</div>
-            <div style="font-size: 12px; opacity: 0.8;">这是你的背景色</div>
-        </div>
-            
-        <div style="display: flex; gap: 10px;">
-            <button onclick="this.closest('.bg-modal-content').parentElement.remove()" 
-                    style="
-                        flex: 1;
-                        padding: 12px;
-                        background: var(--bg-secondary);
-                        border: none;
-                        border-radius: 10px;
-                        color: var(--text-secondary);
-                        font-weight: 600;
-                        cursor: pointer;
-                    ">取消</button>
-            <button onclick="saveBackground(this)" 
-                    style="
-                        flex: 1;
-                        padding: 12px;
-                        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
-                        border: none;
-                        border-radius: 10px;
-                        color: white;
-                        font-weight: 600;
-                        cursor: pointer;
-                    ">保存</button>
-        </div>
-    </div>
-        `;
-    
-        document.body.appendChild(modal);
-    
-        // 监听颜色输入
-        document.getElementById('customColorInput').addEventListener('input', function(e) {
-    document.getElementById('customColorHex').value = e.target.value;
-    document.getElementById('bgPreview').style.background = e.target.value;
-    selectedBgColor = e.target.value;
-        });
-    
-        document.getElementById('customColorHex').addEventListener('input', function(e) {
-    const color = e.target.value;
-    if (/^#[0-9A-F]{6}$/i.test(color)) {
-        document.getElementById('customColorInput').value = color;
-        document.getElementById('bgPreview').style.background = color;
-        selectedBgColor = color;
-    }
-        });
-    }
-
-    let selectedBgColor = null;
-
-    // 选择背景色
-    function selectBackgroundColor(color) {
-        selectedBgColor = color;
-    
-        // 高亮选中的颜色
-        document.querySelectorAll('.color-option').forEach(opt => {
-    if (opt.getAttribute('data-color') === color) {
-        opt.style.border = '4px solid #052659';
-        opt.style.transform = 'scale(1.05)';
-    } else {
-        opt.style.border = '2px solid transparent';
-        opt.style.transform = 'scale(1)';
-    }
-        });
-    
-        // 更新预览
-        document.getElementById('bgPreview').style.background = color;
-        document.getElementById('customColorInput').value = color;
-        document.getElementById('customColorHex').value = color;
-    }
-
-    // 保存背景色
-    function saveBackground(btn) {
-        const modal = btn.closest('.bg-modal-content').parentElement;
-        const color = selectedBgColor || document.getElementById('customColorHex').value;
-    
-        if (!/^#[0-9A-F]{6}$/i.test(color)) {
-    return;
-        }
-    
-        if (color === currentUser.background) {
-    modal.remove();
-    return;
-        }
-    
-        updateUserInfo('background', color);
-        modal.remove();
-    }
-
-
     // ⭐ 新增：更新头像显示 - 优化图片居中
     function updateAvatarDisplay(avatar) {
         // 获取所有需要更新头像的元素
@@ -1514,6 +1339,46 @@
     function openVipCenter() {
         const overlay = document.getElementById('vipModalOverlay');
         overlay.style.display = 'flex';
+
+        const expireInfo = document.getElementById('vipExpireInfo');
+        const showcase = document.getElementById('vipLifetimeShowcase');
+        const plans = document.getElementById('vipPlans');
+
+        if (currentUser?.isVip && currentUser?.vipType === 'lifetime') {
+            // 终身会员：隐藏套餐，展示装饰区
+            plans.style.display = 'none';
+            expireInfo.style.display = 'none';
+            showcase.style.display = 'block';
+            showcase.innerHTML = `
+                <div class="vip-lifetime-glow">
+                    <div class="vip-lifetime-icon">🌟</div>
+                    <div class="vip-lifetime-title">您好，尊贵的终身会员</div>
+                    <div class="vip-lifetime-sub">感谢您的支持，所有权益永久有效</div>
+                    <div class="vip-lifetime-badges">
+                        <span class="vip-lifetime-badge">👑 专属标识</span>
+                        <span class="vip-lifetime-badge">🎨 全部主题</span>
+                        <span class="vip-lifetime-badge">⏱ 自定义时长</span>
+                        <span class="vip-lifetime-badge">💎 尊贵身份</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            plans.style.display = 'flex';
+            showcase.style.display = 'none';
+
+            if (currentUser?.isVip && currentUser?.vipExpireTime) {
+                const remaining = currentUser.vipExpireTime - Date.now();
+                if (remaining > 0) {
+                    const days = Math.ceil(remaining / (24 * 3600000));
+                    expireInfo.style.display = 'block';
+                    expireInfo.innerHTML = `会员将于 <strong>${days}天</strong> 后过期`;
+                } else {
+                    expireInfo.style.display = 'none';
+                }
+            } else {
+                expireInfo.style.display = 'none';
+            }
+        }
         console.log('💎 打开会员购买页面');
     }
         
@@ -1523,22 +1388,154 @@
         overlay.style.display = 'none';
         console.log('❌ 关闭会员购买页面');
     }
-        
-    // ⭐ 激活试用会员（新）
-    function activateTrialVip() {
+
+    // ⭐ 支付相关变量
+    let pendingVipPlan = null;
+
+    // ⭐ 打开支付弹窗（直接模拟微信支付）
+    function openPaymentModal(plan) {
+        const plans = {
+            monthly: { name: '月卡', price: '¥1.8', type: 'monthly', duration: 30 * 24 * 3600000 },
+            yearly: { name: '年卡', price: '¥8.8', type: 'yearly', duration: 365 * 24 * 3600000 },
+            lifetime: { name: '终身', price: '¥18.8', type: 'lifetime', duration: -1 }
+        };
+        const selected = plans[plan];
+        if (!selected) return;
+
+        pendingVipPlan = selected;
+
+        const container = document.querySelector('.payment-container');
+        container.innerHTML = `
+            <div class="wxpay-container">
+                <div class="wxpay-header">
+                    <span class="wxpay-title">收银台</span>
+                    <button class="wxpay-close" onclick="closePaymentModal()">×</button>
+                </div>
+                <div class="wxpay-body">
+                    <div class="wxpay-merchant">
+                        <div class="wxpay-merchant-icon">👑</div>
+                        <div class="wxpay-merchant-detail">
+                            <div class="wxpay-merchant-name">此刻地图</div>
+                            <div class="wxpay-merchant-desc">VIP会员 · ${selected.name}</div>
+                        </div>
+                    </div>
+                    <div class="wxpay-divider"></div>
+                    <div class="wxpay-amount-section">
+                        <span class="wxpay-amount-label">需付款</span>
+                        <div class="wxpay-amount">${selected.price}</div>
+                    </div>
+                    <div class="wxpay-qr-section">
+                        <div class="wxpay-qr-frame">
+                            <div class="wxpay-qr-code" id="wxpayQrCode">
+                                <div class="qr-corner qr-tl"><div class="qr-inner"></div></div>
+                                <div class="qr-corner qr-tr"><div class="qr-inner"></div></div>
+                                <div class="qr-corner qr-bl"><div class="qr-inner"></div></div>
+                                <div class="qr-center-logo">💚</div>
+                            </div>
+                        </div>
+                        <div class="wxpay-qr-tip">请使用微信扫一扫<br>扫描二维码付款</div>
+                    </div>
+                    <button class="wxpay-btn" onclick="processPayment()">已完成付款</button>
+                </div>
+                <div class="wxpay-footer">
+                    <span>🔒 微信安全支付</span>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('paymentOverlay').style.display = 'flex';
+        document.getElementById('vipModalOverlay').style.display = 'none';
+        console.log(`💳 打开微信支付: ${selected.name}`);
+    }
+
+    // ⭐ 关闭支付弹窗
+    function closePaymentModal() {
+        document.getElementById('paymentOverlay').style.display = 'none';
+        pendingVipPlan = null;
+        console.log('❌ 关闭支付弹窗');
+    }
+
+    // ⭐ 处理支付（模拟微信支付）
+    function processPayment() {
+        if (!pendingVipPlan) return;
+
+        console.log(`💳 微信支付中: ${pendingVipPlan.name} · ${pendingVipPlan.price}`);
+
+        const container = document.querySelector('.payment-container');
+        container.innerHTML = `
+            <div class="wxpay-container">
+                <div class="wxpay-header">
+                    <span class="wxpay-title">支付中</span>
+                </div>
+                <div class="wxpay-body" style="text-align:center;padding:40px 20px;">
+                    <div class="wxpay-processing">
+                        <div class="wxpay-processing-icon">
+                            <div class="wxpay-scanning"></div>
+                            💚
+                        </div>
+                        <div style="font-size:16px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">正在处理支付...</div>
+                        <div style="font-size:13px;color:#999;">${pendingVipPlan.name} · ${pendingVipPlan.price}</div>
+                    </div>
+                </div>
+                <div class="wxpay-footer">
+                    <span>🔒 微信安全支付</span>
+                </div>
+            </div>
+        `;
+
+        setTimeout(() => {
+            if (pendingVipPlan.type === 'lifetime') {
+                purchaseVip('lifetime', -1);
+            } else {
+                purchaseVip(pendingVipPlan.type, pendingVipPlan.duration);
+            }
+            container.innerHTML = `
+                <div class="wxpay-container">
+                    <div class="wxpay-header">
+                        <span class="wxpay-title">支付成功</span>
+                    </div>
+                    <div class="wxpay-body" style="text-align:center;padding:40px 20px;">
+                        <div style="font-size:56px;margin-bottom:12px;">✅</div>
+                        <div style="font-size:20px;font-weight:700;color:#07C160;margin-bottom:4px;">支付成功</div>
+                        <div style="font-size:14px;color:#999;margin-bottom:24px;">${pendingVipPlan.name}已开通，感谢支持</div>
+                        <button class="wxpay-btn" onclick="closePaymentModal()" style="display:inline-flex;">完成</button>
+                    </div>
+                    <div class="wxpay-footer">
+                        <span>🔒 微信安全支付</span>
+                    </div>
+                </div>
+            `;
+        }, 2000);
+    }
+
+    // ⭐ 重试支付
+    function retryPayment() {
+        if (!pendingVipPlan) return;
+        const overlay = document.getElementById('paymentOverlay');
+        overlay.style.display = 'none';
+        setTimeout(() => {
+            if (pendingVipPlan) {
+                const planMap = { monthly: 'monthly', yearly: 'yearly', lifetime: 'lifetime' };
+                openPaymentModal(planMap[pendingVipPlan.type] || 'monthly');
+            }
+        }, 100);
+    }
+
+    // ⭐ 发送购买VIP请求
+    function purchaseVip(vipType, duration) {
         if (!socket || socket.readyState !== WebSocket.OPEN) {
             return;
         }
-            
+
         socket.send(JSON.stringify({
             type: "activateVip",
-            vipType: "trial",
-            duration: 3600000 // 1小时 = 3600000毫秒
+            vipType: vipType,
+            duration: duration
         }));
-            
-        console.log('🎁 申请激活试用会员');
+
+        console.log(`💎 申请激活${vipType}会员`);
     }
-        
+
     // ⭐ 查询会员状态
     function queryVipStatus() {
         if (!socket || socket.readyState !== WebSocket.OPEN) return;
@@ -1554,34 +1551,153 @@ function updateVipDisplay(vipData) {
     const usernameElement = document.getElementById('ucUsername');
     if (!usernameElement) return;
 
-    // 查找是否已存在VIP徽章
     let vipBadge = usernameElement.querySelector('.vip-badge');
     
     const now = Date.now();
-    const isVipValid = vipData.isVip && vipData.expireTime > now;
+    const isLifetime = vipData.vipType === 'lifetime';
+    const isVipValid = isLifetime || (vipData.isVip && vipData.expireTime > now);
     
     if (isVipValid) {
-        // 如果是有效会员且徽章不存在，则添加
         if (!vipBadge) {
             vipBadge = document.createElement('span');
             vipBadge.className = 'vip-badge';
-            vipBadge.textContent = '👑 VIP';
             usernameElement.appendChild(vipBadge);
         }
-        // 可选：显示剩余时间
-        const remaining = vipData.expireTime - now;
-        const days = Math.floor(remaining / (24 * 3600000));
-        const hours = Math.floor((remaining % (24 * 3600000)) / 3600000);
-        console.log(`💎 会员有效，剩余: ${days}天${hours}小时`);
+        vipBadge.textContent = isLifetime ? '👑 终身' : '👑 VIP';
+
+        if (!isLifetime) {
+            const remaining = vipData.expireTime - now;
+            const days = Math.ceil(remaining / (24 * 3600000));
+            console.log(`💎 会员有效，剩余: ${days}天`);
+        } else {
+            console.log(`💎 终身会员有效`);
+        }
     } else {
-        // 如果不是会员或已过期且徽章存在，则移除
-        if (vipBadge) {
-            vipBadge.remove();
-        }
-        // 如果已过期，更新currentUser状态
-        if (currentUser) {
-            currentUser.isVip = false;
-        }
+        if (vipBadge) vipBadge.remove();
+        if (currentUser) currentUser.isVip = false;
     }
 }
+
+    // ==================== ⭐ 用户中心和气泡互动相关 ====================
+
+    // 切换添加菜单
+    function toggleAddMenu() {
+        const menu = document.getElementById('addMenu');
+        if (menu.style.display === 'none' || menu.style.display === '') {
+            menu.style.display = 'block';
+        } else {
+            menu.style.display = 'none';
+        }
+    }
+
+    // 点击其他地方关闭菜单
+    document.addEventListener('click', function(event) {
+        const menu = document.getElementById('addMenu');
+        const menuBtn = event.target.closest('.uc-menu-wrapper');
+
+        if (!menuBtn && menu && menu.style.display === 'block') {
+            menu.style.display = 'none';
+        }
+    });
+
+    // 添加好友（待开发）
+    function addFriend() {
+        document.getElementById('addMenu').style.display = 'none';
+    }
+
+    // 发起群聊（待开发）
+    function createGroupChat() {
+        document.getElementById('addMenu').style.display = 'none';
+    }
+
+    // 切换用户名片卡展开/收起
+    function toggleUserCard() {
+        const container = document.getElementById('userCardContainer');
+        const btn = document.getElementById('chatDropdownBtn');
+
+        container.classList.toggle('expanded');
+        btn.classList.toggle('rotated');
+    }
+
+    // 更新用户名片卡信息（在打开聊天窗口时调用）
+    function updateUserCard(user) {
+        console.log('📇 更新名片卡:', user);
+
+        if (!user) {
+            console.error('❌ 用户数据为空');
+            return;
+        }
+
+        // 更新大头像
+        document.getElementById('userCardAvatar').innerHTML = renderAvatarPreview(user.avatar || '👤');
+
+        // 更新用户名
+        document.getElementById('userCardName').textContent = user.username || '未知用户';
+
+        // 更新用户ID
+        document.getElementById('userCardId').textContent = 'ID: ' + (user.userId || user.id || '未知');
+
+        // 更新个人简介
+        const bioText = user.bio || '这个人很懒，什么都没有留下～';
+        document.getElementById('userCardBio').innerHTML = `“${escapeHtml(bioText).replace(/\n/g, '<br>')}”`;
+
+        // 更新性别
+        const genderMap = {
+            '男': { icon: '👨', text: '男' },
+            '女': { icon: '👩', text: '女' },
+            '保密': { icon: '🔒', text: '保密' }
+        };
+        const gender = genderMap[user.gender] || genderMap['保密'];
+        document.getElementById('userCardGender').innerHTML = `
+            <span class="detail-icon">${gender.icon}</span>
+            <span class="detail-text">${gender.text}</span>
+        `;
+
+        // 更新生日
+        const birthday = user.birthday ? new Date(user.birthday).toLocaleDateString('zh-CN') : '未设置';
+        document.getElementById('userCardBirthday').innerHTML = `
+            <span class="detail-icon">🎂</span>
+            <span class="detail-text">${birthday}</span>
+        `;
+
+        // 更新地区
+        const region = user.region || '未设置';
+        document.getElementById('userCardRegion').innerHTML = `
+            <span class="detail-icon">📍</span>
+            <span class="detail-text">${region}</span>
+        `;
+
+        // 更新状态
+        const statusMap = {
+            1: { icon: '🎉', text: '空闲可约' },
+            2: { icon: '🚶', text: '正在路上' },
+            3: { icon: '🎪', text: '活动ing' },
+            4: { icon: '🤝', text: '乐于助人' },
+            5: { icon: '👥', text: '寻找同伴' },
+            6: { icon: '🔕', text: '暂时勿扰' }
+        };
+        const status = statusMap[user.status] || statusMap[2];
+        document.getElementById('userCardStatus').innerHTML = `
+            <span class="detail-icon">${status.icon}</span>
+            <span class="detail-text">${status.text}</span>
+        `;
+
+        // 更新VIP标识
+        const vipBadge = document.getElementById('userCardVipBadge');
+        if (user.isVip) {
+            vipBadge.style.display = 'inline-block';
+        } else {
+            vipBadge.style.display = 'none';
+        }
+
+        console.log('✅ 名片卡更新完成');
+    }
+
+    // 添加好友（待实现）
+    function addFriendFromCard() {
+    }
+
+    // 举报用户（待实现）
+    function reportUser() {
+    }
 

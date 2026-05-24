@@ -8,8 +8,8 @@
     gap: 12px;
     padding: 8px;
     border-radius: 24px;
-    background: rgba(235, 232, 227, 0.5);
-    border: 1px solid rgba(201, 194, 186, 0.65);
+    background: var(--dock-container-bg);
+    border: 1px solid var(--dock-border);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
 }
@@ -37,10 +37,10 @@
 
 .float-btn.active,
 .mobile-user-btn.active {
-    outline: 2px solid #a29d95;
+    outline: 2px solid var(--dock-active-outline);
     outline-offset: 1px;
-    background: #c9c3bc !important;
-    color: var(--text-primary) !important;
+    background: var(--dock-active-bg) !important;
+    color: var(--dock-active-text) !important;
 }
 
 .nav-icon {
@@ -167,7 +167,7 @@
         width: max-content;
         padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
         border-radius: 18px;
-        background: rgba(235, 232, 227, 0.58);
+        background: var(--dock-container-bg);
         border: 1px solid var(--border-light);
         box-shadow: 0 8px 22px rgba(44, 41, 37, 0.16);
         backdrop-filter: blur(8px);

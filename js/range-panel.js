@@ -256,3 +256,110 @@
     // 初始化
     setTimeout(initRangeSearch, 1000);
 
+    // ==================== 搜索建议和位置选择 ====================
+
+    // 显示搜索建议
+    function displaySearchSuggestions(places) {
+        // 判断是哪个搜索框在请求
+        const locationSuggestions = document.getElementById('locationSuggestions');
+        const rangeSearchResults = document.getElementById('rangeSearchResults');
+
+        // 如果位置选择弹窗是打开的，显示在 locationSuggestions
+        if (document.getElementById('locationModal').style.display === 'flex') {
+            locationSuggestions.innerHTML = '';
+
+            if (!places || places.length === 0) {
+                locationSuggestions.innerHTML = '<div class="suggestion-item" style="text-align: center; color: var(--text-tertiary);">未找到相关地点</div>';
+                return;
+            }
+
+            places.forEach(place => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.innerHTML = `
+                    <div class="suggestion-name">${escapeHtml(place.name)}</div>
+                    <div class="suggestion-address">${escapeHtml(place.address || place.district || '')}</div>
+                `;
+                item.onclick = () => selectLocationFromSearch(place);
+                locationSuggestions.appendChild(item);
+            });
+        } 
+        // 如果范围面板是打开的，显示在 rangeSearchResults
+        else if (document.getElementById('rangePanelOverlay').style.display === 'flex') {
+            rangeSearchResults.innerHTML = '';
+
+            if (!places || places.length === 0) {
+                rangeSearchResults.innerHTML = '<div style="padding: 8px; text-align: center; color: var(--text-tertiary);">未找到相关地点</div>';
+                return;
+            }
+
+            places.forEach(place => {
+                const item = document.createElement('div');
+                item.style.cssText = 'padding: 8px 10px; border-bottom: 1px solid #e0e0e0; cursor: pointer; font-size: 12px; transition: background 0.2s;';
+                item.onmouseover = () => item.style.background = '#e0e0e0';
+                item.onmouseout = () => item.style.background = 'white';
+                item.onclick = () => selectRangeLocation(place);
+
+                item.innerHTML = `
+                    <div style="font-weight: 600; color: var(--text-primary);">${escapeHtml(place.name || '未知地点')}</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">${escapeHtml(place.address || place.district || '')}</div>
+                `;
+                rangeSearchResults.appendChild(item);
+            });
+        }
+    }
+
+    // 从搜索结果中选择位置（范围面板专用）- 不弹窗版本
+    function selectRangeLocation(place) {
+        console.log('📍 范围面板选择地点:', place);
+
+        // 更新手动位置
+        manualPosition = {
+            lat: place.lat,
+            lng: place.lng
+        };
+        lastManualLocationName = place.name || place.address || '';
+
+        if (isGlobalMode) {
+            deactivateGlobalMode();
+        }
+
+        // 切换到手动模式（但不要打开位置选择弹窗）
+        if (locationMode !== 'manual') {
+            // 直接设置模式，不调用 setLocationMode 因为那会打开弹窗
+            locationMode = 'manual';
+
+            // 更新UI按钮状态
+            const gpsCircleBtn = document.getElementById('gpsModeBtn');
+            const manualCircleBtn = document.getElementById('manualModeBtn');
+            if (gpsCircleBtn) gpsCircleBtn.classList.remove('active');
+            if (manualCircleBtn) manualCircleBtn.classList.add('active');
+
+            // 停止GPS监控
+            stopGPSWatching();
+        }
+
+        // 更新我的位置
+        updateMyPosition(manualPosition);
+
+        // 更新范围面板的位置显示（兼容旧节点）
+        const rangeDisplay = document.getElementById('rangeLocationDisplay');
+        if (rangeDisplay) {
+            rangeDisplay.innerHTML = `${escapeHtml(place.name || '当前位置')}`;
+        }
+
+        // 在搜索框中显示选中的地点名称
+        document.getElementById('rangeSearchInput').value = place.name || '';
+
+        // 清空搜索结果
+        document.getElementById('rangeSearchResults').innerHTML = '';
+
+        // 移动地图到选择的位置
+        if (map) {
+            map.panTo(new qq.maps.LatLng(place.lat, place.lng));
+            map.setZoom(15);
+        }
+
+        updateModeTopBanner();
+    }
+

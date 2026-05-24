@@ -927,7 +927,8 @@ if (data.type === "authLogin") {
         type: "userJoined",
         userId: user.id,
         nickname: user.nickname,
-        avatar: user.avatar
+        avatar: user.avatar,
+        isVip: user.isVip || false
       });
       broadcast({ type: "onlineCount", count: onlineUsers.size });
     } else {
@@ -1065,7 +1066,8 @@ if (data.type === "authLogin") {
         type: "userJoined",
         userId: user.id,
         nickname: user.nickname,
-        avatar: user.avatar
+        avatar: user.avatar,
+        isVip: user.isVip || false
       });
       broadcast({ type: "onlineCount", count: onlineUsers.size });
     }
@@ -1087,7 +1089,8 @@ if (data.type === "authLogin") {
           avatar: user.avatar,
           lat: user.lat,
           lng: user.lng,
-          range: user.range  // ⭐ 广播用户的范围
+          range: user.range,  // ⭐ 广播用户的范围
+          isVip: user.isVip || false
         });
       }
     }
@@ -2229,45 +2232,66 @@ if (data.type === "queryNotificationsByType") {
       const user = socketUser.get(ws);
       if (!user) return;
       
-      const duration = data.duration; // 毫秒
       const now = Date.now();
+      const isLifetime = data.vipType === 'lifetime';
       
-      // 获取当前会员到期时间
-      db.get(`SELECT vip_expire_time FROM users WHERE id = ?`, [user.id], (err, row) => {
-        if (err) {
-          console.error("❌ 查询会员信息失败:", err);
-          return;
-        }
-        
-        const currentExpire = row.vip_expire_time || 0;
-        // 如果已经是会员且未过期，在现有时间基础上累加
-        const newExpire = Math.max(currentExpire, now) + duration;
-        
-        db.run(`UPDATE users SET is_vip = 1, vip_expire_time = ?, vip_type = ? WHERE id = ?`,
-          [newExpire, data.vipType, user.id],
+      if (isLifetime) {
+        // 终身会员：设置一个极大的时间戳
+        db.run(`UPDATE users SET is_vip = 1, vip_expire_time = 9999999999999, vip_type = 'lifetime' WHERE id = ?`,
+          [user.id],
           (err) => {
             if (err) {
-              console.error("❌ 激活会员失败:", err);
+              console.error("❌ 激活终身会员失败:", err);
             } else {
-              const expireDate = new Date(newExpire);
-              console.log(`💎 ${user.nickname} 激活${data.vipType}会员，到期: ${expireDate.toLocaleString()}`);
-              
-              // 更新用户对象
+              console.log(`💎 ${user.nickname} 激活终身会员`);
               user.isVip = true;
-              user.vipExpireTime = newExpire;
-              user.vipType = data.vipType;
-              
-              // 返回会员信息
+              user.vipExpireTime = 9999999999999;
+              user.vipType = 'lifetime';
               ws.send(JSON.stringify({
                 type: "vipActivated",
                 isVip: true,
-                expireTime: newExpire,
-                vipType: data.vipType
+                expireTime: 9999999999999,
+                vipType: 'lifetime'
               }));
             }
           }
         );
-      });
+      } else {
+        const duration = data.duration;
+        
+        db.get(`SELECT vip_expire_time FROM users WHERE id = ?`, [user.id], (err, row) => {
+          if (err) {
+            console.error("❌ 查询会员信息失败:", err);
+            return;
+          }
+          
+          const currentExpire = row.vip_expire_time || 0;
+          const newExpire = Math.max(currentExpire, now) + duration;
+          
+          db.run(`UPDATE users SET is_vip = 1, vip_expire_time = ?, vip_type = ? WHERE id = ?`,
+            [newExpire, data.vipType, user.id],
+            (err) => {
+              if (err) {
+                console.error("❌ 激活会员失败:", err);
+              } else {
+                const expireDate = new Date(newExpire);
+                console.log(`💎 ${user.nickname} 激活${data.vipType}会员，到期: ${expireDate.toLocaleString()}`);
+                
+                user.isVip = true;
+                user.vipExpireTime = newExpire;
+                user.vipType = data.vipType;
+                
+                ws.send(JSON.stringify({
+                  type: "vipActivated",
+                  isVip: true,
+                  expireTime: newExpire,
+                  vipType: data.vipType
+                }));
+              }
+            }
+          );
+        });
+      }
     }
     
     // ⭐ 新增：查询会员状态
