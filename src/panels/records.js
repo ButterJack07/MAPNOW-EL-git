@@ -31,8 +31,8 @@ function displayPublishedList(bubbles) {
         const views = bubble.view_count || 0;
         const statusColor = bubble.status === 'active' ? '#4CAF50' : '#999';
         const statusText = bubble.status === 'active' ? '公开' : '私密';
-        const safeTitle = (bubble.title || '').replace(/'/g, '\\'');
-        const safeContent = (bubble.content || '').replace(/'/g, '\\'').replace(/\n/g, '\\n');
+        const safeTitle = (bubble.title || '').replace(/'/g, "\\'");
+        const safeContent = (bubble.content || '').replace(/'/g, "\\'").replace(/\n/g, '\\n');
         const images = bubble.images ? (Array.isArray(bubble.images) ? bubble.images : JSON.parse(bubble.images || '[]')) : [];
         const showContent = bubble.content && bubble.content.trim();
 
