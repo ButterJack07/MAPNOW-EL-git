@@ -47,7 +47,7 @@
 
     }
 
-    // 地区选择逻辑已移入 src/panels/region.js
+    // 地区选择逻辑在 js/region.js
 
 
     // 编辑个人简介（修复版）
@@ -228,7 +228,7 @@ function updateUserInfo(field, value) {
     }
     
         
-    // 主题选择系统已移入 src/panels/theme.js
+    // 主题选择系统在 js/theme.js
         
     // 切换用户中心标签
     function switchUCTab(tabName) {
@@ -527,7 +527,7 @@ function updateUserInfo(field, value) {
         }
     }
         
-    // 气泡筛选相关已移入 src/panels/filter.js
+    // 气泡筛选相关在 js/filter.js
 
     // 查询浏览记录
     // ── 气泡编辑功能 ──────────────────────────────────────────────
@@ -789,7 +789,7 @@ function updateUserInfo(field, value) {
         console.log(`✅ 显示 ${results.length} 条搜索结果`);
     }
         
-    // 通知与收件箱逻辑已移入 src/panels/inbox.js
+    // 通知与收件箱逻辑在 js/inbox.js
         
     // 记录气泡浏览
     function recordBubbleView(bubbleId) {
@@ -815,7 +815,7 @@ function updateUserInfo(field, value) {
         }
     }
         
-    // 气泡互动逻辑已移入 src/panels/bubble.js
+    // 气泡互动逻辑在 js/bubble.js
         
     // ==================== 初始化 ====================
         
@@ -4732,7 +4732,7 @@ let publishWizardStep = 0;
 
     // 隐藏发布气泡面板
 
-    // 发布面板逻辑已移入 src/panels/publish.js
+    // 发布面板逻辑在 js/publish.js
 
 // ⭐ 圆形类型选择（合并两个函数）
     function selectBubbleTypeCircle(type) {
@@ -5166,7 +5166,7 @@ function updateTimeWheel(type) {
 }
 
 
-// 气泡筛选功能已移入 src/panels/filter.js
+// 气泡筛选功能在 js/filter.js
 
     // ==================== 页面加载时初始化 ====================
 
