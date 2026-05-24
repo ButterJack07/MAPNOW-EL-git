@@ -8,6 +8,10 @@
     <script src="src/panels/auth.js"></script>
     <script src="src/panels/publish.js"></script>
     <script src="src/panels/user-center.js"></script>
+    <script src="src/panels/inbox.js"></script>
+    <script src="src/panels/theme.js"></script>
+    <script src="src/panels/records.js"></script>
+    <script src="src/panels/region.js"></script>
     <script src="src/panels/settings.js"></script>
     <script src="src/panels/range-core.js"></script>
     <script src="src/panels/range-panel.js"></script>
@@ -169,7 +173,7 @@
                 <input type="range" id="rangeSlider" min="100" max="5000" value="1000" step="100"
                        style="width: 100%; height: 6px; border-radius: 3px;
                                background: linear-gradient(90deg, #d4d0ca 0%, #bcb6ae 100%);
-                               outline: none; -webkit-appearance: none;"
+                               outline: none; appearance: none; -webkit-appearance: none;"
                        oninput="updateRangePreview(this.value)">
                 
             <div style="position: relative; height: 18px; margin-top: 10px;">
@@ -1575,7 +1579,7 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
                                     <span id="hoursValue" style="font-size: 12px; color: var(--primary-color);">0</span>
                                 </div>
                                 <input type="range" id="customHoursSlider" min="0" max="99" value="0"
-                                       style="width: 100%; height: 3px; border-radius: 1.5px; background: #e0e0e0; outline: none; -webkit-appearance: none;"
+                                       style="width: 100%; height: 3px; border-radius: 1.5px; background: #e0e0e0; outline: none; appearance: none; -webkit-appearance: none;"
                                        oninput="updateCustomTimeFromSlider('hours')">
                             </div>
 
@@ -1585,7 +1589,7 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
                                     <span id="minutesValue" style="font-size: 12px; color: var(--primary-color);">0</span>
                                 </div>
                                 <input type="range" id="customMinutesSlider" min="0" max="59" value="0"
-                                       style="width: 100%; height: 3px; border-radius: 1.5px; background: #e0e0e0; outline: none; -webkit-appearance: none;"
+                                       style="width: 100%; height: 3px; border-radius: 1.5px; background: #e0e0e0; outline: none; appearance: none; -webkit-appearance: none;"
                                        oninput="updateCustomTimeFromSlider('minutes')">
                             </div>
 
@@ -1689,7 +1693,7 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
             <input type="range" id="rangeSlider" min="100" max="5000" value="1000" step="100"
                    style="width: 100%; height: 6px; border-radius: 3px;
                           background: linear-gradient(90deg, #5483B3 0%, #052659 100%);
-                          outline: none; -webkit-appearance: none;"
+                          outline: none; appearance: none; -webkit-appearance: none;"
                    oninput="updateRangePreview(this.value)">
             
             // 在同一个函数附近，找到滑块旁边的刻度标签，替换为：
@@ -1890,7 +1894,7 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
             <input type="range" id="filterTimeSlider" min="0" max="5" value="0" step="1"
                    style="width: 100%; height: 6px; border-radius: 3px;
                           background: linear-gradient(90deg, #5483B3 0%, #667eea 100%);
-                          outline: none; -webkit-appearance: none;"
+                          outline: none; appearance: none; -webkit-appearance: none;"
                    oninput="updateFilterTimePreview(this.value)">
             
             <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 11px; color: var(--text-secondary);">
