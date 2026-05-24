@@ -1,0 +1,248 @@
+.floating-buttons {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 2100;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 24px;
+    background: rgba(235, 232, 227, 0.5);
+    border: 1px solid rgba(201, 194, 186, 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.float-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: 1px solid var(--btn-soft-border);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+    color: var(--text-primary);
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.mobile-user-btn {
+    display: flex;
+}
+
+.float-btn.active,
+.mobile-user-btn.active {
+    outline: 2px solid #a29d95;
+    outline-offset: 1px;
+    background: #c9c3bc !important;
+    color: var(--text-primary) !important;
+}
+
+.nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-size: 25px;
+}
+
+.float-btn .nav-icon,
+.mobile-user-btn .nav-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.nav-label {
+    display: none;
+}
+
+.float-btn::after {
+    content: attr(title);
+    position: absolute;
+    right: 65px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    font-weight: 500;
+}
+
+.float-btn:hover::after {
+    opacity: 1;
+}
+
+.float-btn:hover {
+    transform: scale(1.07) translateX(-4px) translateY(-1px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.28);
+}
+
+.float-btn:active {
+    transform: scale(0.93);
+}
+
+.float-btn.active {
+    transform: scale(1.04);
+    box-shadow: 0 8px 26px rgba(82, 78, 72, 0.28);
+}
+
+.float-btn::before,
+.mobile-user-btn::before {
+    content: "";
+    position: absolute;
+    inset: -40% auto auto -130%;
+    width: 80%;
+    height: 180%;
+    background: linear-gradient(110deg, rgba(255,255,255,0), rgba(255,255,255,0.42), rgba(255,255,255,0));
+    transform: rotate(14deg);
+    pointer-events: none;
+}
+
+.float-btn:hover::before,
+.mobile-user-btn:hover::before,
+.float-btn.active::before,
+.mobile-user-btn.active::before {
+    animation: sheenSweep var(--motion-wow) var(--ease-out-emphasis);
+}
+
+@keyframes sheenSweep {
+    from { left: -130%; }
+    to { left: 150%; }
+}
+
+/* 按钮特定颜色 */
+#filterButton {
+    background: var(--btn-soft-bg);
+}
+
+#publishButton {
+    background: var(--btn-soft-bg);
+}
+
+#chatButton {
+    background: var(--btn-soft-bg);
+}
+
+#rangeButton {
+    background: var(--btn-soft-bg);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .floating-buttons {
+        bottom: 15px;
+        right: 15px;
+        gap: 10px;
+    }
+    
+    .float-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 22px;
+    }
+
+    .mobile-user-btn {
+        display: flex !important;
+    }
+
+    .floating-buttons {
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        bottom: max(10px, env(safe-area-inset-bottom));
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        gap: 7px;
+        width: max-content;
+        padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
+        border-radius: 18px;
+        background: rgba(235, 232, 227, 0.58);
+        border: 1px solid var(--border-light);
+        box-shadow: 0 8px 22px rgba(44, 41, 37, 0.16);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .float-btn {
+        width: 60px;
+        min-width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 1px solid var(--btn-soft-border);
+        background: var(--btn-soft-bg) !important;
+        color: var(--text-primary);
+        font-size: 22px;
+        box-shadow: none;
+        transform: none !important;
+        display: flex;
+        flex-direction: row;
+        gap: 0;
+        transition: transform var(--motion-fast) var(--ease-out-soft), background-color var(--motion-fast) var(--ease-out-soft), box-shadow var(--motion-fast) var(--ease-out-soft);
+    }
+
+    .float-btn::after {
+        display: none;
+    }
+
+    .float-btn:hover {
+        box-shadow: 0 6px 14px rgba(49, 46, 42, 0.12);
+        transform: translateY(-1px) !important;
+    }
+
+    .mobile-user-btn {
+        width: 60px;
+        min-width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        border: 1px solid var(--btn-soft-border);
+        background: var(--btn-soft-bg);
+        color: var(--text-primary);
+        font-size: 22px;
+        font-weight: 500;
+        cursor: pointer;
+        display: flex;
+        flex-direction: row;
+        gap: 0;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        position: relative;
+        overflow: hidden;
+        transition: transform var(--motion-fast) var(--ease-out-soft), background-color var(--motion-fast) var(--ease-out-soft), box-shadow var(--motion-fast) var(--ease-out-soft);
+    }
+
+    .mobile-user-btn:hover {
+        box-shadow: 0 6px 14px rgba(49, 46, 42, 0.12);
+        transform: translateY(-1px);
+    }
+
+    .float-btn .nav-icon,
+    .mobile-user-btn .nav-icon {
+        font-size: 22px;
+    }
+
+    .float-btn .nav-label,
+    .mobile-user-btn .nav-label {
+        display: none;
+        font-size: 10px;
+        line-height: 1.2;
+        color: var(--text-secondary);
+    }
+
+    .float-btn.active .nav-label,
+    .mobile-user-btn.active .nav-label {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+}
