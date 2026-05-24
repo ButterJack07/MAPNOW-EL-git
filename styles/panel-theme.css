@@ -1,0 +1,216 @@
+﻿/* ==================== ⭐ v9.7.6: 主题选择卡片样式 ==================== */
+    .theme-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 11000;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .theme-modal-overlay.show {
+        opacity: 1;
+    }
+    
+    .theme-modal-container {
+        background: var(--card-bg);
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px var(--card-shadow);
+        transform: scale(0.9);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .theme-modal-overlay.show .theme-modal-container {
+        transform: scale(1);
+    }
+    
+    .theme-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 25px;
+        border-bottom: 1px solid var(--border-color);
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+    }
+    
+    .theme-modal-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+    }
+    
+    .theme-modal-close {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    
+    .theme-modal-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+    
+    .theme-modal-body {
+        padding: 25px;
+    }
+    
+    .theme-option {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 2px solid var(--border-color);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: var(--bg-secondary);
+    }
+    
+    .theme-option:hover {
+        border-color: var(--primary-color);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px var(--card-shadow);
+    }
+    
+    .theme-option.active {
+        border-color: var(--primary-color);
+        background: var(--bg-tertiary);
+    }
+    
+    .theme-preview {
+        width: 80px;
+        height: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid var(--border-light);
+        flex-shrink: 0;
+    }
+    
+    .theme-preview-header {
+        height: 15px;
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+    }
+    
+    .theme-preview-content {
+        padding: 5px;
+        display: flex;
+        gap: 5px;
+    }
+    
+    .theme-preview-card {
+        flex: 1;
+        height: 30px;
+        border-radius: 4px;
+    }
+    
+    /* 炫彩主题预览 */
+    .theme-preview-light {
+        background: var(--card-bg);
+    }
+    
+    .theme-preview-light .theme-preview-content {
+        background: var(--bg-secondary);
+    }
+    
+    .theme-preview-light .theme-preview-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+    
+    
+    
+    .theme-info {
+        flex: 1;
+        margin-left: 15px;
+    }
+    
+    .theme-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+    
+    .theme-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+    
+    .theme-check {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--primary-color);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+    
+    .theme-option:not(.active) .theme-check {
+        background: transparent;
+        border: 2px solid var(--border-color);
+    }
+    
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+        .theme-modal-container {
+            width: 95%;
+        }
+        
+        .theme-modal-header {
+            padding: 15px 20px;
+        }
+        
+        .theme-modal-title {
+            font-size: 18px;
+        }
+        
+        .theme-modal-body {
+            padding: 20px;
+        }
+        
+        .theme-option {
+            padding: 12px;
+        }
+        
+        .theme-preview {
+            width: 70px;
+            height: 50px;
+        }
+        
+        .theme-info {
+            margin-left: 12px;
+        }
+        
+        .theme-name {
+            font-size: 15px;
+        }
+        
+        .theme-desc {
+            font-size: 12px;
+        }
+    }
+

@@ -1,0 +1,331 @@
+﻿/* ==================== 会员中心弹窗样式 ==================== */
+    .vip-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10001;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .vip-modal-container {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        position: relative;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .vip-modal-close {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        color: var(--text-secondary);
+    }
+
+    .vip-modal-close:hover {
+        background: #e0e0e0;
+        transform: rotate(90deg);
+    }
+
+    .vip-modal-title {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: var(--text-primary);
+        margin-bottom: 25px;
+    }
+
+    .vip-card {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        border-radius: 15px;
+        padding: 40px 20px;
+        text-align: center;
+        margin-bottom: 25px;
+        box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4);
+    }
+
+    .vip-card-icon {
+        font-size: 60px;
+        margin-bottom: 15px;
+    }
+
+    .vip-card-title {
+        font-size: 28px;
+        font-weight: bold;
+        color: white;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .vip-benefits-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .vip-benefit-item {
+        background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s;
+    }
+
+    .vip-benefit-item:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .vip-benefit-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+    }
+
+    .vip-benefit-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+    }
+
+    .vip-benefit-desc {
+        font-size: 12px;
+        color: var(--text-secondary);
+    }
+
+    .vip-activate-btn {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, #5470C6 0%, #91CC75 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-size: 18px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 15px rgba(84, 112, 198, 0.4);
+    }
+
+    .vip-activate-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(84, 112, 198, 0.6);
+    }
+
+    .vip-activate-btn:active {
+        transform: translateY(0);
+    }
+
+
+
+/* ==================== 会员中心弹窗（简洁版）样式 ==================== */
+    .vip-purchase-container {
+        background: #fff;
+        border-radius: 20px;
+        padding: 28px 24px 24px;
+        max-width: 380px;
+        width: 92%;
+        position: relative;
+        animation: slideUp 0.25s ease;
+        box-shadow: 0 16px 48px rgba(0,0,0,.22);
+    }
+
+    /* 顶部标题 */
+    .vip-modal-title {
+        font-size: 22px;
+        font-weight: 800;
+        margin: 0 0 6px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        letter-spacing: .5px;
+    }
+
+    .vip-modal-subtitle {
+        font-size: 13px;
+        color: var(--text-tertiary);
+        margin: 0 0 22px;
+    }
+
+    /* 套餐列表 */
+    .vip-plans {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .vip-plan-card {
+        display: grid;
+        grid-template-columns: 44px 1fr auto auto;
+        align-items: center;
+        gap: 0 14px;
+        background: #f9faff;
+        border: 1.5px solid #e8ecff;
+        border-radius: 14px;
+        padding: 16px 16px;
+        position: relative;
+        transition: box-shadow .2s, border-color .2s, transform .15s;
+        cursor: default;
+    }
+
+    .vip-plan-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 6px 18px rgba(102,126,234,.18);
+        transform: translateY(-1px);
+    }
+
+    .vip-plan-card.trial-plan {
+        border-color: #f6c90e;
+        background: linear-gradient(135deg,#fffdf0,#fffbe6);
+    }
+
+    .vip-plan-card.premium-plan {
+        border-color: #a29bfe;
+        background: linear-gradient(135deg,#f6f4ff,#ede8ff);
+    }
+
+    .vip-plan-badge {
+        font-size: 32px;
+        text-align: center;
+        line-height: 1;
+    }
+
+    .vip-plan-info {
+        min-width: 0;
+    }
+
+    .vip-plan-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .vip-plan-name {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+
+    .vip-plan-duration {
+        font-size: 12px;
+        color: #aaa;
+        font-weight: 500;
+    }
+
+    .vip-plan-desc {
+        font-size: 12px;
+        color: #aaa;
+        margin-top: 2px;
+        line-height: 1.4;
+    }
+
+    .vip-plan-price {
+        font-size: 20px;
+        font-weight: 800;
+        color: #5c3ebd;
+        white-space: nowrap;
+        text-align: right;
+        min-width: 52px;
+    }
+
+    .vip-plan-card.trial-plan .vip-plan-price { color: #c89000; }
+    .vip-plan-card.premium-plan .vip-plan-price { color: #6c5ce7; }
+
+    .vip-recommended-badge {
+        position: absolute;
+        top: -10px;
+        right: 14px;
+        background: linear-gradient(135deg,#667eea,#764ba2);
+        color: white;
+        padding: 2px 10px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .5px;
+        box-shadow: 0 2px 6px rgba(102,126,234,.35);
+    }
+
+    .vip-plan-btn {
+        padding: 9px 16px;
+        border: none;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all .2s;
+        white-space: nowrap;
+        min-width: 72px;
+        text-align: center;
+    }
+
+    .vip-btn-active {
+        background: linear-gradient(135deg,#667eea,#764ba2);
+        color: white;
+        box-shadow: 0 4px 12px rgba(102,126,234,.4);
+    }
+
+    .vip-btn-active:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(102,126,234,.5);
+    }
+
+    .vip-btn-disabled {
+        background: var(--bg-secondary);
+        color: #ccc;
+        cursor: not-allowed;
+        font-size: 12px;
+    }
+
+    /* VIP 权益列表 */
+    .vip-perks {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px dashed #e8ecff;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .vip-perk-tag {
+        background: #f0f4ff;
+        color: var(--primary-color);
+        border-radius: 20px;
+        padding: 5px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid #d8e2ff;
+    }

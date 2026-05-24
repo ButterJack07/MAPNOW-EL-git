@@ -1,0 +1,168 @@
+﻿/* ==================== v9.7.5: 关于应用/隐私政策弹窗样式 ==================== */
+    .info-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 11000;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .info-modal-container {
+        background: var(--card-bg);
+        border-radius: 20px;
+        width: 90%;
+        max-width: 700px;
+        max-height: 85vh;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    @keyframes slideInUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    
+    .info-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 25px;
+        border-bottom: 1px solid #e0e0e0;
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+    }
+    
+    .info-modal-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: white;
+        margin: 0;
+    }
+    
+    .info-modal-close {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+    
+    .info-modal-close:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.1);
+    }
+    
+    .info-modal-body {
+        padding: 25px;
+        max-height: calc(85vh - 81px);
+        overflow-y: auto;
+    }
+    
+    .info-modal-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .info-modal-body::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .info-modal-body::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 10px;
+    }
+    
+    .info-modal-body::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    
+    .info-section {
+        margin-bottom: 25px;
+    }
+    
+    .info-section:last-child {
+        margin-bottom: 0;
+    }
+    
+    .info-section-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #667eea;
+    }
+    
+    .info-section-content {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.8;
+        margin: 0 0 10px 0;
+    }
+    
+    .info-list {
+        margin: 12px 0;
+        padding-left: 20px;
+    }
+    
+    .info-list li {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.8;
+        margin-bottom: 10px;
+    }
+    
+    .info-list li strong {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+    
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+        .info-modal-container {
+            width: 95%;
+            max-height: 90vh;
+        }
+        
+        .info-modal-header {
+            padding: 15px 20px;
+        }
+        
+        .info-modal-title {
+            font-size: 18px;
+        }
+        
+        .info-modal-body {
+            padding: 20px;
+            max-height: calc(90vh - 71px);
+        }
+        
+        .info-section-title {
+            font-size: 15px;
+        }
+        
+        .info-section-content,
+        .info-list li {
+            font-size: 13px;
+        }
+    }
+

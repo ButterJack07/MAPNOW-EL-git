@@ -1,0 +1,601 @@
+﻿/* ==================== ⭐ v9.4.0: 私聊系统样式 ==================== */
+.chat-list-overlay, .chat-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.7);
+display: flex;
+align-items: center;
+justify-content: center;
+z-index: 10007;
+animation: fadeIn 0.3s ease;
+}
+
+.chat-list-container, .chat-container {
+background: var(--card-bg);
+border-radius: 20px;
+max-width: 500px;
+width: 90%;
+height: 80vh;
+max-height: 700px;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+animation: slideUp 0.3s ease;
+box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.chat-list-header, .chat-header {
+display: flex;
+align-items: center;
+padding: 15px 20px;
+border-bottom: 1px solid #e0e0e0;
+background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+color: white;
+flex-shrink: 0;
+}
+
+.chat-back {
+width: 35px;
+height: 35px;
+border-radius: 50%;
+background: rgba(255, 255, 255, 0.2);
+border: none;
+font-size: 20px;
+cursor: pointer;
+color: white;
+margin-right: 15px;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: all 0.3s;
+}
+
+.chat-back:hover {
+background: rgba(255, 255, 255, 0.3);
+transform: scale(1.1);
+}
+
+.chat-list-header h2 {
+margin: 0;
+font-size: 18px;
+font-weight: 600;
+}
+
+.chat-list {
+flex: 1;
+overflow-y: auto;
+padding: 10px;
+}
+
+.chat-item {
+display: flex;
+align-items: center;
+padding: 12px;
+border-radius: 12px;
+cursor: pointer;
+transition: all 0.3s;
+margin-bottom: 8px;
+position: relative;
+}
+
+.chat-item:hover {
+background: #f5f7fa;
+transform: translateX(5px);
+}
+
+.chat-avatar {
+font-size: 40px;
+margin-right: 12px;
+flex-shrink: 0;
+width: 40px;
+height: 40px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.chat-avatar img {
+width: 40px;
+height: 40px;
+border-radius: 50%;
+object-fit: cover;
+}
+
+.chat-info {
+flex: 1;
+min-width: 0;
+}
+
+.chat-name {
+font-size: 14px;
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: 4px;
+}
+
+.chat-last-message {
+font-size: 12px;
+color: var(--text-tertiary);
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.chat-unread {
+position: absolute;
+top: 10px;
+right: 10px;
+background: #FF6B6B;
+color: white;
+font-size: 11px;
+padding: 2px 6px;
+border-radius: 10px;
+font-weight: 600;
+min-width: 18px;
+text-align: center;
+}
+
+.chat-user-info {
+display: flex;
+align-items: center;
+gap: 10px;
+flex: 1;
+}
+
+.chat-user-avatar {
+font-size: 24px;
+width: 24px;
+height: 24px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.chat-user-avatar img {
+width: 24px;
+height: 24px;
+border-radius: 50%;
+object-fit: cover;
+}
+
+.chat-user-name {
+font-size: 16px;
+font-weight: 600;
+}
+
+/* 修复私聊消息区域 */
+.chat-messages {
+flex: 1 1 auto;
+overflow-y: auto;
+padding: 20px;
+background: #f5f7fa;
+min-height: 0;
+max-height: none; /* 移除固定高度限制 */
+}
+
+/* 修复输入区域 */
+.chat-input-area {
+display: flex;
+padding: 15px;
+border-top: 1px solid #e0e0e0;
+background: var(--card-bg);
+flex-shrink: 0;
+}
+
+.message-item {
+margin-bottom: 15px;
+animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+from {
+    opacity: 0;
+    transform: translateY(10px);
+}
+to {
+    opacity: 1;
+    transform: translateY(0);
+}
+}
+
+.message-received {
+display: flex;
+justify-content: flex-start;
+}
+
+.message-sent {
+display: flex;
+justify-content: flex-end;
+}
+
+.message-content {
+max-width: 70%;
+padding: 10px 14px;
+border-radius: 12px;
+word-wrap: break-word;
+line-height: 1.4;
+}
+
+.message-received .message-content {
+background: var(--card-bg);
+border: 1px solid var(--border-color);
+border-bottom-left-radius: 4px;
+color: var(--text-primary);
+}
+
+.message-sent .message-content {
+background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+color: white;
+border-bottom-right-radius: 4px;
+}
+
+.message-time {
+font-size: 10px;
+color: var(--text-tertiary);
+margin-top: 4px;
+text-align: center;
+}
+
+.message-sent .message-time {
+color: rgba(255, 255, 255, 0.8);
+}
+
+.chat-input-area {
+display: flex;
+padding: 15px;
+border-top: 1px solid #e0e0e0;
+background: var(--card-bg);
+flex-shrink: 0;
+}
+
+.chat-input-area input {
+flex: 1;
+padding: 10px 15px;
+border: 1px solid var(--border-color);
+border-radius: 20px;
+font-size: 14px;
+outline: none;
+margin-right: 10px;
+transition: all 0.3s;
+}
+
+.chat-input-area input:focus {
+border-color: var(--primary-color);
+box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.chat-send-btn {
+padding: 10px 20px;
+background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+color: white;
+border: none;
+border-radius: 20px;
+font-size: 14px;
+font-weight: 600;
+cursor: pointer;
+transition: all 0.3s;
+flex-shrink: 0;
+}
+
+.chat-send-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.chat-send-btn:active {
+transform: translateY(0);
+}
+
+/* ==================== ⭐ v9.4.0: 评论展开区域样式 ==================== */
+.comment-list {
+max-height: 300px;
+overflow-y: auto;
+margin-bottom: 10px;
+}
+
+.comment-item {
+display: flex;
+gap: 10px;
+padding: 10px;
+background: var(--bg-secondary);
+border-radius: 8px;
+margin-bottom: 8px;
+animation: slideIn 0.3s ease;
+}
+
+.comment-avatar {
+font-size: 24px;
+flex-shrink: 0;
+width: 24px;
+height: 24px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.comment-avatar img {
+width: 24px;
+height: 24px;
+border-radius: 50%;
+object-fit: cover;
+}
+
+.comment-content {
+flex: 1;
+min-width: 0;
+}
+
+.comment-author {
+font-size: 13px;
+font-weight: 600;
+color: var(--text-primary);
+margin-bottom: 4px;
+}
+
+.comment-text {
+font-size: 13px;
+color: var(--text-secondary);
+line-height: 1.4;
+margin-bottom: 4px;
+word-wrap: break-word;
+}
+
+.comment-time {
+font-size: 11px;
+color: var(--text-tertiary);
+}
+
+.comment-input-area {
+display: flex;
+gap: 8px;
+margin-top: 10px;
+}
+
+.comment-input-area input {
+flex: 1;
+padding: 8px 12px;
+border: 1px solid var(--border-color);
+border-radius: 8px;
+font-size: 13px;
+outline: none;
+transition: all 0.3s;
+}
+
+.comment-input-area input:focus {
+border-color: var(--primary-color);
+box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+}
+
+.comment-input-area button {
+padding: 8px 16px;
+background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+color: white;
+border: none;
+border-radius: 8px;
+font-size: 13px;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.3s;
+flex-shrink: 0;
+}
+
+.comment-input-area button:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.comment-input-area button:active {
+transform: translateY(0);
+}
+
+/* ==================== 私聊名片卡样式 ==================== */
+.chat-dropdown-btn {
+width: 30px;
+height: 30px;
+border-radius: 50%;
+background: rgba(255,255,255,0.2);
+border: none;
+color: white;
+font-size: 16px;
+cursor: pointer;
+display: flex;
+align-items: center;
+justify-content: center;
+transition: transform 0.3s ease;
+margin-left: auto;
+}
+
+.chat-dropdown-btn.rotated {
+transform: rotate(180deg);
+}
+
+.user-card-container {
+background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+border-bottom: 1px solid #e0e0e0;
+max-height: 0;
+overflow: hidden;
+transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+flex-shrink: 0;
+width: 100%;
+}
+
+.user-card-container.expanded {
+max-height: 70vh;  /* 展开到视窗高度的70% */
+overflow-y: auto;   /* 内容过多时可以滚动 */
+}
+
+.user-card-content {
+padding: 20px;
+opacity: 0;
+transition: opacity 0.3s ease 0.2s;
+}
+
+.user-card-container.expanded .user-card-content {
+opacity: 1;
+}
+
+.user-card-avatar-large {
+width: 80px;
+height: 80px;
+border-radius: 50%;
+background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+display: flex;
+align-items: center;
+justify-content: center;
+font-size: 48px;
+margin: 0 auto 15px;
+border: 3px solid white;
+box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.user-card-name-row {
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+margin-bottom: 5px;
+}
+
+.user-card-name {
+font-size: 20px;
+font-weight: 600;
+color: var(--text-primary);
+}
+
+.user-card-vip-badge {
+padding: 3px 8px;
+background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+color: white;
+border-radius: 12px;
+font-size: 11px;
+font-weight: bold;
+}
+
+.user-card-id {
+text-align: center;
+font-size: 12px;
+color: var(--text-tertiary);
+margin-bottom: 15px;
+font-family: 'Courier New', monospace;
+}
+
+.user-card-bio {
+background: var(--card-bg);
+border-radius: 12px;
+padding: 15px;
+margin-bottom: 15px;
+font-size: 14px;
+color: var(--text-secondary);
+line-height: 1.6;
+border-left: 4px solid #667eea;
+box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.user-card-details-grid {
+display: grid;
+grid-template-columns: repeat(2, 1fr);
+gap: 10px;
+margin-bottom: 20px;
+}
+
+.detail-item {
+background: var(--card-bg);
+border-radius: 10px;
+padding: 12px 10px;
+display: flex;
+align-items: center;
+gap: 8px;
+box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.detail-icon {
+font-size: 20px;
+width: 24px;
+text-align: center;
+}
+
+.detail-text {
+font-size: 13px;
+color: var(--text-primary);
+flex: 1;
+white-space: nowrap;
+overflow: hidden;
+text-overflow: ellipsis;
+}
+
+.user-card-actions {
+display: flex;
+gap: 10px;
+}
+
+.user-card-btn {
+flex: 1;
+padding: 10px;
+border: none;
+border-radius: 8px;
+font-size: 13px;
+font-weight: 500;
+cursor: pointer;
+transition: all 0.2s;
+background: var(--primary-color);
+color: white;
+}
+
+.user-card-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+}
+
+.user-card-btn-danger {
+background: #ff6b6b;
+}
+
+.user-card-btn-danger:hover {
+box-shadow: 0 4px 12px rgba(255,107,107,0.3);
+}
+
+.toggle-custom-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border: 2px solid #667eea;
+    background: var(--card-bg);
+    color: var(--primary-color);
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.toggle-custom-btn:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* 自定义时长区域 */
+.custom-time-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #667eea;
+}
+
+.custom-time-header span {
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.custom-time-header button {
+    padding: 6px 12px;
+    background: var(--bg-secondary);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+

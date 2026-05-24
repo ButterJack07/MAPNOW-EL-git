@@ -1,0 +1,166 @@
+﻿/* ==================== 局域范围调节面板样式（居中弹窗） ==================== */
+/* 背景遮罩 */
+.range-panel-overlay {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+z-index: 9999;
+display: none;
+align-items: center;
+justify-content: center;
+backdrop-filter: blur(3px);
+}
+
+.range-panel {
+width: 400px;
+max-width: 90%;
+background: var(--card-bg);
+border-radius: 20px;
+box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+animation: slideUpFromBottom 0.4s ease;  /* 修改这里 */
+border: 1px solid rgba(255,255,255,0.2);
+margin: 0 auto;
+}
+
+/* 添加新的动画 - 从下往上 */
+@keyframes slideUpFromBottom {
+from {
+    opacity: 0;
+    transform: translateY(50px);
+}
+to {
+    opacity: 1;
+    transform: translateY(0);
+}
+}
+
+.range-panel-header {
+display: flex;
+justify-content: space-between;
+align-items: center;
+padding: 20px;
+border-bottom: 1px solid #e0e0e0;
+/* ⭐ v9.6.7: 改为统一的蓝紫色渐变 */
+background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+color: white;
+border-radius: 20px 20px 0 0;
+}
+
+.range-panel-header h3 {
+margin: 0;
+color: white;
+font-size: 18px;
+}
+
+.range-panel-header button {
+background: none;
+border: none;
+color: white;
+font-size: 24px;
+cursor: pointer;
+width: 30px;
+height: 30px;
+display: flex;
+align-items: center;
+justify-content: center;
+border-radius: 50%;
+transition: background 0.3s;
+}
+
+.range-panel-header button:hover {
+background: rgba(255, 255, 255, 0.2);
+}
+
+.range-panel-content {
+padding: 20px;
+color: var(--text-primary);
+max-height: 80vh;
+overflow-y: auto;
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+.range-panel {
+    width: 95%;
+    max-width: 95%;
+}
+}
+
+/* 范围滑块样式 */
+#rangeSlider {
+width: 100%;
+height: 6px;
+border-radius: 3px;
+background: linear-gradient(90deg, #5483B3 0%, #052659 100%);
+outline: none;
+appearance: none;
+-webkit-appearance: none;
+}
+
+#rangeSlider::-webkit-slider-thumb {
+-webkit-appearance: none;
+appearance: none;
+width: 24px;
+height: 24px;
+border-radius: 50%;
+background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+cursor: pointer;
+box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+transition: all 0.2s;
+}
+
+#rangeSlider::-webkit-slider-thumb:hover {
+transform: scale(1.2);
+box-shadow: 0 4px 12px rgba(102, 126, 234, 0.6);
+}
+
+#rangeSlider::-moz-range-thumb {
+width: 24px;
+height: 24px;
+border-radius: 50%;
+background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+cursor: pointer;
+border: none;
+box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+}
+
+    
+
+    /* 快捷范围按钮 */
+    .range-presets {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .range-preset-btn {
+        padding: 10px;
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: all 0.3s;
+        box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3);
+    }
+
+    .range-preset-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.5);
+    }
+
+    .range-preset-btn:active {
+        transform: translateY(0);
+    }
+
+    /* 范围状态悬停效果 */
+    .range-status:hover {
+        background: rgba(102, 126, 234, 0.3) !important;
+        transform: scale(1.05);
+    }
+

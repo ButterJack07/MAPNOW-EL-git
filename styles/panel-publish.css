@@ -1,0 +1,468 @@
+﻿/* ==================== 发布气泡面板 - 居中弹窗风格 ==================== */
+    .publish-panel {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        /* ⭐ v9.6.10: 遮罩淡入动画 */
+        animation: overlayFadeIn 0.3s ease;
+    }
+    
+    .publish-panel.show {
+        display: flex;
+    }
+    
+    /* ⭐ v9.6.10: 面板关闭动画 */
+    .publish-panel.closing {
+        animation: overlayFadeOut 0.3s ease;
+    }
+    
+    @keyframes overlayFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    @keyframes overlayFadeOut {
+        from { opacity: 1; }
+        to { opacity: 0; }
+    }
+    
+
+    .publish-panel-container {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 25px;
+        width: 90%;
+        max-width: 500px;
+        max-height: 95vh;  /* 从80vh改为90vh，增加高度 */
+        height: auto;      /* 添加height: auto让容器根据内容自动调整 */
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        /* 修改为从下往上浮出动画 */
+        animation: slideUpFromBottom 0.4s ease;
+        overflow-y: auto;  /* 保持auto，但内容应该不会溢出 */
+    }
+
+    /* 添加关闭动画 */
+    .publish-panel.closing .publish-panel-container {
+        animation: slideDownToBottom 0.3s ease forwards;
+    }
+
+    @keyframes slideUpFromBottom {
+        from {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slideDownToBottom {
+        from {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateY(50px);
+        }
+    }
+
+    .publish-panel-container::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+
+    .publish-panel-container::-webkit-scrollbar-track {
+        background: transparent;
+        margin: 12px 0;  /* 上下各留8px边距，让滚动条缩短 */
+        border-radius: 10px;
+    }
+
+    .publish-panel-container::-webkit-scrollbar-thumb {
+        background: #9aaec9;
+        border-radius: 10px;
+        min-height: 40px;  /* 确保滚动条滑块有一定最小高度，避免太短 */
+    }
+    .publish-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        /* ⭐ v9.6.7: 蓝紫色渐变背景 */
+        background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
+        padding: 20px;
+        margin: -25px -25px 20px -25px;
+        border-radius: 20px 20px 0 0;
+    }
+    
+    .publish-panel-header h3 {
+        color: white; /* ⭐ v9.6.7: 白色文字 */
+        font-size: 20px;
+        margin: 0;
+    }
+    
+    .publish-panel-header button {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: white; /* ⭐ v9.6.7: 白色关闭按钮 */
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: all 0.3s;
+    }
+    
+    .publish-panel-header button:hover {
+        background: rgba(255, 255, 255, 0.2); /* ⭐ v9.6.7: 半透明白色背景 */
+    }
+
+    /* ⭐ ceshi.html 样式组件 */
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #2d4059;
+        font-weight: 600;
+        font-size: 15px;
+        margin-bottom: 12px;
+        letter-spacing: 0.3px;
+    }
+
+    /* 圆形类型选择器 */
+    .type-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+        margin-bottom: 24px;
+    }
+
+    .type-circle {
+        aspect-ratio: 1 / 1;
+        width: 100%;
+        background: var(--card-bg);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.05);
+        border: 1px solid rgba(224, 231, 237, 0.8);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        padding: 4px 0;
+    }
+
+    .type-circle.active {
+        background: linear-gradient(135deg, #2d4059 0%, #1d2f45 100%);
+        border-color: #2d4059;
+        box-shadow: 0 8px 16px -6px rgba(45,64,89,0.5);
+        transform: scale(1.02);
+    }
+
+    .type-circle.active .type-emoji,
+    .type-circle.active .type-name {
+        color: white;
+    }
+
+    .type-emoji {
+        font-size: 22px;
+        line-height: 1;
+        margin-bottom: 2px;
+    }
+
+    .type-name {
+        font-size: 10px;
+        font-weight: 600;
+        color: #2d4059;
+        text-align: center;
+        line-height: 1.2;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 0 2px;
+    }
+
+    /* 输入框 */
+    .input-field {
+        margin-bottom: 20px;
+    }
+    
+    .input-field label {
+        display: block;
+        color: #2d4059;
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    
+    .input-field input,
+    .input-field textarea {
+        width: 100%;
+        padding: 14px 18px;
+        background: var(--card-bg);
+        border: 1px solid #eef2f6;
+        border-radius: 30px;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.2s;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        font-family: inherit;
+        resize: vertical;
+    }
+    
+    .input-field input:focus,
+    .input-field textarea:focus {
+        border-color: #bad2f0;
+        box-shadow: 0 8px 20px rgba(84, 131, 179, 0.15);
+    }
+    
+    .input-field textarea {
+        min-height: 90px;
+        border-radius: 24px;
+    }
+
+    /* 时间选择区域 */
+    .time-section {
+        background: rgba(255,255,255,0.7);
+        border-radius: 30px;
+        padding: 16px 20px;  /* 调整内边距，上下稍小，左右不变 */
+        margin-bottom: 16px;  /* 减小底部边距 */
+        border: 1px solid rgba(255,255,255,0.9);
+        box-shadow: 0 6px 14px rgba(0,0,0,0.02);
+        backdrop-filter: blur(8px);
+        overflow: hidden;
+    }
+
+    .time-section h4 {
+        color: #1d2f45;
+        font-size: 14px;  /* 从15px减小到14px */
+        font-weight: 600;
+        margin-bottom: 12px;  /* 从16px减小到12px */
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    /* ⭐ v9.6.10: 滑动容器样式 */
+    .time-selector-wrapper {
+        display: flex;
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 200%; /* 两个页面，每个50% */
+    }
+    
+    .time-selector-wrapper.show-custom {
+        transform: translateX(-50%); /* 显示第二页（自定义） */
+    }
+    
+    .time-selector-page {
+        width: 50%; /* 每个页面占50% */
+        flex-shrink: 0;
+    }
+    
+    /* 滑动提示 */
+    .swipe-hint {
+        text-align: center;
+        margin-top: 12px;
+        font-size: 12px;
+        color: var(--text-tertiary);
+        font-weight: 500;
+    }
+    
+    .swipe-hint span {
+        display: inline-block;
+        padding: 6px 16px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 20px;
+        color: var(--primary-color);
+    }
+
+    /* time-chip */
+    .time-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 6px;
+        margin: 0;  /* 移除默认边距 */
+    }
+
+    .time-chip {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 6px 2px;  /* 从8px减小到6px */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border: 1px solid #e2e9f2;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        transition: all 0.15s;
+        cursor: pointer;
+    }
+
+    .time-chip .value {
+        font-weight: 700;
+        font-size: 14px;  /* 从15px减小到14px */
+        color: #1d2f45;
+    }
+
+    .time-chip .unit {
+        font-size: 8px;  /* 从9px减小到8px */
+        color: #6f7d95;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.2px;
+    }
+    .time-chip.active {
+        background: linear-gradient(135deg, #e3efff 0%, #d0e4ff 100%);
+        border-color: #bad2f0;
+        box-shadow: 0 6px 12px -4px rgba(84, 131, 179, 0.3);
+    }
+
+    .time-chip.active .value,
+    .time-chip.active .unit {
+        color: #1e3a5f;
+    }
+
+    /* 自定义时间选择器 */
+    .custom-picker {
+        background: #f8fafd;
+        border-radius: 60px;
+        padding: 12px 16px;
+        border: 1px solid #e0e7ed;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+
+    .custom-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2d4059;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .wheel-simulator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--card-bg);
+        padding: 5px 12px;
+        border-radius: 40px;
+        box-shadow: inset 0 1px 4px rgba(0,0,0,0.02);
+    }
+
+    .wheel-unit {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        font-weight: 600;
+        color: #1d2f45;
+    }
+
+    .wheel-unit span:first-child {
+        font-size: 16px;
+        min-width: 24px;
+        text-align: center;
+    }
+
+    .wheel-unit span:last-child {
+        font-size: 10px;
+        color: #8a99b0;
+        font-weight: 400;
+    }
+
+    .wheel-sep {
+        color: #cbd5e1;
+        font-weight: 600;
+        font-size: 18px;
+    }
+
+    /* 发布按钮 */
+    .publish-btn {
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, #2d4059 0%, #1d2f45 100%);
+        border: none;
+        border-radius: 60px;
+        color: white;
+        font-weight: 700;
+        font-size: 18px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 12px 28px -8px rgba(29,47,69,0.4);
+        transition: all 0.2s;
+        cursor: pointer;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255,255,255,0.2);
+        margin-top: 8px;
+    }
+
+    .publish-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 32px -8px #1d2f45;
+    }
+
+    .publish-btn:active {
+        transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+    .publish-panel {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+    }
+    }
+
+    /* 建群气泡样式 */
+    .bubble-group {
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        color: var(--text-primary);
+    }
+
+    /* 按钮加载动画 */
+    @keyframes buttonPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .map-btn.loading {
+        animation: buttonPulse 1.5s ease-in-out infinite;
+    }
+
+    /* 按钮点击波纹效果 */
+    .map-btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255,255,255,0.3) 1%, transparent 1%);
+        transform: translate(-50%, -50%) scale(0);
+        border-radius: 50%;
+        opacity: 0;
+        transition: transform 0.5s, opacity 0.5s;
+    }
+
+    .map-btn:active::before {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 1;
+        transition: 0s;
+    }
+

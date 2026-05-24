@@ -1,0 +1,103 @@
+﻿/* ==================== 通知列表弹窗样式 ==================== */
+    .notifications-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10006;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .notifications-container {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 30px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        position: relative;
+        animation: slideUp 0.3s ease;
+    }
+
+    .notifications-back {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: #F0F0F0;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .notifications-back:hover {
+        background: #E0E0E0;
+    }
+
+    .notifications-title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+    }
+
+    .notifications-list {
+        margin-top: 10px;
+    }
+
+    .notification-item {
+        background: #F8F9FA;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.3s;
+    }
+
+    .notification-item:hover {
+        background: #E9ECEF;
+        transform: translateX(5px);
+    }
+
+    .notification-avatar {
+        font-size: 36px;
+        flex-shrink: 0;
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-text {
+        font-size: 14px;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+    }
+
+    .notification-time {
+        font-size: 12px;
+        color: var(--text-tertiary);
+    }
+
+    .notification-bubble-title {
+        font-size: 13px;
+        color: var(--primary-color);
+        margin-top: 5px;
+    }
+
