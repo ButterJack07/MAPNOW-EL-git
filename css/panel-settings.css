@@ -436,3 +436,40 @@
         border-radius: 18px;
         transition: box-shadow 0.2s ease, transform 0.2s ease;
     }
+
+    /* Emoji 头像选择 - 统一样式；修复高亮异常 */
+    .emoji-option {
+        padding: 12px;
+        text-align: center;
+        font-size: 28px;
+        cursor: pointer;
+        border-radius: 10px;
+        transition: transform 0.15s ease, background 0.15s ease;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+    }
+
+    .emoji-option:hover {
+        background: #e9ecef;
+        transform: scale(1.08);
+    }
+
+    .emoji-option.selected {
+        background: linear-gradient(135deg, var(--primary-gradient-start, #667eea), var(--primary-gradient-end, #764ba2));
+        color: white;
+        transform: scale(1.12);
+    }
+
+    /* 教程箭头（SVG 容器） */
+    #newUserTutorialArrow {
+        position: absolute;
+        width: 48px;
+        height: 48px;
+        pointer-events: none;
+        z-index: 30002;
+        display: none;
+    }
+    #newUserTutorialArrow svg { width: 100%; height: 100%; }

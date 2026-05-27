@@ -992,12 +992,14 @@
     z-index: 20000;
         `;
     
-        // Emoji 列表
+        // Emoji 列表（去重并扩展）
         const emojis = [
-    '😊', '😎', '🥰', '😇', '🤓', '😺', '🦊', '🐻', '🐼', '🦁',
-    '🐸', '🦄', '🌟', '⚡', '🔥', '💎', '🎨', '🎭', '🎪', '🎯',
-    '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐸',
-    '🐧', '🐦', '🐤', '🐣', '🐥', '🐺', '🐗', '🐴', '🦄', '🐝'
+    '😊','😄','😁','😃','😆','😉','😍','🥰','😇','😎',
+    '🤓','😺','😸','😻','🐶','🐱','🐭','🐹','🐰','🦊',
+    '🐻','🐼','🐨','🐯','🦁','🐮','🐷','🐸','🐵','🦄',
+    '🐝','🐞','🐧','🐦','🐤','🦉','🐴','🐗','🐺','🦊',
+    '🌟','⚡','🔥','💎','🎨','🎭','🎪','🎯','🎲','🎵',
+    '🍀','🍎','🍉','☕','🍩','🍪','🏆','🚀','🌈','🛴'
         ];
     
         modal.innerHTML = `
@@ -1030,21 +1032,10 @@
             
         <!-- Emoji 选择面板 -->
         <div id="avatarEmojiPanel" style="max-height: 300px; overflow-y: auto;">
-            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;">
+            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;">
                 ${emojis.map(emoji => `
-                    <div onclick="selectAvatarEmoji('${emoji}')" 
-                         class="emoji-option"
-                         style="
-                            padding: 10px;
-                            text-align: center;
-                            font-size: 30px;
-                            cursor: pointer;
-                            border-radius: 10px;
-                            transition: all 0.3s;
-                            background: var(--bg-secondary);
-                         "
-                         onmouseover="this.style.background='#e9ecef';this.style.transform='scale(1.1)';"
-                         onmouseout="this.style.background='#f8f9fa';this.style.transform='scale(1)';">
+                    <div data-emoji="${emoji}" onclick="selectAvatarEmoji('${emoji}')" 
+                         class="emoji-option">
                         ${emoji}
                     </div>
                 `).join('')}
