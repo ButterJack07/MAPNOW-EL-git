@@ -20,7 +20,7 @@ function startNewUserTutorial() {
         { title: '模块：发布', description: '发布按钮用于创建新的气泡，分享你的内容与位置。', target: '#publishButton', waitForAction: false, showArrow: true },
         { title: '模块：聊天', description: '聊天按钮打开聊天面板，与他人交流。', target: '#chatButton', waitForAction: false, showArrow: true },
         { title: '模块：范围', description: '范围按钮调整你能看到的附近内容半径。', target: '#rangeButton', waitForAction: false, showArrow: true },
-        { title: '模块：个人中心', description: '个人中心汇总你的发布、消息和设置。', target: '#mobileUserButton', waitForAction: false, showArrow: true }
+        { title: '模块：个人中心', description: '个人中心汇总你的发布、消息和设置。', target: '#mobileUserButton, .mobile-user-btn', waitForAction: false }
     ];
 
     newUserTutorialState.active = true;
@@ -46,7 +46,6 @@ function ensureNewUserTutorialOverlay() {
                 <span class="new-user-tutorial-progress" id="newUserTutorialProgress"></span>
                 <div class="new-user-tutorial-actions">
                     <button class="new-user-tutorial-btn ghost" id="newUserTutorialPrevBtn" type="button">上一步</button>
-                    <button class="new-user-tutorial-btn ghost" id="newUserTutorialSkipBtn" type="button">跳过</button>
                     <button class="new-user-tutorial-btn primary" id="newUserTutorialNextBtn" type="button">下一步</button>
                 </div>
             </div>
@@ -60,7 +59,6 @@ function ensureNewUserTutorialOverlay() {
     overlay.querySelector('#newUserTutorialNextBtn').onclick = function () {
         goToNewUserTutorialStep(newUserTutorialState.stepIndex + 1);
     };
-    overlay.querySelector('#newUserTutorialSkipBtn').onclick = finishNewUserTutorial;
     const toggle = overlay.querySelector('#newUserTutorialToggleBtn');
     const card = overlay.querySelector('#newUserTutorialCard');
     if (toggle && card) {
@@ -144,36 +142,24 @@ function goToNewUserTutorialStep(stepIndex) {
             } catch (e) {}
         }
         newUserTutorialState._actionListener = null;
-        const nextBtn = document.getElementById('newUserTutorialNextBtn');
-        if (nextBtn) nextBtn.disabled = false;
     }
 
     function setupActionListenerForStep(step, targetEl) {
         removeCurrentActionListener();
-        const nextBtn = document.getElementById('newUserTutorialNextBtn');
-        if (!step || !step.waitForAction) {
-            if (nextBtn) nextBtn.disabled = false;
-            return;
-        }
-        if (!targetEl) {
-            if (nextBtn) nextBtn.disabled = false;
-            return;
-        }
-        if (nextBtn) nextBtn.disabled = true;
+        if (!step || !step.waitForAction) return;
+        if (!targetEl) return;
 
+        // 点击目标仅用于视觉反馈，不会自动前进或锁定“下一步”。
         const handler = function (ev) {
-            removeCurrentActionListener();
-            window.setTimeout(() => {
-                goToNewUserTutorialStep(newUserTutorialState.stepIndex + 1);
-            }, 250);
+            try {
+                targetEl.classList.add('new-user-tutorial-target-done');
+            } catch (e) {}
         };
 
         try {
             targetEl.addEventListener('click', handler);
             newUserTutorialState._actionListener = { el: targetEl, fn: handler };
-        } catch (e) {
-            if (nextBtn) nextBtn.disabled = false;
-        }
+        } catch (e) {}
     }
 
 function finishNewUserTutorial() {
