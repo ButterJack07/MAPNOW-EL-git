@@ -9,113 +9,77 @@ let newUserTutorialState = {
 };
 
 function startNewUserTutorial() {
+    // 完全由用户交互触发每一步，移除任何自动打开/切换面板的调用
     newUserTutorialState.steps = [
         {
-            title: '先认识设置页',
-            description: '这里可以修改头像、昵称、个人简介、地区和界面风格。以后想重新看教程，也可以从这里进入。',
+            title: '开始：打开设置',
+            description: '请点击“新手教程”或手动打开设置，按顺序完善个人信息，最后关闭设置返回主界面。',
             target: '#settingsTutorialItem',
             waitForAction: true,
-            prepare: function () {
-                if (typeof openSettings === 'function') openSettings();
-            }
+            prepare: function () { /* 不自动打开，用户自行点击 */ }
         },
         {
-            title: '主界面按钮区',
-            description: '右下角这组按钮是最常用的入口：筛选、发布、聊天和可见范围。熟悉它们后，日常操作会更快。',
-            target: '#publishButton',
+            title: '设置：头像',
+            description: '请点击“头像”并按提示上传或更换头像。完成后返回设置列表继续。',
+            target: '.settings-item[onclick*="changeAvatar"]',
             waitForAction: true,
-            prepare: function () {
-                if (typeof closeSettings === 'function') closeSettings();
-                if (typeof closeUserCenter === 'function') closeUserCenter();
-                if (typeof closeRangeModal === 'function') closeRangeModal();
-                if (typeof closeAboutApp === 'function') closeAboutApp();
-                if (typeof closePrivacyPolicy === 'function') closePrivacyPolicy();
-                const publishPanel = document.getElementById('publishPanel');
-                if (publishPanel) publishPanel.classList.remove('show', 'closing');
-                const chatPanel = document.getElementById('chatPanel');
-                if (chatPanel) chatPanel.classList.remove('show', 'closing');
-            }
+            prepare: function () { }
         },
         {
-            title: '用户中心',
-            description: '点这里可以查看我的发布、点赞、收藏、评论和历史，还能修改头像、状态和资料。',
-            target: '#mobileUserButton',
+            title: '设置：昵称',
+            description: '请点击“昵称”设置你的显示名称，保存后返回设置列表继续。',
+            target: '.settings-item[onclick*="editNickname"]',
             waitForAction: true,
-            prepare: function () {
-                if (typeof closeSettings === 'function') closeSettings();
-                if (typeof closeRangeModal === 'function') closeRangeModal();
-                if (typeof closeAboutApp === 'function') closeAboutApp();
-                if (typeof closePrivacyPolicy === 'function') closePrivacyPolicy();
-                const publishPanel = document.getElementById('publishPanel');
-                if (publishPanel) publishPanel.classList.remove('show', 'closing');
-                const chatPanel = document.getElementById('chatPanel');
-                if (chatPanel) chatPanel.classList.remove('show', 'closing');
-                if (typeof openUserCenter === 'function') openUserCenter();
-            }
+            prepare: function () { }
         },
         {
-            title: '发布气泡',
-            description: '这里会带你完成内容、地点和时间的发布流程，适合分享推荐、求助、组队或见闻。',
-            target: '#publishButton',
+            title: '设置：个人简介',
+            description: '请点击“个人简介”填写你的简介，保存后返回设置列表继续。',
+            target: '.settings-item[onclick*="editBio"]',
             waitForAction: true,
-            prepare: function () {
-                if (typeof closeUserCenter === 'function') closeUserCenter();
-                if (typeof closeSettings === 'function') closeSettings();
-                if (typeof closeRangeModal === 'function') closeRangeModal();
-                if (typeof closeAboutApp === 'function') closeAboutApp();
-                if (typeof closePrivacyPolicy === 'function') closePrivacyPolicy();
-                const publishPanel = document.getElementById('publishPanel');
-                if (publishPanel && !publishPanel.classList.contains('show')) {
-                    if (typeof togglePublishPanel === 'function') togglePublishPanel();
-                }
-                const chatPanel = document.getElementById('chatPanel');
-                if (chatPanel) chatPanel.classList.remove('show', 'closing');
-            }
+            prepare: function () { }
         },
         {
-            title: '可见范围',
-            description: '范围越小越聚焦，越大能看到更广的附近内容。你可以按使用场景灵活调整。',
-            target: '#rangeButton',
+            title: '设置：性别',
+            description: '请点击“性别”选择或修改你的性别，完成后返回设置列表继续。',
+            target: '.settings-item[onclick*="editGender"]',
             waitForAction: true,
-            prepare: function () {
-                if (typeof closeUserCenter === 'function') closeUserCenter();
-                if (typeof closeSettings === 'function') closeSettings();
-                const publishPanel = document.getElementById('publishPanel');
-                if (publishPanel) publishPanel.classList.remove('show', 'closing');
-                const chatPanel = document.getElementById('chatPanel');
-                if (chatPanel) chatPanel.classList.remove('show', 'closing');
-                if (typeof openRangeModal === 'function') openRangeModal();
-            }
+            prepare: function () { }
         },
         {
-            title: '消息和通知',
-            description: '收件箱和聊天入口会汇总新的互动消息。看到提示数字时，可以优先在这里查看。',
-            target: '#userCenterOverlay .uc-icon-btn[title="收件箱"]',
+            title: '设置：生日',
+            description: '请点击“生日”并设置你的生日信息（可选），完成后返回设置列表继续。',
+            target: '.settings-item[onclick*="editBirthday"]',
             waitForAction: true,
-            prepare: function () {
-                if (typeof closeSettings === 'function') closeSettings();
-                if (typeof closeRangeModal === 'function') closeRangeModal();
-                const publishPanel = document.getElementById('publishPanel');
-                if (publishPanel) publishPanel.classList.remove('show', 'closing');
-                const chatPanel = document.getElementById('chatPanel');
-                if (chatPanel) chatPanel.classList.remove('show', 'closing');
-                if (typeof openUserCenter === 'function') openUserCenter();
-            }
+            prepare: function () { }
         },
         {
-            title: '个性化与帮助',
-            description: '你可以在设置里更换主题、查看关于应用和隐私政策。以后如果想再看一遍，随时回到这里。',
+            title: '设置：地区',
+            description: '请点击“地区”设置你的所在地区，完成后返回设置列表继续。',
+            target: '.settings-item[onclick*="editRegion"]',
+            waitForAction: true,
+            prepare: function () { }
+        },
+        {
+            title: '设置：界面风格',
+            description: '请点击“界面风格”选择你喜欢的主题，完成后返回设置列表继续。',
             target: '#settingsThemeItem',
             waitForAction: true,
-            prepare: function () {
-                if (typeof closeUserCenter === 'function') closeUserCenter();
-                if (typeof closeRangeModal === 'function') closeRangeModal();
-                const publishPanel = document.getElementById('publishPanel');
-                if (publishPanel) publishPanel.classList.remove('show', 'closing');
-                const chatPanel = document.getElementById('chatPanel');
-                if (chatPanel) chatPanel.classList.remove('show', 'closing');
-                if (typeof openSettings === 'function') openSettings();
-            }
+            prepare: function () { }
+        },
+        {
+            title: '完成设置并返回主界面',
+            description: '请点击左上角返回以关闭设置，返回主界面继续下一部分教程。',
+            target: '.settings-back',
+            waitForAction: true,
+            prepare: function () { }
+        },
+        {
+            title: '主界面：发布按钮',
+            description: '现在你已回到主界面，点击发布按钮开始一次发布流程（尝试发布一条测试内容）。',
+            target: '#publishButton',
+            waitForAction: true,
+            prepare: function () { }
         }
     ];
     newUserTutorialState.active = true;
@@ -132,7 +96,8 @@ function ensureNewUserTutorialOverlay() {
     overlay.id = 'newUserTutorialOverlay';
     overlay.className = 'new-user-tutorial-overlay';
     overlay.innerHTML = `
-        <div class="new-user-tutorial-card">
+        <div class="new-user-tutorial-card" id="newUserTutorialCard">
+            <button class="tutorial-toggle" id="newUserTutorialToggleBtn">—</button>
             <div class="new-user-tutorial-badge">新手教程</div>
             <h3 class="new-user-tutorial-title" id="newUserTutorialTitle"></h3>
             <p class="new-user-tutorial-desc" id="newUserTutorialDesc"></p>
@@ -155,6 +120,15 @@ function ensureNewUserTutorialOverlay() {
         goToNewUserTutorialStep(newUserTutorialState.stepIndex + 1);
     };
     overlay.querySelector('#newUserTutorialSkipBtn').onclick = finishNewUserTutorial;
+    const toggle = overlay.querySelector('#newUserTutorialToggleBtn');
+    const card = overlay.querySelector('#newUserTutorialCard');
+    if (toggle && card) {
+        toggle.onclick = function () {
+            card.classList.toggle('collapsed');
+            // 切换符号
+            toggle.textContent = card.classList.contains('collapsed') ? '+' : '—';
+        };
+    }
 
     return overlay;
 }

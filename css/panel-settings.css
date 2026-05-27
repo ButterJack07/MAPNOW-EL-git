@@ -305,19 +305,52 @@
     .new-user-tutorial-mask { display: none; }
 
     .new-user-tutorial-card {
-        position: fixed; /* 固定在可视窗口底部 */
+        position: fixed; /* 固定在窗口顶部 */
+        top: 16px;
         left: 50%;
         transform: translateX(-50%);
-        bottom: 20px;
-        width: min(96vw, 560px);
+        width: min(96vw, 760px);
         background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(246,247,252,0.98));
         border: 1px solid rgba(255,255,255,0.7);
-        border-radius: 16px;
-        padding: 16px 18px;
+        border-radius: 12px;
+        padding: 12px 16px;
         box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
         color: var(--text-primary, #1f2937);
         z-index: 30003; /* 保证卡片在最上层 */
         pointer-events: auto; /* 卡片可交互 */
+        transition: transform 0.25s ease, height 0.25s ease;
+    }
+
+    .new-user-tutorial-card .tutorial-toggle {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        width: 36px;
+        height: 28px;
+        border-radius: 8px;
+        border: none;
+        background: rgba(0,0,0,0.06);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .new-user-tutorial-card.collapsed {
+        transform: translateX(-50%) translateY(-86%);
+        height: 40px;
+        padding: 6px 12px;
+        overflow: visible;
+        border-radius: 0 0 12px 12px;
+    }
+
+    .new-user-tutorial-card.collapsed .new-user-tutorial-title,
+    .new-user-tutorial-card.collapsed .new-user-tutorial-desc,
+    .new-user-tutorial-card.collapsed .new-user-tutorial-footer,
+    .new-user-tutorial-card.collapsed .new-user-tutorial-badge {
+        display: none;
     }
 
     .new-user-tutorial-badge {
