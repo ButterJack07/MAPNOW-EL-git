@@ -52,16 +52,6 @@ function ensureNewUserTutorialOverlay() {
             </div>
         </div>
     `;
-    // 创建箭头容器
-    const arrow = document.createElement('div');
-    arrow.id = 'newUserTutorialArrow';
-    arrow.innerHTML = `
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 2 L20 14 H4 Z" fill="rgba(102,126,234,0.95)" />
-        </svg>
-    `;
-    overlay.appendChild(arrow);
-
     document.body.appendChild(overlay);
 
     overlay.querySelector('#newUserTutorialPrevBtn').onclick = function () {
@@ -84,27 +74,7 @@ function ensureNewUserTutorialOverlay() {
     return overlay;
 }
 
-function showTutorialArrowForTarget(target) {
-    const arrow = document.getElementById('newUserTutorialArrow');
-    if (!arrow) return;
-    if (!target) { arrow.style.display = 'none'; return; }
-
-    const rect = target.getBoundingClientRect();
-    // 放在目标上方，指向目标中心
-    const left = rect.left + rect.width / 2 - 24; // 24 = half arrow width
-    let top = rect.top - 54; // place 54px above target
-    // 如果顶部空间不足，则放在目标下方
-    if (top < 8) top = rect.bottom + 8;
-
-    arrow.style.left = `${Math.max(8, left)}px`;
-    arrow.style.top = `${top}px`;
-    arrow.style.display = 'block';
-}
-
-function hideTutorialArrow() {
-    const arrow = document.getElementById('newUserTutorialArrow');
-    if (arrow) arrow.style.display = 'none';
-}
+// arrows removed — using highlight only
 
 function goToNewUserTutorialStep(stepIndex) {
     const steps = newUserTutorialState.steps;
@@ -127,86 +97,10 @@ function goToNewUserTutorialStep(stepIndex) {
     window.setTimeout(() => {
         updateNewUserTutorialStep(step);
         const targetEl = highlightNewUserTutorialTarget(step.target);
-        // 根据步骤决定是否显示箭头（主要用于底部模块按钮）
-        if (step.showArrow) {
-            showTutorialArrowForTarget(targetEl);
-        } else {
-            hideTutorialArrow();
-        }
         // 如果当前步骤需要用户实际操作，设置监听器并禁止下一步按钮
         setupActionListenerForStep(step, targetEl);
     }, 80);
 }
-
-function updateNewUserTutorialStep(step) {
-    newUserTutorialState.steps = [
-        // 设置部分：仅头像与昵称
-        {
-            title: '开始：打开设置',
-            description: '请点击“新手教程”或手动打开设置，开始个人信息配置。',
-            target: '#settingsTutorialItem',
-            waitForAction: true,
-            prepare: function () { }
-        },
-        {
-            title: '设置：头像',
-            description: '请点击“头像”上传或选择一个表情作为头像（完成后返回设置列表）。',
-            target: '.settings-item[onclick*="changeAvatar"]',
-            waitForAction: true,
-            prepare: function () { }
-        },
-        {
-            title: '设置：昵称',
-            description: '请点击“昵称”设置你的显示名称，保存后返回设置列表继续。',
-            target: '.settings-item[onclick*="editNickname"]',
-            waitForAction: true,
-            prepare: function () { }
-        },
-        {
-            title: '完成设置并返回主界面',
-            description: '请点击左上角返回以关闭设置，返回主界面继续下一部分教程。',
-            target: '.settings-back',
-            waitForAction: true,
-            prepare: function () { }
-        },
-        // 主界面底部模块：逐个解释并用箭头指向
-        {
-            title: '模块：筛选',
-            description: '筛选按钮用于筛选附近气泡的类型和时间。',
-            target: '#filterButton',
-            waitForAction: false,
-            showArrow: true
-        },
-        {
-            title: '模块：发布',
-            description: '发布按钮用于创建新的气泡，分享你的内容与位置。',
-            target: '#publishButton',
-            waitForAction: false,
-            showArrow: true
-        },
-        {
-            title: '模块：聊天',
-            description: '聊天按钮打开聊天面板，与他人交流。',
-            target: '#chatButton',
-            waitForAction: false,
-            showArrow: true
-        },
-        {
-            title: '模块：范围',
-            description: '范围按钮调整你能看到的附近内容半径。',
-            target: '#rangeButton',
-            waitForAction: false,
-            showArrow: true
-        },
-        {
-            title: '模块：个人中心',
-            description: '个人中心汇总你的发布、消息和设置。',
-            target: '#mobileUserButton',
-            waitForAction: false,
-            showArrow: true
-        }
-    ];
-
     // 更新步骤展示（标题、描述、进度、按钮状态）
     function updateNewUserTutorialStep(step) {
         const total = newUserTutorialState.steps.length;

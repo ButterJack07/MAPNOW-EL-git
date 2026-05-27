@@ -463,13 +463,4 @@
         transform: scale(1.12);
     }
 
-    /* 教程箭头（SVG 容器） */
-    #newUserTutorialArrow {
-        position: absolute;
-        width: 48px;
-        height: 48px;
-        pointer-events: none;
-        z-index: 30002;
-        display: none;
-    }
-    #newUserTutorialArrow svg { width: 100%; height: 100%; }
+    /* 教程箭头已移除，使用高亮样式 */

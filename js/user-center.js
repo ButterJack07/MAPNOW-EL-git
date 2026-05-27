@@ -1113,15 +1113,11 @@
     
         // 高亮选中的 Emoji
         document.querySelectorAll('.emoji-option').forEach(opt => {
-    if (opt.textContent === emoji) {
-        opt.style.background = 'linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%)';
-        opt.style.color = 'white';
-        opt.style.transform = 'scale(1.1)';
-    } else {
-        opt.style.background = '#f8f9fa';
-        opt.style.color = 'inherit';
-        opt.style.transform = 'scale(1)';
-    }
+            if ((opt.textContent || '').trim() === emoji) {
+                opt.classList.add('selected');
+            } else {
+                opt.classList.remove('selected');
+            }
         });
     
         // 预览 - 修改这里
