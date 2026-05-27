@@ -509,7 +509,7 @@
                 </div>
                 <div class="settings-divider"></div>
                 
-                <div class="settings-item" onclick="editTheme()">
+                <div class="settings-item" id="settingsThemeItem" onclick="editTheme()">
                     <div class="settings-item-left">
                         <span class="settings-item-icon">🎨</span>
                         <span class="settings-label">界面风格</span>
@@ -520,8 +520,19 @@
                     </div>
                 </div>
                 <div class="settings-divider"></div>
+
+                <div class="settings-item" id="settingsTutorialItem" onclick="startNewUserTutorial()">
+                    <div class="settings-item-left">
+                        <span class="settings-item-icon">🎓</span>
+                        <span class="settings-label">新手教程</span>
+                    </div>
+                    <div class="settings-value">
+                        <span class="settings-arrow">›</span>
+                    </div>
+                </div>
+                <div class="settings-divider"></div>
                 
-                <div class="settings-item" onclick="openAboutApp()">
+                <div class="settings-item" id="settingsAboutItem" onclick="openAboutApp()">
                     <div class="settings-item-left">
                         <span class="settings-item-icon">📱</span>
                         <span class="settings-label">关于应用</span>
@@ -532,7 +543,7 @@
                 </div>
                 <div class="settings-divider"></div>
                 
-                <div class="settings-item" onclick="openPrivacyPolicy()">
+                <div class="settings-item" id="settingsPrivacyItem" onclick="openPrivacyPolicy()">
                     <div class="settings-item-left">
                         <span class="settings-item-icon">🔒</span>
                         <span class="settings-label">隐私政策</span>
