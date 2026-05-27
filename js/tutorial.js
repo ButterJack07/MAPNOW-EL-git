@@ -4,7 +4,8 @@ let newUserTutorialState = {
     active: false,
     stepIndex: -1,
     steps: [],
-    currentTarget: null
+    currentTarget: null,
+    _actionListener: null
 };
 
 function startNewUserTutorial() {
@@ -13,6 +14,7 @@ function startNewUserTutorial() {
             title: '先认识设置页',
             description: '这里可以修改头像、昵称、个人简介、地区和界面风格。以后想重新看教程，也可以从这里进入。',
             target: '#settingsTutorialItem',
+            waitForAction: true,
             prepare: function () {
                 if (typeof openSettings === 'function') openSettings();
             }
@@ -20,7 +22,8 @@ function startNewUserTutorial() {
         {
             title: '主界面按钮区',
             description: '右下角这组按钮是最常用的入口：筛选、发布、聊天和可见范围。熟悉它们后，日常操作会更快。',
-            target: '#floating-buttons',
+            target: '#publishButton',
+            waitForAction: true,
             prepare: function () {
                 if (typeof closeSettings === 'function') closeSettings();
                 if (typeof closeUserCenter === 'function') closeUserCenter();
@@ -36,7 +39,8 @@ function startNewUserTutorial() {
         {
             title: '用户中心',
             description: '点这里可以查看我的发布、点赞、收藏、评论和历史，还能修改头像、状态和资料。',
-            target: '#userCenterOverlay .uc-tabs',
+            target: '#mobileUserButton',
+            waitForAction: true,
             prepare: function () {
                 if (typeof closeSettings === 'function') closeSettings();
                 if (typeof closeRangeModal === 'function') closeRangeModal();
@@ -52,7 +56,8 @@ function startNewUserTutorial() {
         {
             title: '发布气泡',
             description: '这里会带你完成内容、地点和时间的发布流程，适合分享推荐、求助、组队或见闻。',
-            target: '#publishPanel .publish-panel-container',
+            target: '#publishButton',
+            waitForAction: true,
             prepare: function () {
                 if (typeof closeUserCenter === 'function') closeUserCenter();
                 if (typeof closeSettings === 'function') closeSettings();
@@ -70,7 +75,8 @@ function startNewUserTutorial() {
         {
             title: '可见范围',
             description: '范围越小越聚焦，越大能看到更广的附近内容。你可以按使用场景灵活调整。',
-            target: '#rangeModal > div',
+            target: '#rangeButton',
+            waitForAction: true,
             prepare: function () {
                 if (typeof closeUserCenter === 'function') closeUserCenter();
                 if (typeof closeSettings === 'function') closeSettings();
@@ -85,6 +91,7 @@ function startNewUserTutorial() {
             title: '消息和通知',
             description: '收件箱和聊天入口会汇总新的互动消息。看到提示数字时，可以优先在这里查看。',
             target: '#userCenterOverlay .uc-icon-btn[title="收件箱"]',
+            waitForAction: true,
             prepare: function () {
                 if (typeof closeSettings === 'function') closeSettings();
                 if (typeof closeRangeModal === 'function') closeRangeModal();
@@ -99,6 +106,7 @@ function startNewUserTutorial() {
             title: '个性化与帮助',
             description: '你可以在设置里更换主题、查看关于应用和隐私政策。以后如果想再看一遍，随时回到这里。',
             target: '#settingsThemeItem',
+            waitForAction: true,
             prepare: function () {
                 if (typeof closeUserCenter === 'function') closeUserCenter();
                 if (typeof closeRangeModal === 'function') closeRangeModal();
@@ -124,7 +132,6 @@ function ensureNewUserTutorialOverlay() {
     overlay.id = 'newUserTutorialOverlay';
     overlay.className = 'new-user-tutorial-overlay';
     overlay.innerHTML = `
-        <div class="new-user-tutorial-mask"></div>
         <div class="new-user-tutorial-card">
             <div class="new-user-tutorial-badge">新手教程</div>
             <h3 class="new-user-tutorial-title" id="newUserTutorialTitle"></h3>
@@ -172,7 +179,9 @@ function goToNewUserTutorialStep(stepIndex) {
 
     window.setTimeout(() => {
         updateNewUserTutorialStep(step);
-        highlightNewUserTutorialTarget(step.target);
+        const targetEl = highlightNewUserTutorialTarget(step.target);
+        // 如果当前步骤需要用户实际操作，设置监听器并禁止下一步按钮
+        setupActionListenerForStep(step, targetEl);
     }, 80);
 }
 
@@ -208,6 +217,54 @@ function highlightNewUserTutorialTarget(selector) {
     if (typeof target.scrollIntoView === 'function') {
         target.scrollIntoView({ block: 'center', behavior: 'smooth' });
     }
+    return target;
+}
+
+function removeCurrentActionListener() {
+    if (newUserTutorialState._actionListener && newUserTutorialState._actionListener.el) {
+        try {
+            newUserTutorialState._actionListener.el.removeEventListener('click', newUserTutorialState._actionListener.fn);
+        } catch (e) {}
+    }
+    newUserTutorialState._actionListener = null;
+    const nextBtn = document.getElementById('newUserTutorialNextBtn');
+    if (nextBtn) nextBtn.disabled = false;
+}
+
+function setupActionListenerForStep(step, targetEl) {
+    // 清理上一步的监听
+    removeCurrentActionListener();
+
+    const nextBtn = document.getElementById('newUserTutorialNextBtn');
+    if (!step || !step.waitForAction) {
+        if (nextBtn) nextBtn.disabled = false;
+        return;
+    }
+
+    if (!targetEl) {
+        // 如果目标不存在，允许用户手动点击下一步
+        if (nextBtn) nextBtn.disabled = false;
+        return;
+    }
+
+    // 禁用下一步按钮，直到用户在目标上执行操作
+    if (nextBtn) nextBtn.disabled = true;
+
+    const handler = function (ev) {
+        // 用户在目标上点击，移除监听并进入下一步
+        removeCurrentActionListener();
+        // 给界面一点时间处理（如打开面板）
+        window.setTimeout(() => {
+            goToNewUserTutorialStep(newUserTutorialState.stepIndex + 1);
+        }, 250);
+    };
+
+    try {
+        targetEl.addEventListener('click', handler);
+        newUserTutorialState._actionListener = { el: targetEl, fn: handler };
+    } catch (e) {
+        if (nextBtn) nextBtn.disabled = false;
+    }
 }
 
 function finishNewUserTutorial() {
@@ -215,6 +272,9 @@ function finishNewUserTutorial() {
         newUserTutorialState.currentTarget.classList.remove('new-user-tutorial-target');
         newUserTutorialState.currentTarget = null;
     }
+
+    // 清理任何残留的监听器
+    removeCurrentActionListener();
 
     const overlay = document.getElementById('newUserTutorialOverlay');
     if (overlay) overlay.classList.remove('show');
