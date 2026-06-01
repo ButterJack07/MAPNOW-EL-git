@@ -1234,6 +1234,9 @@ function updateUserInfo(field, value) {
             // 如果当前是GPS模式，更新位置
             if (locationMode === 'gps') {
                 updateMyPosition(gpsPosition);
+                // 防抖定时器：避免 GPS 快速更新时频繁重绘地图
+                let locationTimer = null;
+
             }
                 
             console.log('✅ 获取到GPS定位:', gpsPosition);
@@ -1278,12 +1281,15 @@ function updateUserInfo(field, value) {
                     lat: position.coords.latitude,
                     lng: position.coords.longitude
                 };
-                    
-                // 如果当前是GPS模式，更新位置
+
+                // 如果当前是GPS模式，使用 300ms 防抖后再更新位置，减少渲染
                 if (locationMode === 'gps') {
-                    updateMyPosition(gpsPosition);
+                    clearTimeout(locationTimer);
+                    locationTimer = setTimeout(() => {
+                        updateMyPosition(gpsPosition);
+                    }, 300);
                 }
-                    
+
                 updateLocationStatus("📍 实时定位中");
             },
             (error) => {
@@ -1304,6 +1310,12 @@ function updateUserInfo(field, value) {
             navigator.geolocation.clearWatch(gpsWatchId);
             gpsWatchId = null;
         }
+        // 清理防抖定时器
+        if (locationTimer) {
+            clearTimeout(locationTimer);
+            locationTimer = null;
+        }
+
         isLocationEnabled = false;
     }
 
