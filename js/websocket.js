@@ -544,7 +544,7 @@ function connectWebSocket() {
                 else if (data.section === 'history') queryUserViews();
                 break;
 
-            // ⭐ 新增：气泡内容编辑成功
+            // ⭐ 气泡内容编辑成功
             case "bubbleUpdated": {
                 console.log(`✏️ 气泡更新成功: ${data.bubbleId}`);
                 
@@ -553,6 +553,9 @@ function connectWebSocket() {
                 if (bubbleIndex !== -1) {
                     bubbles[bubbleIndex].title = data.title;
                     bubbles[bubbleIndex].content = data.content;
+                    if (data.images) {
+                        bubbles[bubbleIndex].images = data.images;
+                    }
                     
                     // 更新地图上的标记
                     const marker = bubbleMarkers.get(data.bubbleId);
@@ -585,6 +588,10 @@ function connectWebSocket() {
                     if (data.author_name !== undefined) {
                         const nmEl = card.querySelector('.uc-author-name');
                         if (nmEl) nmEl.textContent = data.author_name;
+                    }
+                    // 图片变更时重新查询发布列表以刷新卡片
+                    if (data.images) {
+                        queryUserPublished();
                     }
                 } else {
                     // 如果找不到卡片，重新查询

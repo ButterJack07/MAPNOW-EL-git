@@ -77,6 +77,7 @@ function displayPublishedList(bubbles) {
 
     let html = '<div class="uc-records-list">';
 
+    window._editBubbleImages = window._editBubbleImages || {};
     bubbles.forEach(bubble => {
         const bubbleIcon = BUBBLE_CONFIG[bubble.type]?.icon || '📍';
         const bubbleColor = BUBBLE_CONFIG[bubble.type]?.color || '#999';
@@ -87,6 +88,7 @@ function displayPublishedList(bubbles) {
         const safeTitle = (bubble.title || '').replace(/'/g, "\\'");
         const safeContent = (bubble.content || '').replace(/'/g, "\\'").replace(/\n/g, '\\n');
         const images = bubble.images ? (Array.isArray(bubble.images) ? bubble.images : JSON.parse(bubble.images || '[]')) : [];
+        window._editBubbleImages[bubble.id] = images;
         const showContent = bubble.content && bubble.content.trim();
 
         html += `
@@ -150,6 +152,8 @@ function toggleCardDetail(el) {
 }
 
 function openEditBubbleModal(bubbleId, title, content, showDelete) {
+    // 从全局映射中获取当前图片
+    const currentImages = (window._editBubbleImages && window._editBubbleImages[bubbleId]) || [];
     let modal = document.getElementById('editBubbleModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -184,7 +188,21 @@ function openEditBubbleModal(bubbleId, title, content, showDelete) {
                                    border-radius:10px;padding:10px 12px;font-size:14px;resize:vertical;
                                    outline:none;color:var(--text-primary,#333);"
                             onfocus="this.style.borderColor='#667eea'" onblur="this.style.borderColor='#ddd'"></textarea>
-                        <div style="display:flex;gap:10px;margin-top:18px;justify-content:space-between;">
+                        <div style="margin-top:12px;">
+                            <label style="font-size:13px;color:var(--text-secondary,#666);display:flex;align-items:center;gap:6px;">
+                                <span>🖼️ 图片</span>
+                                <span style="font-size:11px;color:var(--text-tertiary);">(可选，最多1张)</span>
+                            </label>
+                            <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+                                <button type="button" onclick="document.getElementById('editBubbleImageInput').click()"
+                                        style="padding:6px 14px;background:var(--bg-secondary,#f5f5f5);border:1px dashed var(--border-color,#ddd);border-radius:8px;cursor:pointer;font-size:12px;color:var(--text-secondary,#666);">
+                                    📷 选择图片
+                                </button>
+                                <input type="file" id="editBubbleImageInput" accept="image/*" style="display:none;" onchange="handleEditBubbleImage(event)">
+                            </div>
+                            <div id="editImagePreview" style="margin-top:8px;"></div>
+                        </div>
+                        <div style="display:flex;gap:10px;margin-top:16px;justify-content:space-between;">
                             <button id="editBubbleDeleteBtn"
                                 onclick="event.stopPropagation();deleteRecordFromEdit()"
                                 style="padding:8px 14px;border:1px solid #e74c3c;border-radius:10px;
@@ -211,11 +229,66 @@ function openEditBubbleModal(bubbleId, title, content, showDelete) {
         document.body.appendChild(modal);
     }
     modal.dataset.bubbleId = bubbleId;
+    // 存储当前图片到模态框属性
+    modal._editImages = currentImages.slice();
     document.getElementById('editBubbleTitle').value = title;
     document.getElementById('editBubbleContent').value = content;
     const delBtn = document.getElementById('editBubbleDeleteBtn');
     if (delBtn) delBtn.style.display = showDelete ? '' : 'none';
+    updateEditImagePreview();
     modal.style.display = 'flex';
+}
+
+function updateEditImagePreview() {
+    const modal = document.getElementById('editBubbleModal');
+    const container = document.getElementById('editImagePreview');
+    if (!modal || !container) return;
+    const images = modal._editImages || [];
+    if (images.length === 0) {
+        container.innerHTML = '';
+        return;
+    }
+    container.innerHTML = images.map((img, i) => `
+        <div style="position:relative;width:100px;height:100px;border-radius:8px;overflow:hidden;border:2px solid var(--border-color,#ddd);">
+            <img src="${img}" style="width:100%;height:100%;object-fit:cover;">
+            <button onclick="removeEditBubbleImage(${i})"
+                    style="position:absolute;top:3px;right:3px;width:22px;height:22px;
+                           background:rgba(0,0,0,0.6);color:#fff;border:none;border-radius:50%;
+                           cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;
+                           transition:background 0.2s;padding:0;line-height:1;"
+                    onmouseover="this.style.background='rgba(0,0,0,0.8)'"
+                    onmouseout="this.style.background='rgba(0,0,0,0.6)'"
+                    title="移除">×</button>
+        </div>
+    `).join('');
+}
+
+function removeEditBubbleImage(index) {
+    const modal = document.getElementById('editBubbleModal');
+    if (!modal) return;
+    const images = modal._editImages || [];
+    images.splice(index, 1);
+    modal._editImages = images;
+    updateEditImagePreview();
+}
+
+function handleEditBubbleImage(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const modal = document.getElementById('editBubbleModal');
+    if (!modal) return;
+    if (file.size > 5 * 1024 * 1024) {
+        console.log('⚠️ 图片超过5MB限制');
+        event.target.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        modal._editImages = [e.target.result];
+        updateEditImagePreview();
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
 }
 
 function closeEditBubbleModal() {
@@ -252,6 +325,7 @@ function submitEditBubble() {
     const bubbleId = modal?.dataset.bubbleId;
     const title = document.getElementById('editBubbleTitle').value.trim();
     const content = document.getElementById('editBubbleContent').value.trim();
+    const images = modal?._editImages || [];
 
     if (!bubbleId) return;
     if (!title) return;
@@ -261,11 +335,12 @@ function submitEditBubble() {
         type: 'updateBubble',
         bubbleId,
         title,
-        content
+        content,
+        images
     }));
 
     closeEditBubbleModal();
-    console.log(`✏️ 提交气泡编辑: ${bubbleId}`);
+    console.log(`✏️ 提交气泡编辑: ${bubbleId}, 图片: ${images.length}张`);
 }
 
 function queryUserViews() {

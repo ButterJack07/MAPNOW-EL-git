@@ -265,7 +265,7 @@
 
                     <div class="uc-main-info">
                         <div class="uc-username-row">
-                            <div class="uc-username" id="ucUsername">用户名</div>
+                            <div class="uc-username" id="ucUsername" onclick="editNickname()" style="cursor:pointer;">用户名</div>
                             <button class="uc-status-icon" id="ucStatusIcon" onclick="toggleStatusSelector()" title="状态">🚶</button>
                         </div>
                         <div class="uc-userid" id="ucUserId">ID: USER000000</div>
@@ -277,7 +277,7 @@
                     </div>
                 </div>
 
-                <div class="uc-bio" id="ucBio" style="display: none;">
+                <div class="uc-bio" id="ucBio" style="display: none; cursor:pointer;" onclick="editBio()">
                     <!-- 个人简介将通过JS动态填充 -->
                 </div>
 

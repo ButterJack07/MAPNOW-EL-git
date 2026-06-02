@@ -1009,24 +1009,24 @@
         
         let detailsHTML = '';
         
-        // 性别
+        // 性别（点击跳转性别设置）
         if (currentUser.gender && (currentUser.gender === '男' || currentUser.gender === '女')) {
             const genderClass = currentUser.gender === '男' ? 'male' : 'female';
             const genderSymbol = currentUser.gender === '男' ? '♂' : '♀';
-            detailsHTML += `<span class="uc-gender ${genderClass}">${genderSymbol}</span>`;
+            detailsHTML += `<span class="uc-gender ${genderClass}" onclick="editGender()" style="cursor:pointer;" title="点击修改性别">${genderSymbol}</span>`;
         }
         
-        // 年龄
+        // 年龄（点击跳转生日设置）
         if (currentUser.birthday) {
             const age = calculateAge(currentUser.birthday);
             if (age > 0) {
-                detailsHTML += `<span class="uc-age">${age}岁</span>`;
+                detailsHTML += `<span class="uc-age" onclick="editBirthday()" style="cursor:pointer;" title="点击修改生日">${age}岁</span>`;
             }
         }
         
-        // 地区
+        // 地区（点击跳转地区设置）
         if (currentUser.region && currentUser.region !== '未设置') {
-            detailsHTML += `<span class="uc-region">${currentUser.region}</span>`;
+            detailsHTML += `<span class="uc-region" onclick="editRegion()" style="cursor:pointer;" title="点击修改地区">${currentUser.region}</span>`;
         }
         
         detailsEl.innerHTML = detailsHTML;

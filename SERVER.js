@@ -1637,6 +1637,7 @@ if (data.type === "getUserFullInfo") {
       const bubbleId = data.bubbleId;
       const title = data.title;
       const content = data.content;
+      const images = data.images || [];
       
       // 检查气泡是否存在且是否为本人发布
       db.get(`SELECT * FROM bubbles WHERE id = ? AND author_id = ?`, 
@@ -1660,8 +1661,9 @@ if (data.type === "getUserFullInfo") {
           }
           
           // 更新气泡
-          db.run(`UPDATE bubbles SET title = ?, content = ? WHERE id = ?`,
-            [title, content, bubbleId], (err) => {
+          const imagesJson = JSON.stringify(images);
+          db.run(`UPDATE bubbles SET title = ?, content = ?, images = ? WHERE id = ?`,
+            [title, content, imagesJson, bubbleId], (err) => {
               if (err) {
                 console.error("❌ 更新气泡失败:", err);
                 ws.send(JSON.stringify({
@@ -1669,7 +1671,7 @@ if (data.type === "getUserFullInfo") {
                   message: "更新失败"
                 }));
               } else {
-                console.log(`✅ 气泡已更新: ${bubbleId} by ${user.nickname}`);
+                console.log(`✅ 气泡已更新: ${bubbleId} by ${user.nickname}, 图片: ${images.length}张`);
                 
                 // 通知客户端更新成功
                 ws.send(JSON.stringify({
@@ -1677,6 +1679,7 @@ if (data.type === "getUserFullInfo") {
                   bubbleId: bubbleId,
                   title: title,
                   content: content,
+                  images: images,
                   message: "更新成功"
                 }));
                 
@@ -1685,7 +1688,8 @@ if (data.type === "getUserFullInfo") {
                   type: "bubbleUpdated",
                   bubbleId: bubbleId,
                   title: title,
-                  content: content
+                  content: content,
+                  images: images
                 });
               }
             }
