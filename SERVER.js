@@ -1788,9 +1788,13 @@ if (data.type === "commentBubble") {
       if (!user) return;
       
       const query = `
-        SELECT * FROM bubbles 
-        WHERE author_id = ? 
-        ORDER BY created_at DESC
+        SELECT b.*,
+          COALESCE((SELECT COUNT(*) FROM bubble_likes WHERE bubble_id = b.id), 0) AS like_count,
+          COALESCE((SELECT COUNT(*) FROM bubble_comments WHERE bubble_id = b.id), 0) AS comment_count,
+          COALESCE((SELECT COUNT(*) FROM bubble_views WHERE bubble_id = b.id), 0) AS view_count
+        FROM bubbles b
+        WHERE b.author_id = ? 
+        ORDER BY b.created_at DESC
       `;
       
       db.all(query, [user.id], (err, rows) => {

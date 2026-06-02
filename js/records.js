@@ -35,7 +35,7 @@ function displayPublishedList(bubbles) {
         const showContent = bubble.content && bubble.content.trim();
 
         html += `
-                <div class="uc-record-item" id="bubble-card-${bubble.id}">
+                <div class="uc-record-item" id="bubble-card-${bubble.id}" onclick="toggleBubbleCardDetail('${bubble.id}')">
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
@@ -43,14 +43,10 @@ function displayPublishedList(bubbles) {
                         <div class="uc-record-top">
                             <div class="uc-record-title">${escapeHtml(bubble.title || '无标题')}</div>
                             <div class="uc-record-top-actions">
-                                <button onclick="toggleBubbleCardDetail('${bubble.id}', this)"
-                                    class="uc-icon-action-btn uc-btn-expand" title="展开详情" data-expanded="false">▾</button>
-                                <button onclick="locateToBubble(${bubble.lat},${bubble.lng})"
+                                <button onclick="event.stopPropagation();locateToBubble(${bubble.lat},${bubble.lng})"
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
-                                <button onclick="openEditBubbleModal('${bubble.id}','${safeTitle}','${safeContent}')"
+                                <button onclick="event.stopPropagation();openEditBubbleModal('${bubble.id}','${safeTitle}','${safeContent}', true)"
                                     class="uc-icon-action-btn uc-btn-edit" title="编辑">✏️</button>
-                                <button onclick="deleteRecord('published','${bubble.id}', this)"
-                                    class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
                             </div>
                         </div>
                         <div class="uc-record-meta-row">
@@ -87,24 +83,13 @@ function displayPublishedList(bubbles) {
     console.log(`✅ 显示 ${bubbles.length} 条发布记录`);
 }
 
-function toggleBubbleCardDetail(bubbleId, btn) {
+function toggleBubbleCardDetail(bubbleId) {
     const detail = document.getElementById('bubble-card-detail-' + bubbleId);
     if (!detail) return;
-    const expanded = btn.dataset.expanded === 'true';
-    if (expanded) {
-        detail.style.display = 'none';
-        btn.dataset.expanded = 'false';
-        btn.title = '展开详情';
-        btn.style.transform = 'rotate(0deg)';
-    } else {
-        detail.style.display = 'block';
-        btn.dataset.expanded = 'true';
-        btn.title = '收起详情';
-        btn.style.transform = 'rotate(180deg)';
-    }
+    detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
 }
 
-function openEditBubbleModal(bubbleId, title, content) {
+function openEditBubbleModal(bubbleId, title, content, showDelete) {
     let modal = document.getElementById('editBubbleModal');
     if (!modal) {
         modal = document.createElement('div');
@@ -123,14 +108,21 @@ function openEditBubbleModal(bubbleId, title, content) {
                     <textarea id="editBubbleContent" rows="4" maxlength="200"
                         style="width:100%;box-sizing:border-box;border:1px solid #ddd;
                                border-radius:8px;padding:8px 10px;font-size:14px;resize:vertical;"></textarea>
-                    <div style="display:flex;gap:10px;margin-top:16px;justify-content:flex-end;">
-                        <button onclick="closeEditBubbleModal()"
-                            style="padding:8px 18px;border:1px solid #ddd;border-radius:8px;
-                                   background:#f5f5f5;cursor:pointer;font-size:14px;">取消</button>
-                        <button onclick="submitEditBubble()"
-                            style="padding:8px 18px;border:none;border-radius:8px;
-                                   background:linear-gradient(135deg,#667eea,#764ba2);
-                                   color:#fff;cursor:pointer;font-size:14px;font-weight:600;">保存</button>
+                    <div style="display:flex;gap:10px;margin-top:16px;justify-content:space-between;">
+                        <button id="editBubbleDeleteBtn"
+                            onclick="event.stopPropagation();deleteRecordFromEdit()"
+                            style="padding:8px 14px;border:1px solid #e74c3c;border-radius:8px;
+                                   background:#fff;color:#e74c3c;cursor:pointer;font-size:13px;
+                                   font-weight:500;">🗑️ 删除</button>
+                        <div style="display:flex;gap:10px;">
+                            <button onclick="event.stopPropagation();closeEditBubbleModal()"
+                                style="padding:8px 18px;border:1px solid #ddd;border-radius:8px;
+                                       background:#f5f5f5;cursor:pointer;font-size:14px;">取消</button>
+                            <button onclick="event.stopPropagation();submitEditBubble()"
+                                style="padding:8px 18px;border:none;border-radius:8px;
+                                       background:linear-gradient(135deg,#667eea,#764ba2);
+                                       color:#fff;cursor:pointer;font-size:14px;font-weight:600;">保存</button>
+                        </div>
                     </div>
                 </div>`;
         document.body.appendChild(modal);
@@ -138,12 +130,37 @@ function openEditBubbleModal(bubbleId, title, content) {
     modal.dataset.bubbleId = bubbleId;
     document.getElementById('editBubbleTitle').value = title;
     document.getElementById('editBubbleContent').value = content;
+    const delBtn = document.getElementById('editBubbleDeleteBtn');
+    if (delBtn) delBtn.style.display = showDelete ? '' : 'none';
     modal.style.display = 'flex';
 }
 
 function closeEditBubbleModal() {
     const modal = document.getElementById('editBubbleModal');
     if (modal) modal.style.display = 'none';
+}
+
+function deleteRecordFromEdit() {
+    const modal = document.getElementById('editBubbleModal');
+    const bubbleId = modal?.dataset.bubbleId;
+    if (!bubbleId) return;
+    closeEditBubbleModal();
+    if (!confirm('确定要删除这条气泡吗？')) return;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+
+    const card = document.getElementById('bubble-card-' + bubbleId);
+    if (card) {
+        card.style.transition = 'opacity .2s, transform .2s';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(20px)';
+        setTimeout(() => card.remove(), 220);
+    }
+
+    socket.send(JSON.stringify({
+        type: 'deleteRecords',
+        section: 'published',
+        recordIds: [String(bubbleId)]
+    }));
 }
 
 function submitEditBubble() {
