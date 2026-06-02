@@ -361,3 +361,310 @@ function recordBubbleView(bubbleId) {
         });
     }
 }
+    function switchUCTab(tabName) {
+        // 更新标签状态
+        document.querySelectorAll('.uc-tab').forEach(tab => {
+            tab.classList.remove('active');
+        });
+        document.querySelector(`.uc-tab[data-tab="${tabName}"]`).classList.add('active');
+            
+        // 显示对应内容
+        document.querySelectorAll('.uc-tab-content').forEach(content => {
+            content.style.display = 'none';
+        });
+        const contentElement = document.getElementById('uc-' + tabName);
+        contentElement.style.display = 'block';
+            
+        console.log('📑 切换到标签:', tabName);
+            
+        // ⭐ 根据标签类型查询数据（先显示加载提示）
+        if (tabName === 'published') {
+            if (!contentElement.innerHTML.trim()) {
+                contentElement.innerHTML = '<div class="uc-empty">暂无发布记录</div>';
+            }
+            queryUserPublished();
+        } else if (tabName === 'likes') {
+            if (!contentElement.innerHTML.trim()) {
+                contentElement.innerHTML = '<div class="uc-empty">暂无点赞记录</div>';
+            }
+            queryUserLikes();
+        } else if (tabName === 'favorites') {
+            if (!contentElement.innerHTML.trim()) {
+                contentElement.innerHTML = '<div class="uc-empty">暂无收藏记录</div>';
+            }
+            queryUserFavorites();
+        } else if (tabName === 'comments') {
+            if (!contentElement.innerHTML.trim()) {
+                contentElement.innerHTML = '<div class="uc-empty">暂无评论记录</div>';
+            }
+            queryUserComments();
+        } else if (tabName === 'history') {
+            if (!contentElement.innerHTML.trim()) {
+                contentElement.innerHTML = '<div class="uc-empty">暂无历史记录</div>';
+            }
+            queryUserViews();
+        }
+        // search标签不自动查询，等待用户输入关键字
+    }
+        
+    // ⭐ 新增：查询用户点赞记录
+    function queryUserLikes() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            console.log("⚠️ WebSocket未连接");
+            return;
+        }
+            
+        console.log("🔍 查询点赞记录...");
+        socket.send(JSON.stringify({
+            type: "queryUserLikes"
+        }));
+    }
+        
+    // ⭐ 新增：查询用户收藏记录
+    function queryUserFavorites() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            console.log("⚠️ WebSocket未连接");
+            return;
+        }
+            
+        console.log("🔍 查询收藏记录...");
+        socket.send(JSON.stringify({
+            type: "queryUserFavorites"
+        }));
+    }
+        
+    // ⭐ 新增：查询用户评论记录
+    function queryUserComments() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            console.log("⚠️ WebSocket未连接");
+            return;
+        }
+            
+        console.log("🔍 查询评论记录...");
+        socket.send(JSON.stringify({
+            type: "queryUserComments"
+        }));
+    }
+        
+    // ⭐ 新增：显示点赞记录列表
+    function displayLikesList(likes) {
+        const container = document.getElementById('uc-likes');
+            
+        if (likes.length === 0) {
+            container.innerHTML = '<div class="uc-empty">暂无点赞记录</div>';
+            return;
+        }
+            
+        let html = '<div class="uc-records-list">';
+        likes.forEach(like => {
+            const bubbleIcon = BUBBLE_CONFIG[like.type]?.icon || '📍';
+            const bubbleColor = BUBBLE_CONFIG[like.type]?.color || '#999';
+            const timeStr = formatTimeSimple(like.liked_at);
+                
+            html += `
+                <div class="uc-record-item">
+                    <div class="uc-record-icon" style="background: ${bubbleColor};">
+                        ${bubbleIcon}
+                    </div>
+                    <div class="uc-record-content">
+                        <div class="uc-record-title">${escapeHtml(like.title)}</div>
+                        ${like.content ? `<div class="uc-record-desc">${escapeHtml(like.content).replace(/\n/g, '<br>')}</div>` : ''}
+                        <div class="uc-record-meta">
+                            <span>${renderAvatarPreview(like.author_avatar || '👤')} ${escapeHtml(like.author)}</span>
+                            <span>•</span>
+                            <span>点赞于 ${timeStr}</span>
+                        </div>
+                    </div>
+                    <div class="uc-record-actions">
+                        ${(function(){
+                            const _aid = like.author_id || like.authorId || like.userId;
+                            const _me  = currentUser && currentUser.id;
+                            if (!_aid || _aid === _me) return '';
+                            return `<button onclick="startChatFromBubble('${_aid}')"
+                                    class="uc-icon-action-btn uc-btn-chat" title="和气泡发布者私聊">💬</button>`;
+                        })()}
+                        <button onclick="locateToBubble(${like.lat}, ${like.lng})" 
+                                class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
+                        <button onclick="deleteRecord('likes', '${like.bubble_id}', this)" 
+                                class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+            
+        container.innerHTML = html;
+        console.log(`✅ 显示 ${likes.length} 条点赞记录`);
+    }
+        
+    // ⭐ 新增：显示收藏记录列表
+    function displayFavoritesList(favorites) {
+        const container = document.getElementById('uc-favorites');
+            
+        if (favorites.length === 0) {
+            container.innerHTML = '<div class="uc-empty">暂无收藏记录</div>';
+            return;
+        }
+            
+        let html = '<div class="uc-records-list">';
+        favorites.forEach(fav => {
+            const bubbleIcon = BUBBLE_CONFIG[fav.type]?.icon || '📍';
+            const bubbleColor = BUBBLE_CONFIG[fav.type]?.color || '#999';
+            const timeStr = formatTimeSimple(fav.favorited_at);
+                
+            html += `
+                <div class="uc-record-item">
+                    <div class="uc-record-icon" style="background: ${bubbleColor};">
+                        ${bubbleIcon}
+                    </div>
+                    <div class="uc-record-content">
+                        <div class="uc-record-title">${escapeHtml(fav.title)}</div>
+                        ${fav.content ? `<div class="uc-record-desc">${escapeHtml(fav.content).replace(/\n/g, '<br>')}</div>` : ''}
+                        <div class="uc-record-meta">
+                            <span>${renderAvatarPreview(fav.author_avatar || '👤')} ${escapeHtml(fav.author)}</span>
+                            <span>•</span>
+                            <span>收藏于 ${timeStr}</span>
+                        </div>
+                    </div>
+                    <div class="uc-record-actions">
+                        ${(function(){
+                            const _aid = fav.author_id || fav.authorId || fav.userId;
+                            const _me  = currentUser && currentUser.id;
+                            if (!_aid || _aid === _me) return '';
+                            return `<button onclick="startChatFromBubble('${_aid}')"
+                                    class="uc-icon-action-btn uc-btn-chat" title="和气泡发布者私聊">💬</button>`;
+                        })()}
+                        <button onclick="locateToBubble(${fav.lat}, ${fav.lng})" 
+                                class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
+                        <button onclick="deleteRecord('favorites', '${fav.bubble_id}', this)" 
+                                class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+            
+        container.innerHTML = html;
+        console.log(`✅ 显示 ${favorites.length} 条收藏记录`);
+    }
+        
+    // ⭐ 新增：显示评论记录列表
+    function displayCommentsList(comments) {
+        const container = document.getElementById('uc-comments');
+            
+        if (comments.length === 0) {
+            container.innerHTML = '<div class="uc-empty">暂无评论记录</div>';
+            return;
+        }
+            
+        let html = '<div class="uc-records-list">';
+        comments.forEach(comment => {
+            const bubbleIcon = BUBBLE_CONFIG[comment.type]?.icon || '📍';
+            const bubbleColor = BUBBLE_CONFIG[comment.type]?.color || '#999';
+            const timeStr = formatTimeSimple(comment.commented_at);
+                
+            html += `
+                <div class="uc-record-item">
+                    <div class="uc-record-icon" style="background: ${bubbleColor};">
+                        ${bubbleIcon}
+                    </div>
+                    <div class="uc-record-content">
+                        <div class="uc-record-title">${escapeHtml(comment.title)}</div>
+                        <div class="uc-comment-text">
+                            ${escapeHtml(comment.comment_text).replace(/\n/g, '<br>')}
+                        </div>
+                        <div class="uc-record-meta">
+                            <span>评论于 ${timeStr}</span>
+                            <span>•</span>
+                            <span>${renderAvatarPreview(comment.author_avatar || '👤')} ${escapeHtml(comment.author)}</span>
+                        </div>
+                    </div>
+                    <div class="uc-record-actions">
+                        ${(function(){
+                            const _aid = comment.author_id || comment.authorId || comment.userId;
+                            const _me  = currentUser && currentUser.id;
+                            if (!_aid || _aid === _me) return '';
+                            return `<button onclick="startChatFromBubble('${_aid}')"
+                                    class="uc-icon-action-btn uc-btn-chat" title="和气泡发布者私聊">💬</button>`;
+                        })()}
+                        <button onclick="locateToBubble(${comment.lat}, ${comment.lng})" 
+                                class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
+                        <button onclick="deleteRecord('comments', '${comment.id}', this)" 
+                                class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+            
+        container.innerHTML = html;
+        console.log(`✅ 显示 ${comments.length} 条评论记录`);
+    }
+        
+    // ⭐ 新增：定位到气泡
+    function locateToBubble(lat, lng) {
+        if (!map) return;
+            
+        // 关闭用户中心
+        closeUserCenter();
+            
+        // 移动地图到气泡位置
+        map.panTo(new qq.maps.LatLng(lat, lng));
+        map.setZoom(15);
+            
+        console.log(`📍 定位到气泡: ${lat}, ${lng}`);
+    }
+        
+    // ⭐ 新增：删除记录
+    function deleteRecord(section, recordId, btn) {
+        if (!confirm('确定要删除这条记录吗？')) return;
+
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            return;
+        }
+
+        // ✅ 乐观 UI：立即淡出移除卡片，不等服务器
+        const card = btn
+            ? btn.closest('.uc-record-item')
+            : (section === 'published' ? document.getElementById('bubble-card-' + recordId) : null);
+        if (card) {
+            card.style.transition = 'opacity .2s, transform .2s';
+            card.style.opacity = '0';
+            card.style.transform = 'translateX(20px)';
+            setTimeout(() => card.remove(), 220);
+        }
+
+        // 发送删除请求给服务器（recordId 强制字符串，匹配 TEXT 主键）
+        socket.send(JSON.stringify({
+            type: 'deleteRecords',
+            section: section,
+            recordIds: [String(recordId)]
+        }));
+
+        console.log('🗑️ 删除', section, recordId);
+    }
+        
+    // 时间格式工具：已移入 src/utils.js
+        
+    // 更新用户统计数据
+    function updateUserStats() {
+        // ⭐ 从服务器查询真实统计数据
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            console.log('🔍 查询用户统计数据...');
+            socket.send(JSON.stringify({
+                type: "queryUserStats"
+            }));
+        }
+    }
+        
+    // 气泡筛选相关在 js/filter.js
+
+    // 查询浏览记录
+    // ── 气泡编辑功能 ──────────────────────────────────────────────
+
+    /**
+     * 打开编辑气泡弹窗，预填当前标题与内容。
+     * @param {string} bubbleId  - 气泡 ID
+     * @param {string} title     - 当前标题
+     * @param {string} content   - 当前内容
+     */
