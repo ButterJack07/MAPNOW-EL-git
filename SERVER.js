@@ -1335,6 +1335,27 @@ if (data.type === "authLogin") {
           }));
           break;
           
+        case "forceLogoutAll":
+          const count = onlineUsers.size;
+          // 先通知所有用户
+          broadcast({ type: "forceLogout", message: "管理员已强制执行下线" });
+          // 断开所有连接
+          onlineUsers.forEach(({ ws: client }) => {
+            try {
+              client.close(1000, "管理员强制执行下线");
+            } catch {}
+          });
+          onlineUsers.clear();
+          socketUser.clear();
+          userSocket.clear();
+          console.log(`🔐 管理员已强制 ${count} 个用户下线`);
+          ws.send(JSON.stringify({
+            type: "adminResponse",
+            success: true,
+            message: `已强制 ${count} 个用户下线`
+          }));
+          break;
+          
         default:
           ws.send(JSON.stringify({
             type: "adminResponse",
