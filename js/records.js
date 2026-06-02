@@ -143,10 +143,8 @@ function closeEditBubbleModal() {
 function deleteRecordFromEdit() {
     const modal = document.getElementById('editBubbleModal');
     const bubbleId = modal?.dataset.bubbleId;
-    if (!bubbleId) return;
+    if (!bubbleId) { console.error('deleteRecordFromEdit: no bubbleId'); return; }
     closeEditBubbleModal();
-    if (!confirm('确定要删除这条气泡吗？')) return;
-    if (!socket || socket.readyState !== WebSocket.OPEN) return;
 
     const card = document.getElementById('bubble-card-' + bubbleId);
     if (card) {
@@ -156,11 +154,16 @@ function deleteRecordFromEdit() {
         setTimeout(() => card.remove(), 220);
     }
 
-    socket.send(JSON.stringify({
-        type: 'deleteRecords',
-        section: 'published',
-        recordIds: [String(bubbleId)]
-    }));
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: 'deleteRecords',
+            section: 'published',
+            recordIds: [String(bubbleId)]
+        }));
+        console.log('🗑️ 已发送删除请求:', bubbleId);
+    } else {
+        console.error('❌ WebSocket未连接，无法删除');
+    }
 }
 
 function submitEditBubble() {

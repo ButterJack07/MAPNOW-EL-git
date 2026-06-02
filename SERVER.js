@@ -597,6 +597,344 @@ function loadBackup() {
 }
 
 
+// 编辑地区（数据库版）
+let currentProvinceId = null;
+let selectedProvince = '';
+let selectedCity = '';
+
+function editRegion() {
+    const currentRegion = currentUser.region || '';
+    
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 20000;
+    `;
+    
+    modal.innerHTML = `
+        <div style="
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        ">
+            <h3 style="color: #052659; margin-bottom: 20px; font-size: 18px;">选择地区</h3>
+            
+            <!-- 当前选择显示 -->
+            <div style="margin-bottom: 15px; padding: 10px; background: #f0f7ff; border-radius: 8px;">
+                <div style="color: #666; font-size: 12px; margin-bottom: 5px;">当前选择</div>
+                <div style="font-weight: 600; color: #052659;" id="selectedRegion">${escapeHtml(currentRegion) || '未选择'}</div>
+            </div>
+            
+            <!-- 搜索框 -->
+            <input type="text" id="regionSearchInput" 
+                   placeholder="搜索省份或城市..." 
+                   style="
+                       width: 100%;
+                       padding: 12px 15px;
+                       border: 2px solid #e0e0e0;
+                       border-radius: 10px;
+                       font-size: 14px;
+                       margin-bottom: 15px;
+                       outline: none;
+                   "
+                   onfocus="this.style.borderColor='#667eea'"
+                   onblur="this.style.borderColor='#e0e0e0'"
+                   oninput="searchRegion(this.value)">
+            
+            <!-- 省份列表 -->
+            <div id="provinceList" style="margin-bottom: 15px;">
+                <div style="color: #666; font-size: 12px; margin-bottom: 8px;">选择省份</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;" id="provinceContainer">
+                    <div style="grid-column: span 2; text-align: center; padding: 20px; color: #999;">加载中...</div>
+                </div>
+            </div>
+            
+            <!-- 城市列表（初始隐藏） -->
+            <div id="cityList" style="display: none; margin-bottom: 15px;">
+                <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                    <button onclick="backToProvinceList()" 
+                            style="
+                                padding: 5px 10px;
+                                background: none;
+                                border: none;
+                                color: #667eea;
+                                cursor: pointer;
+                                font-size: 14px;
+                            ">
+                        ← 返回省份列表
+                    </button>
+                </div>
+                <div style="color: #666; font-size: 12px; margin-bottom: 8px;" id="selectedProvinceName"></div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;" id="cityContainer"></div>
+            </div>
+            
+            <!-- 搜索结果列表（初始隐藏） -->
+            <div id="searchResultList" style="display: none; margin-bottom: 15px; max-height: 300px; overflow-y: auto;"></div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button onclick="this.closest('div').parentElement.remove()" 
+                        style="
+                            flex: 1;
+                            padding: 12px;
+                            background: #f0f0f0;
+                            border: none;
+                            border-radius: 10px;
+                            color: #666;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">取消</button>
+                <button onclick="saveRegionFromPicker(this)" 
+                        style="
+                            flex: 1;
+                            padding: 12px;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            border: none;
+                            border-radius: 10px;
+                            color: white;
+                            font-weight: 600;
+                            cursor: pointer;
+                        ">保存</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // 加载省份列表
+    loadProvinces();
+}
+
+// 加载省份列表
+function loadProvinces() {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        showNetworkStatus('网络未连接', 2000);
+        return;
+    }
+    
+    socket.send(JSON.stringify({
+        type: "getProvinces"
+    }));
+}
+
+// 接收省份列表
+function handleProvincesResult(provinces) {
+    const container = document.getElementById('provinceContainer');
+    if (!container) return;
+    
+    if (provinces.length === 0) {
+        container.innerHTML = '<div style="grid-column: span 2; text-align: center; padding: 20px; color: #999;">暂无数据</div>';
+        return;
+    }
+    
+    container.innerHTML = provinces.map(province => `
+        <div onclick="selectProvince(${province.id}, '${province.name}')" 
+             style="
+                padding: 10px;
+                background: #f8f9fa;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                text-align: center;
+                cursor: pointer;
+                font-size: 13px;
+                transition: all 0.2s;
+             "
+             onmouseover="this.style.background='#e9ecef';this.style.borderColor='#667eea';"
+             onmouseout="this.style.background='#f8f9fa';this.style.borderColor='#e0e0e0';">
+            ${province.name}
+        </div>
+    `).join('');
+}
+
+// 选择省份
+function selectProvince(provinceId, provinceName) {
+    currentProvinceId = provinceId;
+    selectedProvince = provinceName;
+    
+    document.getElementById('provinceList').style.display = 'none';
+    document.getElementById('cityList').style.display = 'block';
+    document.getElementById('searchResultList').style.display = 'none';
+    document.getElementById('regionSearchInput').value = '';
+    
+    document.getElementById('selectedProvinceName').innerHTML = `<span style="font-weight: 600; color: #052659;">${provinceName}</span>`;
+    
+    const cityContainer = document.getElementById('cityContainer');
+    cityContainer.innerHTML = '<div style="grid-column: span 2; text-align: center; padding: 20px; color: #999;">加载中...</div>';
+    
+    // 请求城市列表
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({
+            type: "getCitiesByProvince",
+            provinceId: provinceId
+        }));
+    }
+}
+
+// 接收城市列表
+function handleCitiesResult(provinceId, cities) {
+    const cityContainer = document.getElementById('cityContainer');
+    if (!cityContainer) return;
+    
+    if (cities.length === 0) {
+        cityContainer.innerHTML = '<div style="grid-column: span 2; text-align: center; padding: 20px; color: #999;">暂无城市</div>';
+        return;
+    }
+    
+    cityContainer.innerHTML = cities.map(city => `
+        <div onclick="selectCity('${city.name}')" 
+             class="city-item"
+             data-city="${city.name}"
+             style="
+                padding: 10px;
+                background: #f8f9fa;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                text-align: center;
+                cursor: pointer;
+                font-size: 13px;
+                transition: all 0.2s;
+             "
+             onmouseover="this.style.background='#e9ecef';this.style.borderColor='#667eea';"
+             onmouseout="this.style.background='#f8f9fa';this.style.borderColor='#e0e0e0';">
+            ${city.name}
+        </div>
+    `).join('');
+}
+
+// 选择城市
+function selectCity(cityName) {
+    selectedCity = cityName;
+    
+    // 高亮选中的城市
+    document.querySelectorAll('.city-item').forEach(item => {
+        if (item.getAttribute('data-city') === cityName) {
+            item.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            item.style.color = 'white';
+            item.style.borderColor = '#667eea';
+        } else {
+            item.style.background = '#f8f9fa';
+            item.style.color = '#333';
+            item.style.borderColor = '#e0e0e0';
+        }
+    });
+    
+    // 保存选择的地区
+    const fullRegion = `${selectedProvince} ${cityName}`;
+    window.selectedRegion = fullRegion;
+    document.getElementById('selectedRegion').textContent = fullRegion;
+}
+
+// 返回省份列表
+function backToProvinceList() {
+    document.getElementById('provinceList').style.display = 'block';
+    document.getElementById('cityList').style.display = 'none';
+    document.getElementById('searchResultList').style.display = 'none';
+    document.getElementById('regionSearchInput').value = '';
+    selectedCity = '';
+}
+
+// 搜索地区
+let searchTimeout = null;
+function searchRegion(keyword) {
+    clearTimeout(searchTimeout);
+    
+    if (!keyword.trim()) {
+        document.getElementById('provinceList').style.display = 'block';
+        document.getElementById('cityList').style.display = 'none';
+        document.getElementById('searchResultList').style.display = 'none';
+        return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+        document.getElementById('provinceList').style.display = 'none';
+        document.getElementById('cityList').style.display = 'none';
+        document.getElementById('searchResultList').style.display = 'block';
+        
+        const resultContainer = document.getElementById('searchResultList');
+        resultContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">搜索中...</div>';
+        
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                type: "searchCities",
+                keyword: keyword
+            }));
+        }
+    }, 300);
+}
+
+// 接收搜索结果
+function handleSearchResults(results) {
+    const resultContainer = document.getElementById('searchResultList');
+    if (!resultContainer) return;
+    
+    if (results.length === 0) {
+        resultContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #999;">未找到相关地区</div>';
+        return;
+    }
+    
+    resultContainer.innerHTML = results.map(item => `
+        <div onclick="selectSearchResult('${item.province_name}', '${item.name}')" 
+             style="
+                padding: 12px;
+                margin-bottom: 5px;
+                background: #f8f9fa;
+                border-radius: 8px;
+                cursor: pointer;
+             "
+             onmouseover="this.style.background='#e9ecef'"
+             onmouseout="this.style.background='#f8f9fa'">
+            <div style="font-weight: 600;">${item.name}</div>
+            <div style="font-size: 11px; color: #999;">${item.province_name}</div>
+        </div>
+    `).join('');
+}
+
+// 选择搜索结果
+function selectSearchResult(provinceName, cityName) {
+    selectedProvince = provinceName;
+    selectedCity = cityName;
+    
+    const fullRegion = `${provinceName} ${cityName}`;
+    window.selectedRegion = fullRegion;
+    document.getElementById('selectedRegion').textContent = fullRegion;
+    
+    // 清空搜索，返回省份列表
+    document.getElementById('regionSearchInput').value = '';
+    document.getElementById('provinceList').style.display = 'block';
+    document.getElementById('cityList').style.display = 'none';
+    document.getElementById('searchResultList').style.display = 'none';
+}
+
+// 保存地区（从选择器）
+function saveRegionFromPicker(btn) {
+    const modal = btn.closest('div').parentElement;
+    const newRegion = window.selectedRegion || document.getElementById('selectedRegion').textContent;
+    
+    if (newRegion === '未选择' || newRegion === currentUser.region) {
+        modal.remove();
+        return;
+    }
+    
+    updateUserInfo('region', newRegion);
+    modal.remove();
+    showNetworkStatus('地区已更新', 2000);
+}
+
+
+
+
 
 // ==================== 定期保存备份 ====================
 function saveBackup() {
@@ -692,44 +1030,19 @@ function clearAllBubbles(initiator = "管理员") {
 // ==================== WebSocket 服务器 ====================
 // ⭐ 创建 HTTP 服务器
 const httpServerForWS = http.createServer();
-const PRIMARY_DOMAIN = "mapnow.top";
-const WS_PORT = 3000;
 
 // ⭐ 添加更多 WebSocket 服务器选项以提高连接稳定性
 const wss = new WebSocket.Server({ 
     server: httpServerForWS,
-    // 允许 mapnow.top / localhost / 无 Origin（APP/脚本）
+    // 允许所有来源的连接
     verifyClient: (info, cb) => {
-        try {
-            const origin = info.origin || "";
-
-            if (!origin) {
-                cb(true);
-                return;
-            }
-
-            const originHost = new URL(origin).hostname;
-            const allowed =
-                originHost === PRIMARY_DOMAIN ||
-                originHost.endsWith(`.${PRIMARY_DOMAIN}`) ||
-                originHost === "localhost" ||
-                originHost === "127.0.0.1";
-
-            if (!allowed) {
-                console.log(`⛔ 拒绝非法Origin: ${origin}`);
-            }
-
-            cb(allowed, allowed ? 200 : 403, allowed ? "OK" : "Forbidden origin");
-        } catch (error) {
-            console.log(`⛔ Origin校验失败: ${info.origin || "unknown"}`);
-            cb(false, 403, "Forbidden origin");
-        }
+        // 可以添加白名单逻辑，这里允许所有连接
+        cb(true);
     },
     // 禁用压缩以兼容更多客户端
     perMessageDeflate: false,
     // 客户端跟踪
-    clientTracking: true,
-    path: "/ws"
+    clientTracking: true
 });
 
 // ⭐ 添加错误处理
@@ -755,15 +1068,14 @@ wss.on('close', () => {
 });
 
 // ⭐ 监听所有网络接口
-httpServerForWS.listen(WS_PORT, "0.0.0.0", () => {
+httpServerForWS.listen(3000, "0.0.0.0", () => {
     console.log("\n" + "=".repeat(60));
     console.log("✅ WebSocket服务器启动成功");
     console.log("=".repeat(60));
-    console.log(`   监听地址: 0.0.0.0:${WS_PORT}`);
-    console.log(`   本地访问: ws://localhost:${WS_PORT}`);
-    console.log(`   反向代理: wss://${PRIMARY_DOMAIN}/ws`);
-    console.log(`   WS路径要求: /ws`);
-    console.log(`   域名访问: https://${PRIMARY_DOMAIN}`);
+    console.log("   监听地址: 0.0.0.0:3000");
+    console.log("   本地访问: ws://localhost:3000");
+    console.log("   外网访问: ws://121.199.161.5:3000");
+    console.log("   服务器本地: ws://127.0.0.1:3000");
     console.log("=".repeat(60) + "\n");
 });
 
@@ -927,8 +1239,7 @@ if (data.type === "authLogin") {
         type: "userJoined",
         userId: user.id,
         nickname: user.nickname,
-        avatar: user.avatar,
-        isVip: user.isVip || false
+        avatar: user.avatar
       });
       broadcast({ type: "onlineCount", count: onlineUsers.size });
     } else {
@@ -1066,8 +1377,7 @@ if (data.type === "authLogin") {
         type: "userJoined",
         userId: user.id,
         nickname: user.nickname,
-        avatar: user.avatar,
-        isVip: user.isVip || false
+        avatar: user.avatar
       });
       broadcast({ type: "onlineCount", count: onlineUsers.size });
     }
@@ -1089,8 +1399,7 @@ if (data.type === "authLogin") {
           avatar: user.avatar,
           lat: user.lat,
           lng: user.lng,
-          range: user.range,  // ⭐ 广播用户的范围
-          isVip: user.isVip || false
+          range: user.range  // ⭐ 广播用户的范围
         });
       }
     }
@@ -2236,66 +2545,45 @@ if (data.type === "queryNotificationsByType") {
       const user = socketUser.get(ws);
       if (!user) return;
       
+      const duration = data.duration; // 毫秒
       const now = Date.now();
-      const isLifetime = data.vipType === 'lifetime';
       
-      if (isLifetime) {
-        // 终身会员：设置一个极大的时间戳
-        db.run(`UPDATE users SET is_vip = 1, vip_expire_time = 9999999999999, vip_type = 'lifetime' WHERE id = ?`,
-          [user.id],
+      // 获取当前会员到期时间
+      db.get(`SELECT vip_expire_time FROM users WHERE id = ?`, [user.id], (err, row) => {
+        if (err) {
+          console.error("❌ 查询会员信息失败:", err);
+          return;
+        }
+        
+        const currentExpire = row.vip_expire_time || 0;
+        // 如果已经是会员且未过期，在现有时间基础上累加
+        const newExpire = Math.max(currentExpire, now) + duration;
+        
+        db.run(`UPDATE users SET is_vip = 1, vip_expire_time = ?, vip_type = ? WHERE id = ?`,
+          [newExpire, data.vipType, user.id],
           (err) => {
             if (err) {
-              console.error("❌ 激活终身会员失败:", err);
+              console.error("❌ 激活会员失败:", err);
             } else {
-              console.log(`💎 ${user.nickname} 激活终身会员`);
+              const expireDate = new Date(newExpire);
+              console.log(`💎 ${user.nickname} 激活${data.vipType}会员，到期: ${expireDate.toLocaleString()}`);
+              
+              // 更新用户对象
               user.isVip = true;
-              user.vipExpireTime = 9999999999999;
-              user.vipType = 'lifetime';
+              user.vipExpireTime = newExpire;
+              user.vipType = data.vipType;
+              
+              // 返回会员信息
               ws.send(JSON.stringify({
                 type: "vipActivated",
                 isVip: true,
-                expireTime: 9999999999999,
-                vipType: 'lifetime'
+                expireTime: newExpire,
+                vipType: data.vipType
               }));
             }
           }
         );
-      } else {
-        const duration = data.duration;
-        
-        db.get(`SELECT vip_expire_time FROM users WHERE id = ?`, [user.id], (err, row) => {
-          if (err) {
-            console.error("❌ 查询会员信息失败:", err);
-            return;
-          }
-          
-          const currentExpire = row.vip_expire_time || 0;
-          const newExpire = Math.max(currentExpire, now) + duration;
-          
-          db.run(`UPDATE users SET is_vip = 1, vip_expire_time = ?, vip_type = ? WHERE id = ?`,
-            [newExpire, data.vipType, user.id],
-            (err) => {
-              if (err) {
-                console.error("❌ 激活会员失败:", err);
-              } else {
-                const expireDate = new Date(newExpire);
-                console.log(`💎 ${user.nickname} 激活${data.vipType}会员，到期: ${expireDate.toLocaleString()}`);
-                
-                user.isVip = true;
-                user.vipExpireTime = newExpire;
-                user.vipType = data.vipType;
-                
-                ws.send(JSON.stringify({
-                  type: "vipActivated",
-                  isVip: true,
-                  expireTime: newExpire,
-                  vipType: data.vipType
-                }));
-              }
-            }
-          );
-        });
-      }
+      });
     }
     
     // ⭐ 新增：查询会员状态
@@ -3266,8 +3554,7 @@ const httpServer = http.createServer((req, res) => {
 });
 
 httpServer.listen(3001, "0.0.0.0", () => {
-  console.log("✅ 监控大屏(内网): http://127.0.0.1:3001");
-  console.log(`✅ 监控大屏(域名代理): https://${PRIMARY_DOMAIN}/admin`);
+  console.log("✅ 监控大屏: http://0.0.0.0:3001");
   console.log("=".repeat(60));
   loadBackup();
 });
