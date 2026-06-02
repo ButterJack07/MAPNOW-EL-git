@@ -269,8 +269,8 @@ box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 
 .chat-send-btn {
 padding: 10px 20px;
-background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
-color: white;
+background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
+color: #f6f3ee;
 border: none;
 border-radius: 20px;
 font-size: 14px;
@@ -282,7 +282,7 @@ flex-shrink: 0;
 
 .chat-send-btn:hover {
 transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+box-shadow: 0 4px 14px rgba(82, 78, 72, 0.32);
 }
 
 .chat-send-btn:active {
@@ -371,8 +371,8 @@ box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 
 .comment-input-area button {
 padding: 8px 16px;
-background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
-color: white;
+background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
+color: #f6f3ee;
 border: none;
 border-radius: 8px;
 font-size: 13px;
@@ -384,7 +384,7 @@ flex-shrink: 0;
 
 .comment-input-area button:hover {
 transform: translateY(-2px);
-box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+box-shadow: 0 4px 14px rgba(82, 78, 72, 0.32);
 }
 
 .comment-input-area button:active {
@@ -561,19 +561,22 @@ box-shadow: 0 4px 12px rgba(255,107,107,0.3);
     width: 100%;
     margin-top: 10px;
     padding: 10px;
-    border: 2px solid #667eea;
-    background: var(--card-bg);
-    color: var(--primary-color);
+    border: 1px solid #857f77;
+    background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
+    color: #f6f3ee;
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
+    box-shadow: 0 4px 14px rgba(82, 78, 72, 0.18);
 }
 
 .toggle-custom-btn:hover {
-    background: var(--primary-color);
-    color: white;
+    background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
+    color: #f6f3ee;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(82, 78, 72, 0.28);
 }
 
 /* 自定义时长区域 */

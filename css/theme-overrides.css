@@ -44,7 +44,7 @@
     --btn-soft-border: #c1bbb3;
     --panel-unified-width: 400px;
     --panel-active-bg: #9a938b;
-    --panel-active-text: #f6f3ee;
+    --panel-active-text: #000000;
     --panel-active-border: #857f77;
 
     --bubble-cluster-bg: linear-gradient(135deg, #c8c1b8 0%, #a8a099 100%);
@@ -470,9 +470,9 @@ body::before {
 .publish-panel-container .wizard-btn {
     padding: 9px 12px;
     border-radius: 10px;
-    border: 1px solid var(--btn-soft-border);
-    background: var(--btn-soft-bg);
-    color: var(--text-primary);
+    border: 1px solid #857f77;
+    background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
+    color: #f6f3ee;
     font-size: 13px;
     font-weight: 600;
     min-width: 84px;
@@ -533,7 +533,6 @@ body::before {
 .publish-panel-container .time-chip,
 .publish-panel-container .toggle-custom-btn {
     border-radius: 12px !important;
-    box-shadow: none !important;
 }
 
 .publish-panel-container .input-field input,
@@ -603,10 +602,11 @@ body::before {
 
 .publish-panel-container .toggle-custom-btn {
     width: 100%;
-    background: var(--btn-soft-bg) !important;
-    border: 1px solid var(--btn-soft-border) !important;
-    color: var(--text-primary) !important;
+    background: linear-gradient(135deg, #a09890 0%, #8b857e 100%) !important;
+    border: 1px solid #857f77 !important;
+    color: #f6f3ee !important;
     padding: 10px 12px !important;
+    box-shadow: 0 4px 14px rgba(82, 78, 72, 0.18) !important;
 }
 
 .publish-panel-container .input-field {
@@ -655,7 +655,7 @@ body::before {
 .chat-tab.active {
     background: var(--panel-active-bg) !important;
     border-bottom-color: var(--panel-active-border) !important;
-    color: var(--panel-active-text) !important;
+    color: #000000 !important;
 }
 
 .chat-tab-content {
@@ -997,6 +997,34 @@ button[class*="btn"]:hover {
     transform: translateY(-1px);
 }
 
+.chat-panel-container .chat-input-area button,
+.chat-panel-container .chat-send-btn,
+.comment-input-area button,
+#publishPanel button[onclick="publishBubble()"],
+#rangePanel button[onclick*="confirmRangeChange"],
+#rangeModal button[onclick*="confirmRangeChange"],
+#rangeModal button[onclick*="activateGlobalMode"],
+#filterModal button[onclick*="applyFilter"] {
+    background: linear-gradient(135deg, #a09890 0%, #8b857e 100%) !important;
+    color: #f6f3ee !important;
+    border: 1px solid #857f77 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 14px rgba(82, 78, 72, 0.18) !important;
+}
+
+.chat-panel-container .chat-input-area button:hover,
+.chat-panel-container .chat-send-btn:hover,
+.comment-input-area button:hover,
+#publishPanel button[onclick="publishBubble()"]:hover,
+#rangePanel button[onclick*="confirmRangeChange"]:hover,
+#rangeModal button[onclick*="confirmRangeChange"]:hover,
+#rangeModal button[onclick*="activateGlobalMode"]:hover,
+#filterModal button[onclick*="applyFilter"]:hover {
+    background: linear-gradient(135deg, #a09890 0%, #8b857e 100%) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(82, 78, 72, 0.28) !important;
+}
+
 /* keep text dark in light cards/modals */
 .auth-container *,
 .publish-panel-container *,
@@ -1017,18 +1045,6 @@ button[class*="btn"]:hover {
     text-shadow: none !important;
 }
 
-/* action buttons in modals should also be soft gray */
-#publishPanel button[onclick="publishBubble()"],
-#rangePanel button[onclick*="confirmRangeChange"],
-#rangeModal button[onclick*="confirmRangeChange"],
-#rangeModal button[onclick*="activateGlobalMode"],
-#filterModal button[onclick*="applyFilter"] {
-    background: var(--btn-soft-bg) !important;
-    color: var(--text-primary) !important;
-    border: 1px solid var(--btn-soft-border) !important;
-    box-shadow: none !important;
-}
-
 .auth-tab,
 .chat-tab,
 .uc-tab {
@@ -1039,9 +1055,10 @@ button[class*="btn"]:hover {
 .auth-tab.active,
 .chat-tab.active,
 .uc-tab.active {
-    color: var(--text-primary) !important;
-    background: #f8f7f4 !important;
-    border: 1px solid var(--border-color) !important;
+    color: #f6f3ee !important;
+    background: linear-gradient(135deg, #a09890 0%, #8b857e 100%) !important;
+    border: 1px solid #857f77 !important;
+    border-radius: 10px !important;
 }
 
 .status-message.success {

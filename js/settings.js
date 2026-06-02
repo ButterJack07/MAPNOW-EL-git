@@ -875,7 +875,6 @@ function updateUserInfo(field, value) {
         console.log(`✅ 显示 ${results.length} 条搜索结果`);
     }
         
-    // 通知与收件箱逻辑在 js/inbox.js
         
     // 记录气泡浏览
     function recordBubbleView(bubbleId) {
@@ -901,7 +900,6 @@ function updateUserInfo(field, value) {
         }
     }
         
-    // 气泡互动逻辑在 js/bubble.js
         
     // ==================== 初始化 ====================
         
@@ -1188,6 +1186,44 @@ function updateUserInfo(field, value) {
         });
     }
 
+    function wgs84ToGcj02(lat, lng) {
+        const a = 6378245.0;
+        const ee = 0.00669342162296594323;
+
+        function transformLat(x, y) {
+            let ret = -100.0 + 2.0 * x + 3.0 * y + 0.2 * y * y + 0.1 * x * y + 0.2 * Math.sqrt(Math.abs(x));
+            ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+            ret += (20.0 * Math.sin(y * Math.PI) + 40.0 * Math.sin(y / 3.0 * Math.PI)) * 2.0 / 3.0;
+            ret += (160.0 * Math.sin(y / 12.0 * Math.PI) + 320.0 * Math.sin(y * Math.PI / 30.0)) * 2.0 / 3.0;
+            return ret;
+        }
+
+        function transformLng(x, y) {
+            let ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * Math.sqrt(Math.abs(x));
+            ret += (20.0 * Math.sin(6.0 * x * Math.PI) + 20.0 * Math.sin(2.0 * x * Math.PI)) * 2.0 / 3.0;
+            ret += (20.0 * Math.sin(x * Math.PI) + 40.0 * Math.sin(x / 3.0 * Math.PI)) * 2.0 / 3.0;
+            ret += (150.0 * Math.sin(x / 12.0 * Math.PI) + 300.0 * Math.sin(x / 30.0 * Math.PI)) * 2.0 / 3.0;
+            return ret;
+        }
+
+        function outOfChina(lat, lng) {
+            return lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271;
+        }
+
+        if (outOfChina(lat, lng)) return { lat, lng };
+
+        let dLat = transformLat(lng - 105.0, lat - 35.0);
+        let dLng = transformLng(lng - 105.0, lat - 35.0);
+        const radLat = lat / 180.0 * Math.PI;
+        let magic = Math.sin(radLat);
+        magic = 1 - ee * magic * magic;
+        const sqrtMagic = Math.sqrt(magic);
+        dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * Math.PI);
+        dLng = (dLng * 180.0) / (a / sqrtMagic * Math.cos(radLat) * Math.PI);
+
+        return { lat: lat + dLat, lng: lng + dLng };
+    }
+
     function getGPSLocation() {
         return new Promise((resolve, reject) => {
     // 检查浏览器是否支持
@@ -1229,17 +1265,15 @@ function updateUserInfo(field, value) {
         (position) => {
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
-            gpsPosition = { lat: lat, lng: lng };
+            const gcj02 = wgs84ToGcj02(lat, lng);
+            gpsPosition = { lat: gcj02.lat, lng: gcj02.lng };
                 
             // 如果当前是GPS模式，更新位置
             if (locationMode === 'gps') {
                 updateMyPosition(gpsPosition);
-                // 防抖定时器：避免 GPS 快速更新时频繁重绘地图
-                let locationTimer = null;
-
             }
                 
-            console.log('✅ 获取到GPS定位:', gpsPosition);
+            console.log('✅ 获取到GPS定位 (已转GCJ-02):', gpsPosition, '原始WGS-84:', { lat, lng });
             resolve(gpsPosition);
                 
             // 开始持续监控GPS位置
@@ -1277,19 +1311,17 @@ function updateUserInfo(field, value) {
             
         gpsWatchId = navigator.geolocation.watchPosition(
             (position) => {
+                const gcj02 = wgs84ToGcj02(position.coords.latitude, position.coords.longitude);
                 gpsPosition = {
-                    lat: position.coords.latitude,
-                    lng: position.coords.longitude
+                    lat: gcj02.lat,
+                    lng: gcj02.lng
                 };
-
-                // 如果当前是GPS模式，使用 300ms 防抖后再更新位置，减少渲染
+                    
+                // 如果当前是GPS模式，更新位置
                 if (locationMode === 'gps') {
-                    clearTimeout(locationTimer);
-                    locationTimer = setTimeout(() => {
-                        updateMyPosition(gpsPosition);
-                    }, 300);
+                    updateMyPosition(gpsPosition);
                 }
-
+                    
                 updateLocationStatus("📍 实时定位中");
             },
             (error) => {
@@ -1310,12 +1342,6 @@ function updateUserInfo(field, value) {
             navigator.geolocation.clearWatch(gpsWatchId);
             gpsWatchId = null;
         }
-        // 清理防抖定时器
-        if (locationTimer) {
-            clearTimeout(locationTimer);
-            locationTimer = null;
-        }
-
         isLocationEnabled = false;
     }
 
@@ -1343,7 +1369,14 @@ function updateUserInfo(field, value) {
     } else {
         getGPSLocation();
     }
-        
+        // 切换到 GPS 模式：清除手动位置标记优先权，确保 marker 和 范围圈 以 GPS 为准
+        manualPosition = null;
+        isFromSearchLocation = false;
+        // 立即重建我的标记和范围，先销毁再重建以避免旧图标残留
+        if (myMarker) { try { myMarker.setMap(null); } catch(e){} myMarker = null; }
+        // 在显式切换到 GPS 时需要强制移除旧圈
+        safeRemoveMyRangeCircle(true);
+        setTimeout(()=>{ try { updateMyMarker(); updateMyRange(); refreshAllMarkers(); } catch(e){} }, 80);
         } else {
     // 激活手动模式按钮
     if (manualCircleBtn) manualCircleBtn.classList.add('active');
@@ -1356,6 +1389,35 @@ function updateUserInfo(field, value) {
         }
     
         updateLocationDisplay();
+        // 切换定位模式后立即刷新我的标记与范围圈，保证界面及时反映（避免仅切换模式时范围不更新）
+        try {
+            updateMyMarker();
+            updateMyRange();
+            refreshAllMarkers();
+        } catch (e) {
+            console.warn('刷新定位显示失败：', e);
+        }
+            // 如果刚切换到手动/搜索定位，做一次范围 bounce（先小再还原）以强制触发所有相关刷新流程
+            if (mode === 'manual') {
+                try {
+                    const oldRange = visibleRange || 1000;
+                    // 先设为最小值（setRange 内会 clamp 到 100）然后短延迟还原
+                    setTimeout(() => setRange(100), 60);
+                    setTimeout(() => setRange(oldRange), 260);
+                } catch (e) {
+                    console.warn('范围 bounce 失败', e);
+                }
+            }
+            // 再次延迟确保重建：覆盖可能的时序问题（若第一次 updateMyRange 被其他逻辑移除）
+            if (mode === 'manual') {
+                setTimeout(() => {
+                    try {
+                        console.log('🔁 手动模式：延迟强制重建范围圈/标记');
+                        updateMyRange();
+                        refreshAllMarkers();
+                    } catch (e) { console.warn('延迟重建失败', e); }
+                }, 420);
+            }
     }
 
 
@@ -1435,74 +1497,111 @@ function updateUserInfo(field, value) {
         }
 
         // 暂时勿扰：隐藏位置标记和范围圆圈
-        if (userStats && userStats.status === 6) {
+            if (userStats && userStats.status === 6) {
             console.log('🔕 暂时勿扰模式：位置标记已隐藏');
-            if (myRangeCircle) { myRangeCircle.setMap(null); myRangeCircle = null; }
+            safeRemoveMyRangeCircle(true); // 强制移除
             return;
         }
 
-        // 局域 GPS 模式：圆圈代表位置，不显示人物 marker
+        // 局域模式：通常使用圆圈代表位置，但若是明确的 GPS 模式，应显示人物 marker
         // 搜索（manual）模式 或 全局模式：显示 marker，不显示圆圈
         const isLocalGps = !isGlobalMode && locationMode !== 'manual';
-        if (isLocalGps) {
-            // 确保圆圈存在，不画 marker
+        // 只有当处于局域且不是 GPS 模式时，使用圆圈表示位置（保留向后兼容）
+        if (isLocalGps && locationMode !== 'gps') {
             updateMyRange();
             return;
         }
 
-        // 搜索/全局模式：隐藏圆圈，改画 marker
-        if (myRangeCircle) { myRangeCircle.setMap(null); myRangeCircle = null; }
+        // 确保范围圈存在并更新位置/半径
+        updateMyRange();
 
-        const avatar  = currentUser?.avatar || '👤';
-        const iconUrl = await generateAvatarIconUrl(avatar, 48, '#FFAA00', true);
+        // 标记位置：手动/搜索定位优先使用 manualPosition，否则使用 myPosition（默认 GPS）
+        const markerPos = (locationMode === 'manual' && typeof manualPosition !== 'undefined' && manualPosition) ? manualPosition : myPosition;
 
-        // 若在异步等待期间地图/位置已失效，则放弃
-        if (!map || !myPosition) return;
+        // 先同步更新已存在的 marker 的位置，或创建一个占位 marker，避免等待头像生成导致无标记显示
+        const markerLatLng = new qq.maps.LatLng(markerPos.lat, markerPos.lng);
 
-        const icon = new qq.maps.MarkerImage(
-            iconUrl,
-            new qq.maps.Size(48, 48),
-            new qq.maps.Point(0, 0),
-            new qq.maps.Point(24, 24)
-        );
+        if (myMarker) {
+            try { myMarker.setPosition(markerLatLng); myMarker.setMap(map); } catch (e) { console.warn('更新现有 myMarker 位置失败', e); }
+        } else {
+            // 创建占位图标（简单圆点 SVG），立即显示
+            const placeholderSvg = `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><circle cx='20' cy='20' r='10' fill='%23FFAA00' stroke='white' stroke-width='2'/></svg>`)}`;
+            const phIcon = new qq.maps.MarkerImage(
+                placeholderSvg,
+                new qq.maps.Size(40, 40),
+                new qq.maps.Point(0, 0),
+                new qq.maps.Point(20, 20)
+            );
+            myMarker = new qq.maps.Marker({ map: map, position: markerLatLng, title: currentUser ? currentUser.nickname : '我的位置', icon: phIcon });
+        }
 
-        myMarker = new qq.maps.Marker({
-            map: map,
-            position: new qq.maps.LatLng(myPosition.lat, myPosition.lng),
-            title: currentUser ? currentUser.nickname : '我的位置',
-            icon: icon
-        });
+        // 异步生成并替换为头像 icon（不会阻塞 marker 的即时显示）
+        (async () => {
+            try {
+                const avatar  = currentUser?.avatar || '👤';
+                const iconUrl = await generateAvatarIconUrl(avatar, 48, '#FFAA00', true);
+                if (!map || !myMarker) return;
+                const icon = new qq.maps.MarkerImage(
+                    iconUrl,
+                    new qq.maps.Size(48, 48),
+                    new qq.maps.Point(0, 0),
+                    new qq.maps.Point(24, 24)
+                );
+                myMarker.setIcon(icon);
+                myMarker.setTitle(currentUser ? currentUser.nickname : '我的位置');
+            } catch (e) {
+                console.warn('异步生成头像失败，保留占位图标', e);
+            }
+        })();
     }
 
     // ==================== 更新我的可见范围圆圈 ====================
     function updateMyRange() {
-        if (!map || !myPosition) return;
-        
+        // 选择圆心：若处于手动/搜索定位且存在 manualPosition，则以 manualPosition 为中心，否则使用 myPosition
+        const centerPos = (locationMode === 'manual' && typeof manualPosition !== 'undefined' && manualPosition) ? manualPosition : myPosition;
+
+        console.log('🔵 updateMyRange 调用', { locationMode, isGlobalMode, centerPos, visibleRange, mapExists: !!map });
+
+        if (!map || !centerPos) {
+            console.log('🔶 无法创建范围圈：map或中心坐标缺失', { map: !!map, centerPos });
+            if (myRangeCircle) { myRangeCircle.setMap(null); myRangeCircle = null; }
+            return;
+        }
+
         // ⭐ 全局模式下不显示圆圈
         if (isGlobalMode) {
             if (myRangeCircle) {
                 myRangeCircle.setMap(null);
                 myRangeCircle = null;
+                console.log('🔶 全局模式：移除范围圈');
             }
             return;
         }
-            
+
         // 移除旧的圆圈
         if (myRangeCircle) {
             myRangeCircle.setMap(null);
+            myRangeCircle = null;
         }
-            
+
         // 创建新的可见范围圆圈（使用主题颜色）
-        const primaryHex = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
-        const c = hexToRgb(primaryHex || '#7f8a90');
-        myRangeCircle = new qq.maps.Circle({
-            map: map,
-            center: new qq.maps.LatLng(myPosition.lat, myPosition.lng),
-            radius: visibleRange,
-            fillColor: new qq.maps.Color(c.r, c.g, c.b, 0.24),
-            strokeColor: new qq.maps.Color(c.r, c.g, c.b, 0.58),
-            strokeWeight: 2
-        });
+        try {
+            const primaryHex = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#7f8a90';
+            const c = hexToRgb(primaryHex);
+            myRangeCircle = new qq.maps.Circle({
+                map: map,
+                center: new qq.maps.LatLng(centerPos.lat, centerPos.lng),
+                radius: visibleRange,
+                fillColor: new qq.maps.Color(c.r, c.g, c.b, 0.24),
+                strokeColor: new qq.maps.Color(c.r, c.g, c.b, 0.58),
+                strokeWeight: 2
+            });
+            // 记录创建时间，防止其他快速触发的逻辑立即移除造成闪动
+            try { window._lastRangeCreatedAt = Date.now(); } catch (e) {}
+            console.log('✅ 范围圆圈已创建/更新', { centerPos, visibleRange, lastCreatedAt: window._lastRangeCreatedAt });
+        } catch (e) {
+            console.error('❌ 创建范围圆圈失败：', e);
+        }
     }
 
     function hexToRgb(hex) {
@@ -1512,6 +1611,23 @@ function updateUserInfo(field, value) {
             g: parseInt(h.substring(2, 4), 16),
             b: parseInt(h.substring(4, 6), 16)
         };
+    }
+    // 安全移除我的范围圆圈，默认会跳过刚创建的圆圈以避免闪动
+    function safeRemoveMyRangeCircle(force) {
+        try {
+            const last = (window && window._lastRangeCreatedAt) ? window._lastRangeCreatedAt : 0;
+            if (!force && Date.now() - last < 600) {
+                console.log('🔒 safeRemoveMyRangeCircle: 跳过刚创建的圆圈');
+                return;
+            }
+            if (myRangeCircle) {
+                myRangeCircle.setMap(null);
+                myRangeCircle = null;
+                console.log('🗑️ 安全移除范围圆圈', { force: !!force });
+            }
+        } catch (e) {
+            console.warn('safeRemoveMyRangeCircle 错误', e);
+        }
     }
         
     // ==================== ⭐ 局域范围调节功能 ====================
@@ -1584,14 +1700,19 @@ function updateUserInfo(field, value) {
             return;
         }
         
+        // 计算用于显示的圆心：手动/搜索定位优先使用 manualPosition
+        const centerUsed = (locationMode === 'manual' && manualPosition) ? manualPosition : myPosition;
         const myLatLng = new qq.maps.LatLng(myPosition.lat, myPosition.lng);
-        
-        // 1. 更新我的标记或圆圈位置
+        const myCenterLatLng = centerUsed ? new qq.maps.LatLng(centerUsed.lat, centerUsed.lng) : myLatLng;
+
+        // 1. 更新我的标记或圆圈位置（标记与圆心均以手动选点优先，否则使用 GPS）
+        const markerPosUsed = (locationMode === 'manual' && manualPosition) ? manualPosition : myPosition;
+        const markerLatLng = new qq.maps.LatLng(markerPosUsed.lat, markerPosUsed.lng);
         if (myMarker) {
-            myMarker.setPosition(myLatLng);
+            myMarker.setPosition(markerLatLng);
         }
         if (myRangeCircle) {
-            myRangeCircle.setCenter(myLatLng);
+            myRangeCircle.setCenter(markerLatLng);
         }
         
         // ⭐ 关键修复：先检查开关，如果关闭则隐藏所有其他用户
@@ -1600,7 +1721,8 @@ function updateUserInfo(field, value) {
             
             // 隐藏所有其他用户的标记和圆圈
             Object.keys(userMarkers).forEach(userId => {
-                if (currentUser && userId !== currentUser.id) {
+                const isSelf = currentUser && (String(userId) === String(currentUser.id) || String(userId) === String(currentUser.userId));
+                if (!isSelf) {
                     if (userMarkers[userId]) {
                         userMarkers[userId].setMap(null);
                     }
@@ -1627,8 +1749,8 @@ function updateUserInfo(field, value) {
         onlineUserIds.forEach(userId => {
             const user = onlineUsers[userId];
             
-            // 跳过自己
-            if (currentUser && userId === currentUser.id) {
+            // 跳过自己（支持 server 返回的 userId 或 id 两种字段）
+            if (currentUser && (String(userId) === String(currentUser.id) || String(userId) === String(currentUser.userId))) {
                 console.log(`⏭️ 跳过自己: ${userId} (${user.nickname})`);
                 return;
             }
@@ -1694,31 +1816,50 @@ function updateUserInfo(field, value) {
                 if (!userMarkers[userId]) {
                     console.log(`   🆕 创建新用户标记: ${user.nickname}`);
                         
-                    const icon = new qq.maps.MarkerImage(
-                        'data:image/svg+xml;utf8,' + encodeURIComponent(`
-                            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
-                                <circle cx="20" cy="20" r="18" fill="#FFAA00" stroke="white" stroke-width="2"/>
-                                <text x="20" y="28" text-anchor="middle" fill="white" font-size="18" font-family="Arial">👤</text>
-                            </svg>
-                        `),
-                        new qq.maps.Size(40, 40),
-                        new qq.maps.Point(0, 0),
-                        new qq.maps.Point(20, 20)
-                    );
-                        
-                    const marker = new qq.maps.Marker({
-                        map: map,
-                        position: theirLatLng,
-                        title: `${user.nickname} (${userId})`,
-                        icon: icon
-                    });
-                        
-                    userMarkers[userId] = marker;
-                        
-                    // ⭐ v9.6.5: 单击事件 - 直接显示用户信息
-                    qq.maps.event.addListener(marker, 'click', function() {
-                        showUserInfoWindow(user, theirLatLng);
-                    });
+                    // 使用头像生成圆形 icon（异步），保持与搜索进入时的样式一致
+                    (function(uId, u, pos){
+                        const avatar = u.avatar || '👤';
+                        const borderColor = u.isVip ? '#f6c90e' : '#FFAA00';
+                        generateAvatarIconUrl(avatar, 40, borderColor, true).then(iconUrl => {
+                            const icon = new qq.maps.MarkerImage(
+                                iconUrl,
+                                new qq.maps.Size(40, 40),
+                                new qq.maps.Point(0, 0),
+                                new qq.maps.Point(20, 20)
+                            );
+
+                            const marker = new qq.maps.Marker({
+                                map: map,
+                                position: pos,
+                                title: `${u.nickname} (${uId})`,
+                                icon: icon
+                            });
+
+                            userMarkers[uId] = marker;
+
+                            // 单击事件 - 显示用户信息
+                            qq.maps.event.addListener(marker, 'click', function() {
+                                showUserInfoWindow(u, pos);
+                            });
+                        }).catch(err => {
+                            console.warn('生成用户头像图标失败，回退到默认图标', err);
+                            // 回退到原始 SVG 占位图标
+                            const fallback = new qq.maps.MarkerImage(
+                                'data:image/svg+xml;utf8,' + encodeURIComponent(`
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">
+                                        <circle cx="20" cy="20" r="18" fill="#FFAA00" stroke="white" stroke-width="2"/>
+                                        <text x="20" y="28" text-anchor="middle" fill="white" font-size="18" font-family="Arial">👤</text>
+                                    </svg>
+                                `),
+                                new qq.maps.Size(40, 40),
+                                new qq.maps.Point(0, 0),
+                                new qq.maps.Point(20, 20)
+                            );
+                            const marker = new qq.maps.Marker({ map: map, position: pos, title: `${u.nickname} (${uId})`, icon: fallback });
+                            userMarkers[uId] = marker;
+                            qq.maps.event.addListener(marker, 'click', function() { showUserInfoWindow(u, pos); });
+                        });
+                    })(userId, user, theirLatLng);
                         
                 } else {
                     // 更新现有标记位置并确保显示
@@ -3113,8 +3254,8 @@ function updateCustomTimeButtonState() {
     function updateOtherUserPosition(data) {
         if (!data.userId) return;
             
-        // 如果是自己，跳过
-        if (currentUser && data.userId === currentUser.id) {
+        // 如果是自己，跳过（支持 server 返回的 userId 或 id 两种字段）
+        if (currentUser && (String(data.userId) === String(currentUser.id) || String(data.userId) === String(currentUser.userId))) {
             return;
         }
             
@@ -4403,55 +4544,6 @@ function updateCustomTimeButtonState() {
         console.log('✅ 关闭聊天室选项卡:', roomCode);
     }
 
-
-
-    // ⭐ 旧函数已废弃，使用renderMessages代替
-    /*
-    function updateChatMessages() {
-        const container = document.getElementById('chatMessages');
-        if (!container) return;
-            
-        container.innerHTML = chatMessages.map(msg => {
-            const messageClass = msg.isMyMessage ? 'chat-message my-message' : 'chat-message';
-            const senderName = msg.isMyMessage ? '我' : msg.from;
-            const avatar = msg.isMyMessage ? '👤' : (msg.avatar || '👤');
-                
-            // ⭐ 解析消息前缀
-            const text = msg.text || '';
-            const prefixMatch = text.match(/^\[(\d{6})\]\s+/);
-            let roomCode = null;
-            let actualMessage = text;
-            let roomBadge = '';
-            let messageStyle = 'color: var(--text-primary); font-size: 13px;';
-                
-            if (prefixMatch) {
-                roomCode = prefixMatch[1];
-                actualMessage = text.substring(prefixMatch[0].length);
-                    
-                if (roomCode === '000000') {
-                    // 公屏消息 - 蓝色
-                    roomBadge = '<span style="background: #5483B3; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px;">📢 公屏</span>';
-                } else {
-                    // 聊天室消息 - 金色
-                    roomBadge = '<span style="background: #FFD700; color: var(--text-primary); padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px;">💬 [' + roomCode + ']</span>';
-                }
-            }
-                
-            return `
-                <div class="${messageClass}">
-                    <div class="sender">${roomBadge}${avatar} ${senderName}</div>
-                    <div style="${messageStyle}">${escapeHtml(actualMessage)}</div>
-                    <div class="time">${formatTime(msg.time, true)}</div>
-                </div>
-            `;
-        }).join('');
-            
-        // 滚动到底部
-        container.scrollTop = container.scrollHeight;
-    }
-    */
-
-    // updateChatBadge (см. определение выше с параметром count)
 
     // ==================== 辅助函数 ====================
     function escapeHtml(text) {

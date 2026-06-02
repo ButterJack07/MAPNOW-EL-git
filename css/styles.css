@@ -843,9 +843,9 @@
     }
 
     .chat-tab.active {
-        background: var(--card-bg);
-        color: var(--text-primary);
-        border-bottom-color: #5483B3;
+        background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
+        color: #f6f3ee;
+        border-bottom-color: #857f77;
         font-weight: 600;
     }
 
@@ -1129,8 +1129,8 @@
 
     .chat-input-area button {
         padding: 10px 20px;
-        background: linear-gradient(135deg, #5483B3 0%, #052659 100%);
-        color: white;
+        background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
+        color: #f6f3ee;
         border: none;
         border-radius: 25px;
         cursor: pointer;
@@ -1140,7 +1140,7 @@
 
     .chat-input-area button:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(84, 131, 179, 0.3);
+        box-shadow: 0 4px 14px rgba(82, 78, 72, 0.32);
     }
 
     /* ==================== 聊天切换按钮 ==================== */

@@ -16,9 +16,9 @@
         const confirmLabel = document.getElementById('rangeConfirmText');
         if (confirmLabel) {
             if (isGlobalMode) {
-                confirmLabel.textContent = '确认修改为1000米范围';
+                confirmLabel.textContent = '确认';
             } else {
-                confirmLabel.textContent = `确认修改为${intValue}米范围`;
+                confirmLabel.textContent = `确认`;
             }
         }
     }

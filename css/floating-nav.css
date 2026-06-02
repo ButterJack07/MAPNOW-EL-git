@@ -37,10 +37,11 @@
 
 .float-btn.active,
 .mobile-user-btn.active {
-    outline: 2px solid var(--dock-active-outline);
-    outline-offset: 1px;
-    background: var(--dock-active-bg) !important;
-    color: var(--dock-active-text) !important;
+    background: linear-gradient(135deg, #a09890 0%, #8b857e 100%) !important;
+    color: #f6f3ee !important;
+    box-shadow: 
+        0 0 0 3px rgba(160, 152, 144, 0.32),
+        0 6px 24px rgba(82, 78, 72, 0.32);
 }
 
 .nav-icon {
@@ -93,7 +94,6 @@
 
 .float-btn.active {
     transform: scale(1.04);
-    box-shadow: 0 8px 26px rgba(82, 78, 72, 0.28);
 }
 
 .float-btn::before,
@@ -244,5 +244,18 @@
     .mobile-user-btn.active .nav-label {
         color: var(--text-primary);
         font-weight: 600;
+    }
+
+    .float-btn.active {
+        background: linear-gradient(135deg, #a09890 0%, #8b857e 100%) !important;
+        color: #f6f3ee !important;
+        box-shadow: 0 0 0 3px rgba(160, 152, 144, 0.32), 0 4px 16px rgba(82, 78, 72, 0.28) !important;
+        transform: scale(1.04) !important;
+    }
+
+    .mobile-user-btn.active {
+        background: linear-gradient(135deg, #a09890 0%, #8b857e 100%) !important;
+        color: #f6f3ee !important;
+        box-shadow: 0 0 0 3px rgba(160, 152, 144, 0.32), 0 4px 16px rgba(82, 78, 72, 0.28);
     }
 }

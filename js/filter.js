@@ -29,10 +29,10 @@ function openFilterModal() {
     const inactiveBg = '#f8f7f4';
     const inactiveText = '#4e4a46';
     const inactiveBorder = '#cec8c1';
-    const activeBg = '#9a938b';
+    const activeBg = 'linear-gradient(135deg, #a09890 0%, #8b857e 100%)';
     const activeText = '#f6f3ee';
     const activeBorder = '#857f77';
-
+    
     // 恢复当前筛选状态
     if (filterSettings && filterSettings.types) {
         // 重置所有按钮样式
@@ -81,7 +81,7 @@ function toggleFilterType(type) {
     const inactiveBg = '#f8f7f4';
     const inactiveText = '#4e4a46';
     const inactiveBorder = '#cec8c1';
-    const activeBg = '#9a938b';
+    const activeBg = 'linear-gradient(135deg, #a09890 0%, #8b857e 100%)';
     const activeText = '#f6f3ee';
     const activeBorder = '#857f77';
     
