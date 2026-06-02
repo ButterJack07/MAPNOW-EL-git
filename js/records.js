@@ -567,8 +567,7 @@ function recordBubbleView(bubbleId) {
                             <div class="uc-record-top-actions">
                                 ${(function(){
                                     const _aid = comment.author_id || comment.authorId || comment.userId;
-                                    const _me  = currentUser && currentUser.id;
-                                    if (!_aid || _aid === _me) return '';
+                                    if (!_aid) return '';
                                     return `<button onclick="event.stopPropagation();startChatFromBubble('${_aid}')"
                                             class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
                                 })()}

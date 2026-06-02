@@ -55,12 +55,31 @@
     function displayPrivateChats(chats) {
         const container = document.getElementById('chatList');
     
+        let html = '';
+
+        // ⭐ 自聊：始终置顶显示
+        if (currentUser) {
+            const selfMessages = getSelfMessages();
+            const lastSelfMsg = selfMessages.length > 0 ? selfMessages[selfMessages.length - 1].message : '';
+            const selfLastMsgPreview = lastSelfMsg ? (lastSelfMsg.length > 30 ? lastSelfMsg.substring(0, 30) + '...' : lastSelfMsg) : '给自己留言';
+            const selfAvatarHTML = renderAvatarPreview(currentUser.avatar || '👤');
+
+            html += `
+                <div class="chat-item chat-item-self" onclick="openSelfChat()">
+                    <div class="chat-avatar">${selfAvatarHTML}</div>
+                    <div class="chat-info">
+                        <div class="chat-name">我 <span style="font-size: 11px; color: var(--text-tertiary); font-weight: 400;">(与自己的对话)</span></div>
+                        <div class="chat-last-message">${escapeHtml(selfLastMsgPreview)}</div>
+                    </div>
+                </div>
+            `;
+        }
+    
         if (chats.length === 0) {
-    container.innerHTML = '<div class="uc-empty">暂无私聊<br><small style="color: var(--text-tertiary); font-size: 12px; margin-top: 10px; display: block;">通过用户信息卡或气泡信息卡发起私聊</small></div>';
+    container.innerHTML = html || '<div class="uc-empty">暂无私聊<br><small style="color: var(--text-tertiary); font-size: 12px; margin-top: 10px; display: block;">通过用户信息卡或气泡信息卡发起私聊</small></div>';
     return;
         }
     
-        let html = '';
         chats.forEach(chat => {
     const isBase64 = chat.avatar && chat.avatar.startsWith('data:image');
     const avatarHTML = isBase64 
@@ -85,7 +104,7 @@
         });
     
         container.innerHTML = html;
-        console.log(`✅ 显示 ${chats.length} 个私聊会话`);
+        console.log(`✅ 显示 ${chats.length} 个私聊会话（含自聊）`);
     }
 
     // 辅助函数：转义属性中的引号
@@ -113,6 +132,7 @@
         }
     
         if (userId === currentUser.id) {
+    openSelfChat();
     return;
         }
     
@@ -162,6 +182,7 @@
         }
     
         if (userId === currentUser.id) {
+    openSelfChat();
     return;
         }
     
@@ -187,9 +208,87 @@
      */
     function closeChatWindow() {
         document.getElementById('chatOverlay').style.display = 'none';
+        document.getElementById('privateChatInput').placeholder = '输入消息...';
         currentChatUserId = null;
         // 返回私聊列表
         openChatList();
+    }
+
+    // ⭐ 自聊：打开与自己的对话
+    function openSelfChat() {
+        if (!currentUser) return;
+
+        currentChatUserId = 'self';
+        currentChatUserName = '我';
+        currentChatUserAvatar = currentUser.avatar || '👤';
+
+        document.getElementById('chatListOverlay').style.display = 'none';
+        document.getElementById('chatOverlay').style.display = 'flex';
+
+        const avatarHTML = renderAvatarPreview(currentUser.avatar || '👤');
+        document.getElementById('chatUserAvatar').innerHTML = avatarHTML;
+        document.getElementById('chatUserName').textContent = '我';
+        document.getElementById('chatUserName').title = '与自己的对话';
+
+        document.getElementById('privateChatInput').value = '';
+        document.getElementById('privateChatInput').placeholder = '记下点什么...';
+
+        displaySelfMessages();
+        updateUserCard(currentUser);
+
+        console.log('💬 打开与自己的对话');
+    }
+
+    // ⭐ 自聊：获取本地存储的消息
+    function getSelfMessages() {
+        if (!currentUser) return [];
+        try {
+            const key = 'selfChat_' + currentUser.id;
+            const data = localStorage.getItem(key);
+            return data ? JSON.parse(data) : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    // ⭐ 自聊：保存消息到本地存储
+    function saveSelfMessages(messages) {
+        if (!currentUser) return;
+        try {
+            const key = 'selfChat_' + currentUser.id;
+            localStorage.setItem(key, JSON.stringify(messages));
+        } catch (e) {
+            console.error('❌ 保存自聊消息失败:', e);
+        }
+    }
+
+    // ⭐ 自聊：显示消息
+    function displaySelfMessages() {
+        const container = document.getElementById('privateChatMessages');
+        const messages = getSelfMessages();
+
+        if (messages.length === 0) {
+            container.innerHTML = '<div class="uc-empty" style="color: var(--text-tertiary); padding: 40px 20px;">记录你的想法<br><small style="font-size: 12px; margin-top: 10px; display: block;">给自己留言</small></div>';
+            return;
+        }
+
+        let html = '';
+        messages.forEach(msg => {
+            const timeStr = formatTimeSimple(msg.created_at);
+            html += `
+                <div class="message-item message-sent">
+                    <div class="message-content self-chat-bubble">
+                        ${escapeHtml(msg.message)}
+                        <div class="message-time">${timeStr}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        setTimeout(() => {
+            container.scrollTop = container.scrollHeight;
+        }, 100);
     }
 
     // 查询聊天记录
@@ -254,12 +353,32 @@
         const input = document.getElementById('privateChatInput');
         const message = input.value.trim();
     
-        if (!message) {
-    return;
-        }
+        if (!message) return;
     
-        if (!currentChatUserId) {
-    return;
+        if (!currentChatUserId) return;
+
+        // ⭐ 自聊：本地存储
+        if (currentChatUserId === 'self') {
+            const messages = getSelfMessages();
+            messages.push({
+                id: 'self_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                from_user_id: currentUser.id,
+                to_user_id: currentUser.id,
+                message: message,
+                created_at: new Date().toISOString()
+            });
+            saveSelfMessages(messages);
+
+            input.value = '';
+            displaySelfMessages();
+
+            // 刷新私聊列表中的自聊预览
+            if (document.getElementById('chatListOverlay').style.display === 'flex') {
+                queryPrivateChats();
+            }
+
+            console.log('💬 保存自聊消息');
+            return;
         }
     
         if (!socket || socket.readyState !== WebSocket.OPEN) {
