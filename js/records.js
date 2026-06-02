@@ -235,13 +235,8 @@ function displayViewsList(views) {
                         <div class="uc-record-top">
                             <div class="uc-record-title">${escapeHtml(view.title)}</div>
                             <div class="uc-record-top-actions">
-                                ${(function () {
-                                    const _aid = view.author_id || view.authorId || view.userId;
-                                    const _me = currentUser && currentUser.id;
-                                    if (!_aid || _aid === _me) return '';
-                                    return `<button onclick="event.stopPropagation();startChatFromBubble('${_aid}')"
-                                            class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
-                                })()}
+                                ${view.author_id || view.authorId || view.userId ? `<button onclick="event.stopPropagation();startChatFromBubble('${view.author_id || view.authorId || view.userId}')"
+                                    class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>` : ''}
                                 <button onclick="event.stopPropagation();locateToBubble(${view.lat}, ${view.lng})"
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
                                 <button onclick="event.stopPropagation();deleteRecord('history', '${view.bubble_id}', this)"
@@ -325,13 +320,8 @@ function displaySearchResults(results, section) {
                         <div class="uc-record-top">
                             <div class="uc-record-title">${escapeHtml(item.title)}</div>
                             <div class="uc-record-top-actions">
-                                ${(function () {
-                                    const _aid = item.author_id || item.authorId || item.userId;
-                                    const _me = currentUser && currentUser.id;
-                                    if (!_aid || _aid === _me) return '';
-                                    return `<button onclick="event.stopPropagation();startChatFromBubble('${_aid}')"
-                                            class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
-                                })()}
+                                ${item.author_id || item.authorId || item.userId ? `<button onclick="event.stopPropagation();startChatFromBubble('${item.author_id || item.authorId || item.userId}')"
+                                    class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>` : ''}
                                 <button onclick="event.stopPropagation();locateToBubble(${item.lat}, ${item.lng})"
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
                             </div>
@@ -483,13 +473,8 @@ function recordBubbleView(bubbleId) {
                         <div class="uc-record-top">
                             <div class="uc-record-title">${escapeHtml(like.title)}</div>
                             <div class="uc-record-top-actions">
-                                ${(function(){
-                                    const _aid = like.author_id || like.authorId || like.userId;
-                                    const _me  = currentUser && currentUser.id;
-                                    if (!_aid || _aid === _me) return '';
-                                    return `<button onclick="startChatFromBubble('${_aid}')"
-                                            class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
-                                })()}
+                                ${like.author_id || like.authorId || like.userId ? `<button onclick="event.stopPropagation();startChatFromBubble('${like.author_id || like.authorId || like.userId}')"
+                                    class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>` : ''}
                                 <button onclick="locateToBubble(${like.lat}, ${like.lng})" 
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
                                 <button onclick="deleteRecord('likes', '${like.bubble_id}', this)" 
@@ -534,13 +519,8 @@ function recordBubbleView(bubbleId) {
                         <div class="uc-record-top">
                             <div class="uc-record-title">${escapeHtml(fav.title)}</div>
                             <div class="uc-record-top-actions">
-                                ${(function(){
-                                    const _aid = fav.author_id || fav.authorId || fav.userId;
-                                    const _me  = currentUser && currentUser.id;
-                                    if (!_aid || _aid === _me) return '';
-                                    return `<button onclick="startChatFromBubble('${_aid}')"
-                                            class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
-                                })()}
+                                ${fav.author_id || fav.authorId || fav.userId ? `<button onclick="event.stopPropagation();startChatFromBubble('${fav.author_id || fav.authorId || fav.userId}')"
+                                    class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>` : ''}
                                 <button onclick="locateToBubble(${fav.lat}, ${fav.lng})" 
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
                                 <button onclick="deleteRecord('favorites', '${fav.bubble_id}', this)" 

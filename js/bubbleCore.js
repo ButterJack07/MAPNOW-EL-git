@@ -487,10 +487,10 @@
 
         const listHtml = clusterBubbles
             .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-            .map((b, idx) => {
+            .map(b => {
                 const t = typeMap[b.type] || '气泡';
                 const timeStr = formatTime(b.createdAt || Date.now());
-                return `<button onclick="openOverlapBubble('${clusterId}', ${idx})" style="display:block;width:100%;text-align:left;padding:8px 10px;border:1px solid var(--border-light);background:#f8f7f4;border-radius:8px;margin-bottom:6px;cursor:pointer;color:var(--text-primary);font-size:13px;"><div style='font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>${escapeHtml(b.title || '无标题')}</div><div style='display:flex;justify-content:space-between;color:var(--text-secondary);font-size:11px;margin-top:2px;'><span>${t} · ${escapeHtml(b.author || '匿名')}</span><span>${timeStr}</span></div></button>`;
+                return `<button onclick="openOverlapBubble('${clusterId}', '${b.id}')" style="display:block;width:100%;text-align:left;padding:8px 10px;border:1px solid var(--border-light);background:#f8f7f4;border-radius:8px;margin-bottom:6px;cursor:pointer;color:var(--text-primary);font-size:13px;"><div style='font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>${escapeHtml(b.title || '无标题')}</div><div style='display:flex;justify-content:space-between;color:var(--text-secondary);font-size:11px;margin-top:2px;'><span>${t} · ${escapeHtml(b.author || '匿名')}</span><span>${timeStr}</span></div></button>`;
             })
             .join('');
 
@@ -521,9 +521,9 @@
         currentOpenBubbleId = null;
     }
 
-    window.openOverlapBubble = function(clusterId, index) {
+    window.openOverlapBubble = function(clusterId, bubbleId) {
         const clusterBubbles = clusterLookup.get(clusterId) || [];
-        const bubble = clusterBubbles[index];
+        const bubble = clusterBubbles.find(b => b.id === bubbleId);
         if (!bubble) return;
 
         if (currentInfoWindow) {
@@ -592,9 +592,7 @@
 
                 // 聚焦地图（禁止触发重新聚合）
                 _suppressRefresh = true;
-                const TARGET_ZOOM = 16;
                 map.setCenter(new qq.maps.LatLng(centerLat, centerLng));
-                if (map.getZoom() < TARGET_ZOOM) map.setZoom(TARGET_ZOOM);
 
                 if (mode === 'B') {
                     if (spiderfyState.clusterId === clusterId) {
