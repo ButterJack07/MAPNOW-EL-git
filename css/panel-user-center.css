@@ -405,7 +405,7 @@
     .uc-records-list {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 6px;
     }
 
     .uc-record-item {
@@ -554,49 +554,42 @@
 
     /* 气泡卡片统计行（点赞 / 评论 / 浏览） */
     .uc-record-stats {
-        display: flex;
-        gap: 12px;
-        margin-top: 4px;
-        font-size: 12px;
-        color: #888;
+        font-size: 11px;
+        color: var(--text-tertiary);
+        white-space: nowrap;
+        letter-spacing: 1px;
     }
 
-    .uc-record-stats span {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-    }
-
-    .uc-record-actions {
-        display: flex;
-        align-items: center;
-        flex-shrink: 0;
-    }
-
-    /* ⭐ v9.6.6: 圆形图标按钮 - 简约风格 */
+    /* ⭐ v9.6.6: 圆形图标按钮 - 简约（紧凑版） */
     .uc-icon-action-btn {
-        width: 36px;
-        height: 36px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         border: none;
         cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        font-size: 16px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 13px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        margin: 0 4px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        background: transparent;
+        color: var(--text-tertiary);
     }
     
     .uc-icon-action-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        background: var(--btn-soft-bg);
+        color: var(--text-primary);
     }
     
     .uc-icon-action-btn:active {
-        transform: translateY(0);
+        transform: scale(0.9);
     }
+    
+    .uc-btn-locate:hover { color: #4A90D9; }
+    .uc-btn-edit:hover { color: #8B8B3E; }
+    .uc-btn-delete:hover { color: #D94A4A; }
+    .uc-btn-expand { font-size: 10px; }
+    .uc-btn-expand:hover { background: transparent; color: var(--text-primary); }
     
     /* 私聊按钮 */
     .uc-btn-chat {
@@ -608,36 +601,6 @@
         box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
     }
     
-    /* 定位按钮 */
-    .uc-btn-locate {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
-    }
-    
-    .uc-btn-locate:hover {
-        box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
-    }
-    
-    /* 编辑按钮 */
-    .uc-btn-edit {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        color: var(--text-primary);
-    }
-    
-    .uc-btn-edit:hover {
-        box-shadow: 0 4px 12px rgba(168, 237, 234, 0.4);
-    }
-    
-    /* 删除按钮 */
-    .uc-btn-delete {
-        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-        color: white;
-    }
-    
-    .uc-btn-delete:hover {
-        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
-    }
-
     .uc-record-btn {
         padding: 8px 16px;
         background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);

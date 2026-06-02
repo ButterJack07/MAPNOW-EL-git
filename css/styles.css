@@ -1582,38 +1582,25 @@
         
         /* 气泡记录项 - 移动端优化 */
         .uc-record-item {
-            flex-direction: column;
-            gap: 12px;
-            padding: 12px;
-            margin-bottom: 12px;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 6px;
         }
         
         /* 气泡图标 - 移动端优化 */
         .uc-record-icon {
-            width: 100%;
-            height: 60px;
+            width: 40px;
+            height: 40px;
             border-radius: 10px;
-            font-size: 28px;
-            margin-bottom: 8px;
+            font-size: 18px;
         }
         
-        /* 气泡内容区 */
-        .uc-record-content {
-            width: 100%;
-        }
-        
-        /* 气泡标题 - 移动端加大字体 */
+        /* 气泡标题 - 移动端优化 */
         .uc-record-title {
-            font-size: 15px;
-            margin-bottom: 8px;
-            white-space: normal;
-            line-height: 1.4;
-            max-height: 2.8em;
+            font-size: 14px;
+            white-space: nowrap;
             overflow: hidden;
-            display: -webkit-box;
-            line-clamp: 2;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
+            text-overflow: ellipsis;
         }
         
         /* 气泡描述 - 移动端优化 */
@@ -1644,14 +1631,6 @@
             -webkit-box-orient: vertical;
         }
         
-        /* 气泡元信息 - 移动端优化 */
-        .uc-record-meta {
-            font-size: 11px;
-            flex-wrap: wrap;
-            gap: 6px;
-        }
-        
-        /* 气泡操作按钮区 - 移动端优化 */
         /* ── 发布者信息行 ──────────────────────────────────── */
     .uc-record-author {
         display: flex;
@@ -1710,53 +1689,7 @@
 
     .uc-chat-btn:hover { opacity: .85; }
 
-    /* 气泡卡片统计行（点赞 / 评论 / 浏览） */
-    .uc-record-stats {
-        display: flex;
-        gap: 12px;
-        margin-top: 4px;
-        font-size: 12px;
-        color: #888;
-    }
 
-    .uc-record-stats span {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-    }
-
-    /* ⭐ v9.6.7: 移动端保持PC端布局，按钮在右侧 */
-    /* 注释掉原有的按钮下移样式，保持PC端布局 */
-    /*
-    .uc-record-actions {
-            width: 100%;
-            justify-content: space-between;
-            margin-top: 8px;
-            padding-top: 12px;
-            border-top: 1px solid #f0f0f0;
-        }
-        
-        .uc-record-btn {
-            flex: 1;
-            padding: 10px 12px;
-            font-size: 14px;
-            border-radius: 10px;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            touch-action: manipulation;
-        }
-        
-        .uc-delete-btn {
-            flex: 1;
-            margin-left: 10px;
-            padding: 10px 12px;
-            font-size: 14px;
-            border-radius: 10px;
-            min-height: 44px;
-        }
-    */
         
         /* 空状态提示 - 移动端优化 */
         .uc-empty {
@@ -1892,14 +1825,14 @@
         
         /* 气泡图标 - 小屏幕适当缩小 */
         .uc-record-icon {
-            height: 50px;
-            font-size: 24px;
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
         }
         
         /* 气泡标题 - 小屏幕字体 */
         .uc-record-title {
-            font-size: 14px;
-            margin-bottom: 6px;
+            font-size: 13px;
         }
         
         /* 气泡描述 - 小屏幕字体 */
@@ -1918,13 +1851,6 @@
         /* 元信息 - 小屏幕字体 */
         .uc-record-meta {
             font-size: 10px;
-        }
-        
-        /* 操作按钮 - 小屏幕优化 */
-        .uc-record-btn, .uc-delete-btn {
-            padding: 8px 10px;
-            font-size: 13px;
-            min-height: 40px;
         }
         
         /* ==================== ⭐ v9.4.12: 小屏幕选项卡额外优化 ==================== */

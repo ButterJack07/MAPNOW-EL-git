@@ -29,8 +29,6 @@ function displayPublishedList(bubbles) {
         const likes = bubble.like_count || 0;
         const comments = bubble.comment_count || 0;
         const views = bubble.view_count || 0;
-        const statusColor = bubble.status === 'active' ? '#4CAF50' : '#999';
-        const statusText = bubble.status === 'active' ? '公开' : '私密';
         const safeTitle = (bubble.title || '').replace(/'/g, "\\'");
         const safeContent = (bubble.content || '').replace(/'/g, "\\'").replace(/\n/g, '\\n');
         const images = bubble.images ? (Array.isArray(bubble.images) ? bubble.images : JSON.parse(bubble.images || '[]')) : [];
@@ -56,7 +54,7 @@ function displayPublishedList(bubbles) {
                             </div>
                         </div>
                         <div class="uc-record-meta-row">
-                            <span class="uc-record-meta">发布于 ${timeStr} <span class="dot">•</span> <span style="color:${statusColor};font-weight:600;">${statusText}</span></span>
+                            <span class="uc-record-meta">发布于 ${timeStr}</span>
                             <span class="uc-record-stats">👍 ${likes} 💬 ${comments} 👁 ${views}</span>
                         </div>
 
@@ -208,34 +206,34 @@ function displayViewsList(views) {
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
-                    <div class="uc-record-content" style="flex:1;min-width:0;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                            <div class="uc-record-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(view.title)}</div>
-                            <button onclick="this.closest('.uc-record-item').querySelector('.uc-card-detail').style.display=this.dataset.expanded==='true'?((this.dataset.expanded='false')||'none'):(this.dataset.expanded='true')&&'block';this.style.transform=this.dataset.expanded==='true'?'rotate(180deg)':'rotate(0deg)'"
-                                style="flex-shrink:0;background:none;border:none;color:#9a8e85;font-size:14px;cursor:pointer;padding:2px 4px;border-radius:6px;line-height:1;transition:transform .2s;" data-expanded="false">▾</button>
+                    <div class="uc-record-body">
+                        <div class="uc-record-top">
+                            <div class="uc-record-title">${escapeHtml(view.title)}</div>
+                            <div class="uc-record-top-actions">
+                                <button onclick="this.closest('.uc-record-item').querySelector('.uc-card-detail').style.display=this.dataset.expanded==='true'?((this.dataset.expanded='false')||'none'):(this.dataset.expanded='true')&&'block';this.style.transform=this.dataset.expanded==='true'?'rotate(180deg)':'rotate(0deg)'"
+                                    class="uc-icon-action-btn uc-btn-expand" title="展开详情" data-expanded="false">▾</button>
+                                ${(function () {
+                                    const _aid = view.author_id || view.authorId || view.userId;
+                                    const _me = currentUser && currentUser.id;
+                                    if (!_aid || _aid === _me) return '';
+                                    return `<button onclick="startChatFromBubble('${_aid}')"
+                                            class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
+                                })()}
+                                <button onclick="locateToBubble(${view.lat}, ${view.lng})"
+                                    class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
+                                <button onclick="deleteRecord('history', '${view.bubble_id}', this)"
+                                    class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
+                            </div>
                         </div>
-                        <div class="uc-record-meta" style="margin-top:4px;">
-                            <span>浏览于 ${timeStr}</span>
+                        <div class="uc-record-meta-row">
+                            <span class="uc-record-meta">浏览于 ${timeStr}</span>
                         </div>
-                        <div class="uc-card-detail" style="display:none;margin-top:8px;">
-                            ${view.content ? `<div class="uc-record-desc" style="margin-bottom:6px;">${escapeHtml(view.content).replace(/\n/g, '<br>')}</div>` : ''}
-                            <div class="uc-record-meta">
+                        <div class="uc-card-detail" style="display:none;margin-top:6px;">
+                            ${view.content ? `<div class="uc-record-desc" style="margin-bottom:4px;">${escapeHtml(view.content).replace(/\n/g, '<br>')}</div>` : ''}
+                            <div class="uc-record-meta" style="display:flex;gap:6px;align-items:center;">
                                 <span>${renderAvatarPreview(view.avatar || '👤')} ${escapeHtml(view.author)}</span>
                             </div>
                         </div>
-                    </div>
-                    <div class="uc-record-actions">
-                        ${(function () {
-                            const _aid = view.author_id || view.authorId || view.userId;
-                            const _me = currentUser && currentUser.id;
-                            if (!_aid || _aid === _me) return '';
-                            return `<button onclick="startChatFromBubble('${_aid}')"
-                                    class="uc-icon-action-btn uc-btn-chat" title="和气泡发布者私聊">💬</button>`;
-                        })()}
-                        <button onclick="locateToBubble(${view.lat}, ${view.lng})"
-                                class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
-                        <button onclick="deleteRecord('history', '${view.bubble_id}', this)"
-                                class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
                     </div>
                 </div>
             `;
@@ -300,30 +298,30 @@ function displaySearchResults(results, section) {
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
-                    <div class="uc-record-content" style="flex:1;min-width:0;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                            <div class="uc-record-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(item.title)}</div>
-                            <button onclick="this.closest('.uc-record-item').querySelector('.uc-card-detail').style.display=this.dataset.expanded==='true'?((this.dataset.expanded='false')||'none'):(this.dataset.expanded='true')&&'block';this.style.transform=this.dataset.expanded==='true'?'rotate(180deg)':'rotate(0deg)'"
-                                style="flex-shrink:0;background:none;border:none;color:#9a8e85;font-size:14px;cursor:pointer;padding:2px 4px;border-radius:6px;line-height:1;transition:transform .2s;" data-expanded="false">▾</button>
+                    <div class="uc-record-body">
+                        <div class="uc-record-top">
+                            <div class="uc-record-title">${escapeHtml(item.title)}</div>
+                            <div class="uc-record-top-actions">
+                                <button onclick="this.closest('.uc-record-item').querySelector('.uc-card-detail').style.display=this.dataset.expanded==='true'?((this.dataset.expanded='false')||'none'):(this.dataset.expanded='true')&&'block';this.style.transform=this.dataset.expanded==='true'?'rotate(180deg)':'rotate(0deg)'"
+                                    class="uc-icon-action-btn uc-btn-expand" title="展开详情" data-expanded="false">▾</button>
+                                ${(function () {
+                                    const _aid = item.author_id || item.authorId || item.userId;
+                                    const _me = currentUser && currentUser.id;
+                                    if (!_aid || _aid === _me) return '';
+                                    return `<button onclick="startChatFromBubble('${_aid}')"
+                                            class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
+                                })()}
+                                <button onclick="locateToBubble(${item.lat}, ${item.lng})"
+                                    class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
+                            </div>
                         </div>
-                        <div class="uc-record-meta" style="margin-top:4px;">
-                            <span>${actionText} ${timeStr}</span>
+                        <div class="uc-record-meta-row">
+                            <span class="uc-record-meta">${actionText} ${timeStr}</span>
                         </div>
-                        <div class="uc-card-detail" style="display:none;margin-top:8px;">
-                            ${item.content ? `<div class="uc-record-desc" style="margin-bottom:6px;">${escapeHtml(item.content).replace(/\n/g, '<br>')}</div>` : ''}
-                            ${item.comment_text ? `<div class="uc-comment-text" style="margin-bottom:6px;">💬 ${escapeHtml(item.comment_text).replace(/\n/g, '<br>')}</div>` : ''}
+                        <div class="uc-card-detail" style="display:none;margin-top:6px;">
+                            ${item.content ? `<div class="uc-record-desc" style="margin-bottom:4px;">${escapeHtml(item.content).replace(/\n/g, '<br>')}</div>` : ''}
+                            ${item.comment_text ? `<div class="uc-comment-text" style="margin-bottom:4px;">💬 ${escapeHtml(item.comment_text).replace(/\n/g, '<br>')}</div>` : ''}
                         </div>
-                    </div>
-                    <div class="uc-record-actions">
-                        ${(function () {
-                            const _aid = item.author_id || item.authorId || item.userId;
-                            const _me = currentUser && currentUser.id;
-                            if (!_aid || _aid === _me) return '';
-                            return `<button onclick="startChatFromBubble('${_aid}')"
-                                    class="uc-icon-action-btn uc-btn-chat" title="和气泡发布者私聊">💬</button>`;
-                        })()}
-                        <button onclick="locateToBubble(${item.lat}, ${item.lng})"
-                                class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
                     </div>
                 </div>
             `;
@@ -460,27 +458,27 @@ function recordBubbleView(bubbleId) {
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
-                    <div class="uc-record-content">
-                        <div class="uc-record-title">${escapeHtml(like.title)}</div>
-                        ${like.content ? `<div class="uc-record-desc">${escapeHtml(like.content).replace(/\n/g, '<br>')}</div>` : ''}
-                        <div class="uc-record-meta">
-                            <span>${renderAvatarPreview(like.author_avatar || '👤')} ${escapeHtml(like.author)}</span>
-                            <span>•</span>
-                            <span>点赞于 ${timeStr}</span>
+                    <div class="uc-record-body">
+                        <div class="uc-record-top">
+                            <div class="uc-record-title">${escapeHtml(like.title)}</div>
+                            <div class="uc-record-top-actions">
+                                ${(function(){
+                                    const _aid = like.author_id || like.authorId || like.userId;
+                                    const _me  = currentUser && currentUser.id;
+                                    if (!_aid || _aid === _me) return '';
+                                    return `<button onclick="startChatFromBubble('${_aid}')"
+                                            class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
+                                })()}
+                                <button onclick="locateToBubble(${like.lat}, ${like.lng})" 
+                                    class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
+                                <button onclick="deleteRecord('likes', '${like.bubble_id}', this)" 
+                                    class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="uc-record-actions">
-                        ${(function(){
-                            const _aid = like.author_id || like.authorId || like.userId;
-                            const _me  = currentUser && currentUser.id;
-                            if (!_aid || _aid === _me) return '';
-                            return `<button onclick="startChatFromBubble('${_aid}')"
-                                    class="uc-icon-action-btn uc-btn-chat" title="和气泡发布者私聊">💬</button>`;
-                        })()}
-                        <button onclick="locateToBubble(${like.lat}, ${like.lng})" 
-                                class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
-                        <button onclick="deleteRecord('likes', '${like.bubble_id}', this)" 
-                                class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
+                        ${like.content ? `<div class="uc-record-desc" style="margin:2px 0;">${escapeHtml(like.content).replace(/\n/g, '<br>')}</div>` : ''}
+                        <div class="uc-record-meta-row">
+                            <span class="uc-record-meta">${renderAvatarPreview(like.author_avatar || '👤')} ${escapeHtml(like.author)} <span class="dot">•</span> 点赞于 ${timeStr}</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -511,27 +509,27 @@ function recordBubbleView(bubbleId) {
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
-                    <div class="uc-record-content">
-                        <div class="uc-record-title">${escapeHtml(fav.title)}</div>
-                        ${fav.content ? `<div class="uc-record-desc">${escapeHtml(fav.content).replace(/\n/g, '<br>')}</div>` : ''}
-                        <div class="uc-record-meta">
-                            <span>${renderAvatarPreview(fav.author_avatar || '👤')} ${escapeHtml(fav.author)}</span>
-                            <span>•</span>
-                            <span>收藏于 ${timeStr}</span>
+                    <div class="uc-record-body">
+                        <div class="uc-record-top">
+                            <div class="uc-record-title">${escapeHtml(fav.title)}</div>
+                            <div class="uc-record-top-actions">
+                                ${(function(){
+                                    const _aid = fav.author_id || fav.authorId || fav.userId;
+                                    const _me  = currentUser && currentUser.id;
+                                    if (!_aid || _aid === _me) return '';
+                                    return `<button onclick="startChatFromBubble('${_aid}')"
+                                            class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
+                                })()}
+                                <button onclick="locateToBubble(${fav.lat}, ${fav.lng})" 
+                                    class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
+                                <button onclick="deleteRecord('favorites', '${fav.bubble_id}', this)" 
+                                    class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="uc-record-actions">
-                        ${(function(){
-                            const _aid = fav.author_id || fav.authorId || fav.userId;
-                            const _me  = currentUser && currentUser.id;
-                            if (!_aid || _aid === _me) return '';
-                            return `<button onclick="startChatFromBubble('${_aid}')"
-                                    class="uc-icon-action-btn uc-btn-chat" title="和气泡发布者私聊">💬</button>`;
-                        })()}
-                        <button onclick="locateToBubble(${fav.lat}, ${fav.lng})" 
-                                class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
-                        <button onclick="deleteRecord('favorites', '${fav.bubble_id}', this)" 
-                                class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
+                        ${fav.content ? `<div class="uc-record-desc" style="margin:2px 0;">${escapeHtml(fav.content).replace(/\n/g, '<br>')}</div>` : ''}
+                        <div class="uc-record-meta-row">
+                            <span class="uc-record-meta">${renderAvatarPreview(fav.author_avatar || '👤')} ${escapeHtml(fav.author)} <span class="dot">•</span> 收藏于 ${timeStr}</span>
+                        </div>
                     </div>
                 </div>
             `;
@@ -562,29 +560,29 @@ function recordBubbleView(bubbleId) {
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
-                    <div class="uc-record-content">
-                        <div class="uc-record-title">${escapeHtml(comment.title)}</div>
-                        <div class="uc-comment-text">
+                    <div class="uc-record-body">
+                        <div class="uc-record-top">
+                            <div class="uc-record-title">${escapeHtml(comment.title)}</div>
+                            <div class="uc-record-top-actions">
+                                ${(function(){
+                                    const _aid = comment.author_id || comment.authorId || comment.userId;
+                                    const _me  = currentUser && currentUser.id;
+                                    if (!_aid || _aid === _me) return '';
+                                    return `<button onclick="startChatFromBubble('${_aid}')"
+                                            class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
+                                })()}
+                                <button onclick="locateToBubble(${comment.lat}, ${comment.lng})" 
+                                    class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
+                                <button onclick="deleteRecord('comments', '${comment.id}', this)" 
+                                    class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
+                            </div>
+                        </div>
+                        <div class="uc-comment-text" style="margin:2px 0;">
                             ${escapeHtml(comment.comment_text).replace(/\n/g, '<br>')}
                         </div>
-                        <div class="uc-record-meta">
-                            <span>评论于 ${timeStr}</span>
-                            <span>•</span>
-                            <span>${renderAvatarPreview(comment.author_avatar || '👤')} ${escapeHtml(comment.author)}</span>
+                        <div class="uc-record-meta-row">
+                            <span class="uc-record-meta">评论于 ${timeStr} <span class="dot">•</span> ${renderAvatarPreview(comment.author_avatar || '👤')} ${escapeHtml(comment.author)}</span>
                         </div>
-                    </div>
-                    <div class="uc-record-actions">
-                        ${(function(){
-                            const _aid = comment.author_id || comment.authorId || comment.userId;
-                            const _me  = currentUser && currentUser.id;
-                            if (!_aid || _aid === _me) return '';
-                            return `<button onclick="startChatFromBubble('${_aid}')"
-                                    class="uc-icon-action-btn uc-btn-chat" title="和气泡发布者私聊">💬</button>`;
-                        })()}
-                        <button onclick="locateToBubble(${comment.lat}, ${comment.lng})" 
-                                class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
-                        <button onclick="deleteRecord('comments', '${comment.id}', this)" 
-                                class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
                     </div>
                 </div>
             `;
