@@ -41,16 +41,23 @@ function displayPublishedList(bubbles) {
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
-                    <div class="uc-record-content" style="flex:1;min-width:0;">
-                        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-                            <div class="uc-record-title" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(bubble.title || '无标题')}</div>
-                            <button onclick="toggleBubbleCardDetail('${bubble.id}', this)"
-                                class="uc-icon-action-btn uc-btn-edit" title="展开/收起详情" data-expanded="false">▾</button>
+                    <div class="uc-record-body">
+                        <div class="uc-record-top">
+                            <div class="uc-record-title">${escapeHtml(bubble.title || '无标题')}</div>
+                            <div class="uc-record-top-actions">
+                                <button onclick="toggleBubbleCardDetail('${bubble.id}', this)"
+                                    class="uc-icon-action-btn uc-btn-expand" title="展开详情" data-expanded="false">▾</button>
+                                <button onclick="locateToBubble(${bubble.lat},${bubble.lng})"
+                                    class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
+                                <button onclick="openEditBubbleModal('${bubble.id}','${safeTitle}','${safeContent}')"
+                                    class="uc-icon-action-btn uc-btn-edit" title="编辑">✏️</button>
+                                <button onclick="deleteRecord('published','${bubble.id}', this)"
+                                    class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
+                            </div>
                         </div>
-                        <div class="uc-record-meta" style="margin-top:4px;">
-                            <span>发布于 ${timeStr}</span>
-                            <span>•</span>
-                            <span style="color:${statusColor};font-weight:600;">${statusText}</span>
+                        <div class="uc-record-meta-row">
+                            <span class="uc-record-meta">发布于 ${timeStr} <span class="dot">•</span> <span style="color:${statusColor};font-weight:600;">${statusText}</span></span>
+                            <span class="uc-record-stats">👍 ${likes} 💬 ${comments} 👁 ${views}</span>
                         </div>
 
                         <div id="bubble-card-detail-${bubble.id}" style="display:none;margin-top:8px;">
@@ -72,20 +79,7 @@ function displayPublishedList(bubbles) {
                                     `).join('')}
                                 </div>
                             ` : ''}
-                            <div class="uc-record-stats">
-                                <span title="点赞">👍 ${likes}</span>
-                                <span title="评论">💬 ${comments}</span>
-                                <span title="浏览">👁 ${views}</span>
-                            </div>
                         </div>
-                    </div>
-                    <div class="uc-record-actions">
-                        <button onclick="locateToBubble(${bubble.lat},${bubble.lng})"
-                                class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
-                        <button onclick="openEditBubbleModal('${bubble.id}','${safeTitle}','${safeContent}')"
-                                class="uc-icon-action-btn uc-btn-edit" title="编辑">✏️</button>
-                        <button onclick="deleteRecord('published','${bubble.id}', this)"
-                                class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
                     </div>
                 </div>`;
     });
