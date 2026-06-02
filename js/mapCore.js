@@ -377,12 +377,6 @@
     async function updateMyMarker() {
         if (!map || !myPosition) return;
 
-        // 移除旧标记
-        if (myMarker) {
-            myMarker.setMap(null);
-            myMarker = null;
-        }
-
         // 暂时勿扰：隐藏位置标记和范围圆圈
             if (userStats && userStats.status === 6) {
             console.log('🔕 暂时勿扰模式：位置标记已隐藏');

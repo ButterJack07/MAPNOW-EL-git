@@ -538,15 +538,25 @@
         }
     };
 
+    let _lastBubbleFingerprint = '';
+    let _lastBubbleRefreshTime = 0;
     function refreshBubbleMarkersForCurrentZoom() {
         if (!map) return;
+
+        const now = Date.now();
+        if (now - _lastBubbleRefreshTime < 600) return;
+        _lastBubbleRefreshTime = now;
+
+        // 指纹对比：气泡组未变化则跳过重绘，消除闪动
+        const currentBubbles = typeof getFilteredBubbles === 'function' ? getFilteredBubbles() : bubbles;
+        const fingerprint = currentBubbles.map(b => b.id).sort().join(',');
+        if (fingerprint === _lastBubbleFingerprint) return;
+        _lastBubbleFingerprint = fingerprint;
 
         clearSpiderfy();
         clearBubbleLabelsOnly();
 
-        const groups = groupBubblesByDistance(
-            typeof getFilteredBubbles === 'function' ? getFilteredBubbles() : bubbles
-        );
+        const groups = groupBubblesByDistance(currentBubbles);
         groups.forEach((group, idx) => {
             if (!group.length) return;
 

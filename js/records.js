@@ -1,3 +1,58 @@
+// ⭐ 自定义确认弹窗（面板风格）
+function showConfirmDialog(message, onConfirm, title = '提示') {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = `
+        position:fixed;inset:0;background:rgba(0,0,0,0.5);
+        display:flex;align-items:center;justify-content:center;
+        z-index:30000;animation:fadeIn 0.2s ease;
+    `;
+    overlay.innerHTML = `
+        <div style="
+            background:var(--card-bg,#fff);border-radius:20px;
+            width:85%;max-width:340px;box-shadow:0 10px 40px rgba(0,0,0,0.3);
+            overflow:hidden;animation:slideUp 0.25s ease;
+        ">
+            <div style="
+                background:linear-gradient(135deg,var(--primary-gradient-start,#667eea) 0%,var(--primary-gradient-end,#764ba2) 100%);
+                padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+            ">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:20px;">⚠️</span>
+                    <span style="color:#fff;font-size:16px;font-weight:600;">${title}</span>
+                </div>
+                <button id="confirmCloseBtn" style="
+                    width:30px;height:30px;border-radius:50%;border:none;
+                    background:rgba(255,255,255,0.2);color:#fff;font-size:18px;
+                    cursor:pointer;display:flex;align-items:center;justify-content:center;
+                    transition:all 0.2s;padding:0;line-height:1;
+                " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">×</button>
+            </div>
+            <div style="padding:24px 20px 20px;">
+                <div style="font-size:14px;color:var(--text-primary,#333);line-height:1.6;margin-bottom:22px;">${message}</div>
+                <div style="display:flex;gap:10px;">
+                    <button id="confirmCancelBtn" style="
+                        flex:1;padding:10px;border:1px solid #ddd;border-radius:10px;
+                        background:var(--bg-secondary,#f5f5f5);color:var(--text-secondary,#666);
+                        font-size:14px;cursor:pointer;font-weight:500;transition:all 0.2s;
+                    " onmouseover="this.style.background='#eee'" onmouseout="this.style.background='var(--bg-secondary,#f5f5f5)'">取消</button>
+                    <button id="confirmOkBtn" style="
+                        flex:1;padding:10px;border:none;border-radius:10px;
+                        background:linear-gradient(135deg,var(--primary-gradient-start,#667eea) 0%,var(--primary-gradient-end,#764ba2) 100%);
+                        color:#fff;font-size:14px;cursor:pointer;font-weight:600;transition:all 0.2s;
+                    " onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'"
+                      onmouseout="this.style.transform='none';this.style.boxShadow='none'">确定</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    overlay.querySelector('#confirmCloseBtn').onclick = () => overlay.remove();
+    overlay.querySelector('#confirmCancelBtn').onclick = () => overlay.remove();
+    overlay.querySelector('#confirmOkBtn').onclick = () => { overlay.remove(); onConfirm(); };
+    overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+}
+
 // ==================== 发布记录 / 浏览记录 / 搜索 ====================
 
 function queryUserPublished() {
@@ -101,32 +156,55 @@ function openEditBubbleModal(bubbleId, title, content, showDelete) {
         modal.id = 'editBubbleModal';
         modal.style.cssText = `
                 position:fixed;inset:0;background:rgba(0,0,0,.55);
-                display:flex;align-items:center;justify-content:center;z-index:11000;`;
+                display:flex;align-items:center;justify-content:center;z-index:11000;animation:fadeIn 0.2s ease;`;
         modal.innerHTML = `
-                <div style="background:#fff;border-radius:16px;padding:24px;width:90%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.2);">
-                    <h3 style="margin:0 0 16px;font-size:17px;">✏️ 编辑气泡</h3>
-                    <label style="font-size:13px;color:#555;">标题</label>
-                    <input id="editBubbleTitle" type="text" maxlength="50"
-                        style="width:100%;box-sizing:border-box;border:1px solid #ddd;
-                               border-radius:8px;padding:8px 10px;margin:6px 0 12px;font-size:14px;">
-                    <label style="font-size:13px;color:#555;">内容</label>
-                    <textarea id="editBubbleContent" rows="4" maxlength="200"
-                        style="width:100%;box-sizing:border-box;border:1px solid #ddd;
-                               border-radius:8px;padding:8px 10px;font-size:14px;resize:vertical;"></textarea>
-                    <div style="display:flex;gap:10px;margin-top:16px;justify-content:space-between;">
-                        <button id="editBubbleDeleteBtn"
-                            onclick="event.stopPropagation();deleteRecordFromEdit()"
-                            style="padding:8px 14px;border:1px solid #e74c3c;border-radius:8px;
-                                   background:#fff;color:#e74c3c;cursor:pointer;font-size:13px;
-                                   font-weight:500;">🗑️ 删除</button>
-                        <div style="display:flex;gap:10px;">
-                            <button onclick="event.stopPropagation();closeEditBubbleModal()"
-                                style="padding:8px 18px;border:1px solid #ddd;border-radius:8px;
-                                       background:#f5f5f5;cursor:pointer;font-size:14px;">取消</button>
-                            <button onclick="event.stopPropagation();submitEditBubble()"
-                                style="padding:8px 18px;border:none;border-radius:8px;
-                                       background:linear-gradient(135deg,#667eea,#764ba2);
-                                       color:#fff;cursor:pointer;font-size:14px;font-weight:600;">保存</button>
+                <div style="background:var(--card-bg,#fff);border-radius:20px;width:88%;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.3);overflow:hidden;animation:slideUp 0.25s ease;">
+                    <div style="
+                        background:linear-gradient(135deg,var(--primary-gradient-start,#667eea) 0%,var(--primary-gradient-end,#764ba2) 100%);
+                        padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+                    ">
+                        <span style="color:#fff;font-size:16px;font-weight:600;">✏️ 编辑气泡</span>
+                        <button onclick="event.stopPropagation();closeEditBubbleModal()" style="
+                            width:30px;height:30px;border-radius:50%;border:none;
+                            background:rgba(255,255,255,0.2);color:#fff;font-size:18px;
+                            cursor:pointer;display:flex;align-items:center;justify-content:center;
+                            transition:all 0.2s;padding:0;line-height:1;
+                        " onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">×</button>
+                    </div>
+                    <div style="padding:20px;">
+                        <label style="font-size:13px;color:var(--text-secondary,#666);">标题</label>
+                        <input id="editBubbleTitle" type="text" maxlength="50"
+                            style="width:100%;box-sizing:border-box;border:1px solid #ddd;
+                                   border-radius:10px;padding:10px 12px;margin:6px 0 14px;font-size:14px;
+                                   outline:none;color:var(--text-primary,#333);"
+                            onfocus="this.style.borderColor='#667eea'" onblur="this.style.borderColor='#ddd'">
+                        <label style="font-size:13px;color:var(--text-secondary,#666);">内容</label>
+                        <textarea id="editBubbleContent" rows="4" maxlength="200"
+                            style="width:100%;box-sizing:border-box;border:1px solid #ddd;
+                                   border-radius:10px;padding:10px 12px;font-size:14px;resize:vertical;
+                                   outline:none;color:var(--text-primary,#333);"
+                            onfocus="this.style.borderColor='#667eea'" onblur="this.style.borderColor='#ddd'"></textarea>
+                        <div style="display:flex;gap:10px;margin-top:18px;justify-content:space-between;">
+                            <button id="editBubbleDeleteBtn"
+                                onclick="event.stopPropagation();deleteRecordFromEdit()"
+                                style="padding:8px 14px;border:1px solid #e74c3c;border-radius:10px;
+                                       background:#fff;color:#e74c3c;cursor:pointer;font-size:13px;
+                                       font-weight:500;transition:all 0.2s;"
+                                onmouseover="this.style.background='#fff5f5'" onmouseout="this.style.background='#fff'">🗑️ 删除</button>
+                            <div style="display:flex;gap:10px;">
+                                <button onclick="event.stopPropagation();closeEditBubbleModal()"
+                                    style="padding:10px 18px;border:1px solid #ddd;border-radius:10px;
+                                           background:var(--bg-secondary,#f5f5f5);color:var(--text-secondary,#666);
+                                           cursor:pointer;font-size:13px;font-weight:500;transition:all 0.2s;"
+                                    onmouseover="this.style.background='#eee'" onmouseout="this.style.background='var(--bg-secondary,#f5f5f5)'">取消</button>
+                                <button onclick="event.stopPropagation();submitEditBubble()"
+                                    style="padding:10px 18px;border:none;border-radius:10px;
+                                           background:linear-gradient(135deg,var(--primary-gradient-start,#667eea) 0%,var(--primary-gradient-end,#764ba2) 100%);
+                                           color:#fff;cursor:pointer;font-size:13px;font-weight:600;
+                                           transition:all 0.2s;"
+                                    onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 12px rgba(102,126,234,0.4)'"
+                                    onmouseout="this.style.transform='none';this.style.boxShadow='none'">保存</button>
+                            </div>
                         </div>
                     </div>
                 </div>`;
@@ -149,26 +227,24 @@ function deleteRecordFromEdit() {
     const modal = document.getElementById('editBubbleModal');
     const bubbleId = modal?.dataset.bubbleId;
     if (!bubbleId) { console.error('deleteRecordFromEdit: no bubbleId'); return; }
-    closeEditBubbleModal();
 
-    const card = document.getElementById('bubble-card-' + bubbleId);
-    if (card) {
-        card.style.transition = 'opacity .2s, transform .2s';
-        card.style.opacity = '0';
-        card.style.transform = 'translateX(20px)';
-        setTimeout(() => card.remove(), 220);
-    }
+    showConfirmDialog('确定要删除这个气泡吗？删除后不可恢复。', () => {
+        closeEditBubbleModal();
 
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'deleteRecords',
-            section: 'published',
-            recordIds: [String(bubbleId)]
-        }));
-        console.log('🗑️ 已发送删除请求:', bubbleId);
-    } else {
-        console.error('❌ WebSocket未连接，无法删除');
-    }
+        const card = document.getElementById('bubble-card-' + bubbleId);
+        if (card) card.remove();
+
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                type: 'deleteRecords',
+                section: 'published',
+                recordIds: [String(bubbleId)]
+            }));
+            console.log('🗑️ 已发送删除请求:', bubbleId);
+        } else {
+            console.error('❌ WebSocket未连接，无法删除');
+        }
+    });
 }
 
 function submitEditBubble() {
@@ -614,31 +690,26 @@ function recordBubbleView(bubbleId) {
         
     // ⭐ 新增：删除记录
     function deleteRecord(section, recordId, btn) {
-        if (!confirm('确定要删除这条记录吗？')) return;
+        showConfirmDialog('确定要删除这条记录吗？', () => {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                return;
+            }
 
-        if (!socket || socket.readyState !== WebSocket.OPEN) {
-            return;
-        }
+            // ✅ 乐观 UI：立即移除卡片，不等服务器
+            const card = btn
+                ? btn.closest('.uc-record-item')
+                : (section === 'published' ? document.getElementById('bubble-card-' + recordId) : null);
+            if (card) card.remove();
 
-        // ✅ 乐观 UI：立即淡出移除卡片，不等服务器
-        const card = btn
-            ? btn.closest('.uc-record-item')
-            : (section === 'published' ? document.getElementById('bubble-card-' + recordId) : null);
-        if (card) {
-            card.style.transition = 'opacity .2s, transform .2s';
-            card.style.opacity = '0';
-            card.style.transform = 'translateX(20px)';
-            setTimeout(() => card.remove(), 220);
-        }
+            // 发送删除请求给服务器（recordId 强制字符串，匹配 TEXT 主键）
+            socket.send(JSON.stringify({
+                type: 'deleteRecords',
+                section: section,
+                recordIds: [String(recordId)]
+            }));
 
-        // 发送删除请求给服务器（recordId 强制字符串，匹配 TEXT 主键）
-        socket.send(JSON.stringify({
-            type: 'deleteRecords',
-            section: section,
-            recordIds: [String(recordId)]
-        }));
-
-        console.log('🗑️ 删除', section, recordId);
+            console.log('🗑️ 删除', section, recordId);
+        });
     }
         
     // 时间格式工具：已移入 src/utils.js
