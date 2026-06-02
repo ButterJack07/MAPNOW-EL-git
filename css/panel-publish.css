@@ -166,8 +166,8 @@
     }
 
     .type-circle.active {
-        background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-        border-color: #857f77;
+        background: var(--panel-active-bg);
+        border-color: var(--panel-active-border);
         box-shadow: 0 0 0 3px rgba(160, 152, 144, 0.28), 0 6px 20px rgba(82, 78, 72, 0.25);
         transform: scale(1.02);
     }
@@ -325,14 +325,14 @@
         letter-spacing: 0.2px;
     }
     .time-chip.active {
-        background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-        border-color: #857f77;
+        background: var(--panel-active-bg);
+        border-color: var(--panel-active-border);
         box-shadow: 0 4px 14px rgba(82, 78, 72, 0.22);
     }
 
     .time-chip.active .value,
     .time-chip.active .unit {
-        color: #f6f3ee;
+        color: var(--panel-active-text);
     }
 
     /* 自定义时间选择器 */

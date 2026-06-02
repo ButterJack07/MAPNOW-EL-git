@@ -36,23 +36,24 @@
     }
 
     .settings-back {
-        width: 32px;
-        height: 32px;
+        width: 35px;
+        height: 35px;
         border: none;
-        background: var(--bg-secondary, #f0f0f0);
+        background: rgba(0, 0, 0, 0.05);
         border-radius: 50%;
         font-size: 20px;
         cursor: pointer;
-        color: var(--text-secondary);
+        color: var(--text-primary);
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s;
+        transition: all 0.3s;
         flex-shrink: 0;
     }
 
     .settings-back:hover {
-        background: #e0e0e0;
+        background: rgba(0, 0, 0, 0.1);
+        transform: scale(1.1);
     }
 
     .settings-title {

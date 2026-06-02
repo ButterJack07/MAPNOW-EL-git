@@ -269,8 +269,8 @@ box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 
 .chat-send-btn {
 padding: 10px 20px;
-background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-color: #f6f3ee;
+background: var(--panel-active-bg);
+color: var(--panel-active-text);
 border: none;
 border-radius: 20px;
 font-size: 14px;
@@ -371,8 +371,8 @@ box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
 
 .comment-input-area button {
 padding: 8px 16px;
-background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-color: #f6f3ee;
+background: var(--panel-active-bg);
+color: var(--panel-active-text);
 border: none;
 border-radius: 8px;
 font-size: 13px;
@@ -561,9 +561,9 @@ box-shadow: 0 4px 12px rgba(255,107,107,0.3);
     width: 100%;
     margin-top: 10px;
     padding: 10px;
-    border: 1px solid #857f77;
-    background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-    color: #f6f3ee;
+    border: 1px solid var(--panel-active-border);
+    background: var(--panel-active-bg);
+    color: var(--panel-active-text);
     border-radius: 20px;
     font-size: 14px;
     font-weight: 600;
@@ -573,8 +573,8 @@ box-shadow: 0 4px 12px rgba(255,107,107,0.3);
 }
 
 .toggle-custom-btn:hover {
-    background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-    color: #f6f3ee;
+    background: var(--panel-active-bg);
+    color: var(--panel-active-text);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(82, 78, 72, 0.28);
 }

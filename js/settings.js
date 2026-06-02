@@ -1377,6 +1377,8 @@ function updateUserInfo(field, value) {
         // 在显式切换到 GPS 时需要强制移除旧圈
         safeRemoveMyRangeCircle(true);
         setTimeout(()=>{ try { updateMyMarker(); updateMyRange(); refreshAllMarkers(); } catch(e){} }, 80);
+        // 重新开启GPS实时监听
+        startGPSWatching();
         } else {
     // 激活手动模式按钮
     if (manualCircleBtn) manualCircleBtn.classList.add('active');
@@ -1578,27 +1580,29 @@ function updateUserInfo(field, value) {
             return;
         }
 
-        // 移除旧的圆圈
+        const primaryHex = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#7f8a90';
+        const c = hexToRgb(primaryHex);
+        const newCenter = new qq.maps.LatLng(centerPos.lat, centerPos.lng);
+
         if (myRangeCircle) {
-            myRangeCircle.setMap(null);
-            myRangeCircle = null;
+            myRangeCircle.setCenter(newCenter);
+            myRangeCircle.setRadius(visibleRange);
+            myRangeCircle.setFillColor(new qq.maps.Color(c.r, c.g, c.b, 0.24));
+            myRangeCircle.setStrokeColor(new qq.maps.Color(c.r, c.g, c.b, 0.58));
+            return;
         }
 
-        // 创建新的可见范围圆圈（使用主题颜色）
         try {
-            const primaryHex = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#7f8a90';
-            const c = hexToRgb(primaryHex);
             myRangeCircle = new qq.maps.Circle({
                 map: map,
-                center: new qq.maps.LatLng(centerPos.lat, centerPos.lng),
+                center: newCenter,
                 radius: visibleRange,
                 fillColor: new qq.maps.Color(c.r, c.g, c.b, 0.24),
                 strokeColor: new qq.maps.Color(c.r, c.g, c.b, 0.58),
                 strokeWeight: 2
             });
-            // 记录创建时间，防止其他快速触发的逻辑立即移除造成闪动
             try { window._lastRangeCreatedAt = Date.now(); } catch (e) {}
-            console.log('✅ 范围圆圈已创建/更新', { centerPos, visibleRange, lastCreatedAt: window._lastRangeCreatedAt });
+            console.log('✅ 范围圆圈已创建', { centerPos, visibleRange });
         } catch (e) {
             console.error('❌ 创建范围圆圈失败：', e);
         }

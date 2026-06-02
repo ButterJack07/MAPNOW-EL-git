@@ -843,9 +843,9 @@
     }
 
     .chat-tab.active {
-        background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-        color: #f6f3ee;
-        border-bottom-color: #857f77;
+        background: var(--panel-active-bg);
+        color: var(--panel-active-text);
+        border-bottom-color: var(--panel-active-border);
         font-weight: 600;
     }
 
@@ -1129,8 +1129,8 @@
 
     .chat-input-area button {
         padding: 10px 20px;
-        background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-        color: #f6f3ee;
+        background: var(--panel-active-bg);
+        color: var(--panel-active-text);
         border: none;
         border-radius: 25px;
         cursor: pointer;

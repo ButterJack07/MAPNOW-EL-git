@@ -65,6 +65,28 @@
         gap: 10px;
     }
 
+    /* 返回按钮 - 匹配聊天界面的样式 */
+    .uc-back-btn {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.6);
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .uc-back-btn:hover {
+        background: rgba(255, 255, 255, 0.9);
+        transform: scale(1.1);
+    }
+
     .uc-icon-btn {
         width: 40px;
         height: 40px;

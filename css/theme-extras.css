@@ -35,7 +35,7 @@
     --btn-soft-bg-hover: #C4C8CA;
     --btn-soft-border: #B8BDC0;
     --panel-active-bg: #7A9BAE;
-    --panel-active-text: #000000;
+    --panel-active-text: #ffffff;
     --panel-active-border: #6B8DA0;
 
     --bubble-cluster-bg: linear-gradient(135deg, #8DABBC 0%, #6B8DA0 100%);
@@ -345,7 +345,7 @@
     --btn-soft-bg-hover: #C4CAC4;
     --btn-soft-border: #B8C0B8;
     --panel-active-bg: #8DAE8D;
-    --panel-active-text: #000000;
+    --panel-active-text: #ffffff;
     --panel-active-border: #7DA07D;
 
     --bubble-cluster-bg: linear-gradient(135deg, #9DBD9D 0%, #7DA07D 100%);
@@ -655,7 +655,7 @@
     --btn-soft-bg-hover: #C8C5BE;
     --btn-soft-border: #BDBAB2;
     --panel-active-bg: #C4A882;
-    --panel-active-text: #000000;
+    --panel-active-text: #ffffff;
     --panel-active-border: #B89B75;
 
     --bubble-cluster-bg: linear-gradient(135deg, #D0B892 0%, #B89B75 100%);

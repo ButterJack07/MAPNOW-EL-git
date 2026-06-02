@@ -146,11 +146,11 @@
         <div class="range-panel-content">
             <!-- GPS和搜索按钮 -->
             <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                <button id="rangeGpsBtn" onclick="setLocationModeFromRange('gps')" 
-                        style="flex: 1; padding: 8px; border: 2px solid #857f77; border-radius: 6px; background: #9a938b; color: #f6f3ee; font-weight: 500; cursor: pointer;">
+                <button id="rangeGpsBtn" class="range-loc-btn active" onclick="setLocationModeFromRange('gps')" 
+                        style="flex: 1; padding: 8px; border: 2px solid var(--panel-active-border); border-radius: 6px; background: var(--panel-active-bg); color: var(--panel-active-text); font-weight: 500; cursor: pointer;">
                     从GPS定位进入
                 </button>
-                <button id="rangeSearchBtn" onclick="toggleSearchArea()" 
+                <button id="rangeSearchBtn" class="range-loc-btn" onclick="toggleSearchArea()" 
                         style="flex: 1; padding: 8px; border: 2px solid #cec8c1; border-radius: 6px; background: #f8f7f4; color: #4e4a46; font-weight: 500; cursor: pointer;">
                     从搜索地点进入
                 </button>
@@ -192,15 +192,17 @@
             <!-- 操作区：全局模式与确认修改并行 -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px;">
                 <button onclick="activateGlobalMode(); toggleRangePanel();"
-                        style="padding: 10px; background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-                               border: 1px solid #857f77; border-radius: 10px; color: #f6f3ee;
+                        class="btn-action"
+                        style="padding: 10px; background: var(--panel-active-bg);
+                               border: 1px solid var(--panel-active-border); border-radius: 10px; color: var(--panel-active-text);
                                font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
                                box-shadow: 0 4px 14px rgba(82, 78, 72, 0.2);">
                     全局模式
                 </button>
                 <button onclick="confirmRangeChange()"
-                        style="padding: 10px; background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-                               border: 1px solid #857f77; border-radius: 10px; color: #f6f3ee;
+                        class="btn-action"
+                        style="padding: 10px; background: var(--panel-active-bg);
+                               border: 1px solid var(--panel-active-border); border-radius: 10px; color: var(--panel-active-text);
                                font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;
                                box-shadow: 0 4px 14px rgba(82, 78, 72, 0.2);">
                     <span id="rangeConfirmText">确认修改为1000米范围</span>
@@ -216,9 +218,7 @@
             <!-- 顶部导航栏 -->
 <!-- 用户中心头部 -->
 <div class="user-center-header">
-<button class="uc-icon-btn" onclick="closeUserCenter()" title="返回">
-    ↩️
-</button>
+<button class="uc-back-btn" onclick="closeUserCenter()" title="返回">←</button>
     <div class="uc-header-actions">
         <!-- ⭐ 新增：➕号菜单按钮 -->
         <div class="uc-menu-wrapper" style="position: relative;">
@@ -436,7 +436,7 @@
     <div class="settings-overlay" id="settingsOverlay" style="display: none;">
         <div class="settings-container">
             <div class="settings-header">
-                <button class="settings-back" onclick="closeSettings()">×</button>
+                <button class="settings-back" onclick="closeSettings()">←</button>
                 <h2 class="settings-title">设置</h2>
             </div>
             
@@ -1211,7 +1211,7 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
                     </div>
 
                     <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-                        <button onclick="publishBubble()" style="padding: 10px 16px; background: linear-gradient(135deg, #a09890 0%, #8b857e 100%); border: 1px solid #857f77; border-radius: 12px; color: #f6f3ee; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(82, 78, 72, 0.2);"><span id="publishSubmitLabel">发布</span></button>
+                        <button onclick="publishBubble()" style="padding: 10px 16px; background: var(--panel-active-bg); border: 1px solid var(--panel-active-border); border-radius: 12px; color: var(--panel-active-text); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 14px rgba(82, 78, 72, 0.2);"><span id="publishSubmitLabel">发布</span></button>
                     </div>
                 </section>
             </div>
@@ -1402,9 +1402,10 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
                 </div>
             </div>
             <button onclick="activateGlobalMode()" 
-                    style="width: 100%; padding: 14px; background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-                           border: 1px solid #857f77; border-radius: 10px; 
-                           color: #f6f3ee; font-size: 15px;
+                    class="btn-action"
+                    style="width: 100%; padding: 14px; background: var(--panel-active-bg);
+                           border: 1px solid var(--panel-active-border); border-radius: 10px; 
+                           color: var(--panel-active-text); font-size: 15px;
                            font-weight: 700; cursor: pointer; transition: all 0.3s;
                            box-shadow: 0 4px 14px rgba(82, 78, 72, 0.18); position: relative; z-index: 1;"
                     onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 6px 20px rgba(82,78,72,0.3)';"
@@ -1415,8 +1416,9 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
         
         <!-- 确认按钮（仅适用于局域模式） -->
         <button onclick="confirmRangeChange()" 
-                style="width: 100%; padding: 14px; background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-                       border: 1px solid #857f77; border-radius: 12px; color: #f6f3ee; font-size: 16px;
+                class="btn-action"
+                style="width: 100%; padding: 14px; background: var(--panel-active-bg);
+                       border: 1px solid var(--panel-active-border); border-radius: 12px; color: var(--panel-active-text); font-size: 16px;
                        font-weight: 600; cursor: pointer; transition: all 0.3s;
                        box-shadow: 0 4px 14px rgba(82, 78, 72, 0.2);"
                 onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(82,78,72,0.3)';"
@@ -1429,86 +1431,87 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
 
 <!-- ⭐ 气泡筛选弹窗 (修复版) -->
 <div id="filterModal" style="display: none; position: fixed; top: 0; left: 0; 
-            width: 100%; height: 100%; background: rgba(0,0,0,0.5); 
-            z-index: 10000; align-items: center; justify-content: center;">
-    <div style="background: var(--card-bg); border-radius: 20px; padding: 25px; 
-                width: 90%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-                animation: slideUp 0.3s ease;">
+            width: 100%; height: 100%; background: rgba(0,0,0,0.42); 
+            z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(6px);">
+    <div style="background: #ebe8e3; border-radius: 20px; padding: 0; 
+                width: 90%; max-width: 400px; box-shadow: 0 18px 44px rgba(44,41,37,0.18);
+                border: 1px solid #dfdad3; overflow: hidden;">
         
         <!-- 弹窗头部 -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="color: var(--text-primary); font-size: 20px; margin: 0;">🔍 筛选气泡</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: #f0eeea; border-bottom: 1px solid #dfdad3;">
+            <h3 style="color: #4e4a46; font-size: 18px; font-weight: 650; margin: 0;">筛选气泡</h3>
             <button onclick="closeFilterModal()" 
-                    style="background: none; border: none; font-size: 24px; 
-                           color: var(--text-secondary); cursor: pointer; padding: 0; width: 30px; height: 30px;
+                    style="background: #d8d3cc; border: 1px solid #c1bbb3; font-size: 18px; 
+                           color: #4e4a46; cursor: pointer; padding: 0; width: 30px; height: 30px;
                            display: flex; align-items: center; justify-content: center;
-                           border-radius: 50%; transition: all 0.3s;"
-                    onmouseover="this.style.background='#f0f0f0'"
-                    onmouseout="this.style.background='none'">
+                           border-radius: 999px; transition: all 0.3s;"
+                    onmouseover="this.style.background='#ccc7c0'"
+                    onmouseout="this.style.background='#d8d3cc'">
                 ×
             </button>
         </div>
         
+        <div style="padding: 16px;">
         <!-- 类型筛选区 -->
-        <div style="margin-bottom: 20px;">
-            <h4 style="color: var(--text-primary); font-size: 16px; margin-bottom: 12px;">📌 按类型筛选</h4>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+        <div style="margin-bottom: 14px;">
+            <h4 style="color: #4e4a46; font-size: 15px; font-weight: 620; margin-bottom: 10px;">按类型筛选</h4>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
                 <!-- 注意：这里每个按钮的 id 需要和 JavaScript 中的 toggleFilterType 函数对应 -->
                 <button id="filter-recommend" class="filter-type-btn" onclick="toggleFilterType('recommend')" 
-                        style="padding: 10px; background: var(--bg-secondary); border: 2px solid #FF6B35;
-                               border-radius: 8px; color: #FF6B35; font-weight: 500;
-                               cursor: pointer; transition: all 0.3s;">
+                        style="padding: 10px; background: #f8f7f4; border: 1px solid #FF6B35;
+                               border-radius: 10px; color: #FF6B35; font-weight: 600;
+                               cursor: pointer; transition: all 0.2s;">
                     👍 推荐
                 </button>
                 <button id="filter-help" class="filter-type-btn" onclick="toggleFilterType('help')" 
-                        style="padding: 10px; background: var(--bg-secondary); border: 2px solid #FFD93D;
-                            border-radius: 8px; color: #FFD93D; font-weight: 500;
-                            cursor: pointer; transition: all 0.3s;">
-                    <span style="color: #800020;">🆘</span> 求助
+                        style="padding: 10px; background: #f8f7f4; border: 1px solid #FFD93D;
+                            border-radius: 10px; color: #877a15; font-weight: 600;
+                            cursor: pointer; transition: all 0.2s;">
+                    🆘 求助
                 </button>
                 <button id="filter-team" class="filter-type-btn" onclick="toggleFilterType('team')" 
-                        style="padding: 10px; background: var(--bg-secondary); border: 2px solid #4A90E2;
-                               border-radius: 8px; color: #4A90E2; font-weight: 500;
-                               cursor: pointer; transition: all 0.3s;">
+                        style="padding: 10px; background: #f8f7f4; border: 1px solid #4A90E2;
+                               border-radius: 10px; color: #4A90E2; font-weight: 600;
+                               cursor: pointer; transition: all 0.2s;">
                     👥 组队
                 </button>
                 <button id="filter-group" class="filter-type-btn" onclick="toggleFilterType('group')" 
-                        style="padding: 10px; background: var(--bg-secondary); border: 2px solid #6BCF7F;
-                               border-radius: 8px; color: #6BCF7F; font-weight: 500;
-                               cursor: pointer; transition: all 0.3s;">
+                        style="padding: 10px; background: #f8f7f4; border: 1px solid #6BCF7F;
+                               border-radius: 10px; color: #4a9a5e; font-weight: 600;
+                               cursor: pointer; transition: all 0.2s;">
                     💬 建群
                 </button>
                 <button id="filter-warning" class="filter-type-btn" onclick="toggleFilterType('warning')" 
-                        style="padding: 10px; background: var(--bg-secondary); border: 2px solid #9B59B6;
-                               border-radius: 8px; color: #9B59B6; font-weight: 500;
-                               cursor: pointer; transition: all 0.3s;">
+                        style="padding: 10px; background: #f8f7f4; border: 1px solid #9B59B6;
+                               border-radius: 10px; color: #9B59B6; font-weight: 600;
+                               cursor: pointer; transition: all 0.2s;">
                     ⚠️ 避雷
                 </button>
                 <button id="filter-news" class="filter-type-btn" onclick="toggleFilterType('news')" 
-                        style="padding: 10px; background: var(--bg-secondary); border: 2px solid #FF85A1;
-                               border-radius: 8px; color: #FF85A1; font-weight: 500;
-                               cursor: pointer; transition: all 0.3s;">
+                        style="padding: 10px; background: #f8f7f4; border: 1px solid #FF85A1;
+                               border-radius: 10px; color: #FF85A1; font-weight: 600;
+                               cursor: pointer; transition: all 0.2s;">
                     📰 见闻
                 </button>
             </div>
         </div>
         
         <!-- 时间筛选区 -->
-        <div style="margin-bottom: 20px;">
-            <h4 style="color: var(--text-primary); font-size: 16px; margin-bottom: 12px;">⏰ 按时间筛选</h4>
-            <div style="background: #f0f7ff; padding: 15px; border-radius: 10px; text-align: center; margin-bottom: 10px;">
-                <div style="color: var(--text-primary); font-size: 14px; margin-bottom: 5px;">时间范围</div>
-                <div style="color: #5483B3; font-size: 24px; font-weight: bold;" id="filterTimeLabel">全部时间</div>
+        <div style="margin-bottom: 14px;">
+            <h4 style="color: #4e4a46; font-size: 15px; font-weight: 620; margin-bottom: 10px;">按时间筛选</h4>
+            <div style="background: #f6f4f1; border: 1px solid #dfdad3; padding: 14px; border-radius: 14px; text-align: center; margin-bottom: 10px;">
+                <div style="color: #4e4a46; font-size: 14px; margin-bottom: 5px;">时间范围</div>
+                <div style="color: #8f8980; font-size: 22px; font-weight: 700;" id="filterTimeLabel">全部时间</div>
             </div>
             
             <!-- 时间滑块 -->
             <input type="range" id="filterTimeSlider" min="0" max="5" value="0" step="1"
-                   style="width: 100%; height: 6px; border-radius: 3px;
-                          background: linear-gradient(90deg, #5483B3 0%, #667eea 100%);
+                   style="width: 100%; height: 6px; border-radius: 999px;
+                          background: #cfc9c1;
                           outline: none; appearance: none; -webkit-appearance: none;"
                    oninput="updateFilterTimePreview(this.value)">
             
-            <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 11px; color: var(--text-secondary);">
+            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: #8a847e;">
                 <span>全部</span>
                 <span>10m</span>
                 <span>30m</span>
@@ -1520,8 +1523,8 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
         
         <!-- 操作按钮 -->
         <button onclick="applyFilter()" 
-                style="width: 100%; padding: 14px; background: linear-gradient(135deg, #a09890 0%, #8b857e 100%);
-                       border: 1px solid #857f77; border-radius: 12px; color: #f6f3ee; font-size: 16px;
+                style="width: 100%; padding: 14px; background: var(--panel-active-bg);
+                       border: 1px solid var(--panel-active-border); border-radius: 12px; color: var(--panel-active-text); font-size: 15px;
                        font-weight: 600; cursor: pointer; transition: all 0.3s;
                        box-shadow: 0 4px 14px rgba(82, 78, 72, 0.2);"
                 onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(82,78,72,0.3)';"
@@ -1529,15 +1532,15 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
             应用筛选
         </button>
         <button onclick="resetFilter()" 
-                style="width: 100%; padding: 12px; background: var(--bg-secondary); border: none;
-                       border-radius: 12px; color: var(--text-secondary); font-size: 14px; margin-top: 10px;
-                       cursor: pointer; transition: all 0.3s;"
-                onmouseover="this.style.background='#e9ecef'"
-                onmouseout="this.style.background='#f8f9fa'">
+                style="width: 100%; padding: 10px; background: #f8f7f4; border: 1px solid #cec8c1;
+                       border-radius: 12px; color: #67625d; font-size: 13px; margin-top: 8px;
+                       cursor: pointer; transition: all 0.2s;"
+                onmouseover="this.style.background='#ece9e4'"
+                onmouseout="this.style.background='#f8f7f4'">
             重置筛选
         </button>
+        </div>
     </div>
-
 
 </div>
 

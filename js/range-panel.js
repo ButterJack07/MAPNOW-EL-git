@@ -63,12 +63,8 @@
     
     if (mode === 'gps') {
         // 切换到GPS模式
-        gpsBtn.style.background = 'linear-gradient(135deg, #a09890 0%, #8b857e 100%)';
-        gpsBtn.style.color = '#f6f3ee';
-        gpsBtn.style.borderColor = '#857f77';
-        searchBtn.style.background = '#f8f7f4';
-        searchBtn.style.color = '#4e4a46';
-        searchBtn.style.borderColor = '#cec8c1';
+        gpsBtn.classList.add('active');
+        searchBtn.classList.remove('active');
 
         // 隐藏搜索区域
         searchArea.style.display = 'none';
@@ -91,12 +87,8 @@
             deactivateGlobalMode();
         }
 
-        searchBtn.style.background = 'linear-gradient(135deg, #a09890 0%, #8b857e 100%)';
-        searchBtn.style.color = '#f6f3ee';
-        searchBtn.style.borderColor = '#857f77';
-        gpsBtn.style.background = '#f8f7f4';
-        gpsBtn.style.color = '#4e4a46';
-        gpsBtn.style.borderColor = '#cec8c1';
+        searchBtn.classList.add('active');
+        gpsBtn.classList.remove('active');
 
         // 搜索模式：切换到手动/搜索定位状态，停止 GPS，刷新范围圈与标记，保证局域圈立即可见
         // 标记当前为手动模式（search 等价于 manual）
@@ -239,12 +231,8 @@
         if (searchArea.style.display === 'none' || searchArea.style.display === '') {
     // 显示搜索区域
     searchArea.style.display = 'block';
-    searchBtn.style.background = '#9a938b';
-    searchBtn.style.color = '#f6f3ee';
-    searchBtn.style.borderColor = '#857f77';
-    gpsBtn.style.background = '#f8f7f4';
-    gpsBtn.style.color = '#4e4a46';
-    gpsBtn.style.borderColor = '#cec8c1';
+    searchBtn.classList.add('active');
+    gpsBtn.classList.remove('active');
         
     // 自动聚焦到搜索框
     setTimeout(() => {
@@ -253,12 +241,8 @@
         } else {
     // 隐藏搜索区域，切换回GPS模式
     searchArea.style.display = 'none';
-    gpsBtn.style.background = '#9a938b';
-    gpsBtn.style.color = '#f6f3ee';
-    gpsBtn.style.borderColor = '#857f77';
-    searchBtn.style.background = '#f8f7f4';
-    searchBtn.style.color = '#4e4a46';
-    searchBtn.style.borderColor = '#cec8c1';
+    gpsBtn.classList.add('active');
+    searchBtn.classList.remove('active');
         
     // 调用GPS定位
     setLocationMode('gps');

@@ -26,22 +26,13 @@ function openFilterModal() {
     modal.classList.add('show');
     setBottomNavActive('filterButton');
     
-    const inactiveBg = '#f8f7f4';
-    const inactiveText = '#4e4a46';
-    const inactiveBorder = '#cec8c1';
-    const activeBg = 'linear-gradient(135deg, #a09890 0%, #8b857e 100%)';
-    const activeText = '#f6f3ee';
-    const activeBorder = '#857f77';
-    
     // 恢复当前筛选状态
     if (filterSettings && filterSettings.types) {
         // 重置所有按钮样式
         ['recommend', 'help', 'team', 'warning', 'news', 'group'].forEach(type => {
             const btn = document.getElementById('filter-' + type);
             if (btn) {
-                btn.style.background = inactiveBg;
-                btn.style.color = inactiveText;
-                btn.style.borderColor = inactiveBorder;
+                btn.classList.remove('active');
             }
         });
         
@@ -49,9 +40,7 @@ function openFilterModal() {
         filterSettings.types.forEach(type => {
             const btn = document.getElementById('filter-' + type);
             if (btn) {
-                btn.style.background = activeBg;
-                btn.style.color = activeText;
-                btn.style.borderColor = activeBorder;
+                btn.classList.add('active');
             }
         });
     }
@@ -78,26 +67,13 @@ function toggleFilterType(type) {
     const btn = document.getElementById('filter-' + type);
     if (!btn) return;
 
-    const inactiveBg = '#f8f7f4';
-    const inactiveText = '#4e4a46';
-    const inactiveBorder = '#cec8c1';
-    const activeBg = 'linear-gradient(135deg, #a09890 0%, #8b857e 100%)';
-    const activeText = '#f6f3ee';
-    const activeBorder = '#857f77';
-    
     const index = filterSettings.types.indexOf(type);
     if (index > -1) {
-        // 取消选中
         filterSettings.types.splice(index, 1);
-        btn.style.background = inactiveBg;
-        btn.style.color = inactiveText;
-        btn.style.borderColor = inactiveBorder;
+        btn.classList.remove('active');
     } else {
-        // 选中
         filterSettings.types.push(type);
-        btn.style.background = activeBg;
-        btn.style.color = activeText;
-        btn.style.borderColor = activeBorder;
+        btn.classList.add('active');
     }
     
     console.log('筛选类型:', filterSettings.types);
@@ -115,17 +91,11 @@ function updateFilterTimePreview(value) {
 
 // 重置筛选
 function resetFilter() {
-    const inactiveBg = '#f8f7f4';
-    const inactiveText = '#4e4a46';
-    const inactiveBorder = '#cec8c1';
-
     filterSettings.types = [];
     ['recommend', 'help', 'team', 'warning', 'news', 'group'].forEach(type => {
         const btn = document.getElementById('filter-' + type);
         if (btn) {
-            btn.style.background = inactiveBg;
-            btn.style.color = inactiveText;
-            btn.style.borderColor = inactiveBorder;
+            btn.classList.remove('active');
         }
     });
 
