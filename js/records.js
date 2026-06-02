@@ -438,8 +438,23 @@ function displaySearchResults(results, section) {
         return;
     }
 
+    // 搜索"全部"时按气泡ID去重
+    let uniqueResults = results;
+    if (section === 'all') {
+        const seen = new Set();
+        uniqueResults = [];
+        results.forEach(item => {
+            const key = item.id || item.bubble_id;
+            if (key && !seen.has(key)) {
+                seen.add(key);
+                uniqueResults.push(item);
+            }
+        });
+        console.log(`🔍 搜索结果去重: ${results.length} → ${uniqueResults.length} 条`);
+    }
+
     let html = '<div class="uc-records-list">';
-    results.forEach(item => {
+    uniqueResults.forEach(item => {
         const bubbleIcon = BUBBLE_CONFIG[item.type]?.icon || '📍';
         const bubbleColor = BUBBLE_CONFIG[item.type]?.color || '#999';
         let timeStr = '';
@@ -491,7 +506,7 @@ function displaySearchResults(results, section) {
     html += '</div>';
 
     container.innerHTML = html;
-    console.log(`✅ 显示 ${results.length} 条搜索结果`);
+    console.log(`✅ 显示 ${uniqueResults.length} 条搜索结果 (原始 ${results.length} 条)`);
 }
 
 function recordBubbleView(bubbleId) {
@@ -614,9 +629,12 @@ function recordBubbleView(bubbleId) {
             const bubbleIcon = BUBBLE_CONFIG[like.type]?.icon || '📍';
             const bubbleColor = BUBBLE_CONFIG[like.type]?.color || '#999';
             const timeStr = formatTimeSimple(like.liked_at);
-                
+            const images = like.images ? (Array.isArray(like.images) ? like.images : JSON.parse(like.images || '[]')) : [];
+            const showContent = like.content && like.content.trim();
+            const likeAuthorId = like.author_id || like.authorId || like.userId;
+
             html += `
-                <div class="uc-record-item">
+                <div class="uc-record-item" onclick="toggleBubbleCardDetail('likes-${like.bubble_id}')">
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
@@ -624,17 +642,34 @@ function recordBubbleView(bubbleId) {
                         <div class="uc-record-top">
                             <div class="uc-record-title">${escapeHtml(like.title)}</div>
                             <div class="uc-record-top-actions">
-                                ${like.author_id || like.authorId || like.userId ? `<button onclick="event.stopPropagation();startChatFromBubble('${like.author_id || like.authorId || like.userId}')"
+                                ${likeAuthorId ? `<button onclick="event.stopPropagation();startChatFromBubble('${likeAuthorId}')"
                                     class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>` : ''}
-                                <button onclick="locateToBubble(${like.lat}, ${like.lng})" 
+                                <button onclick="event.stopPropagation();locateToBubble(${like.lat}, ${like.lng})" 
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
-                                <button onclick="deleteRecord('likes', '${like.bubble_id}', this)" 
+                                <button onclick="event.stopPropagation();deleteRecord('likes', '${like.bubble_id}', this)" 
                                     class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
                             </div>
                         </div>
-                        ${like.content ? `<div class="uc-record-desc" style="margin:2px 0;">${escapeHtml(like.content).replace(/\n/g, '<br>')}</div>` : ''}
                         <div class="uc-record-meta-row">
                             <span class="uc-record-meta">${renderAvatarPreview(like.author_avatar || '👤')} ${escapeHtml(like.author)} <span class="dot">•</span> 点赞于 ${timeStr}</span>
+                        </div>
+                        <div id="bubble-card-detail-likes-${like.bubble_id}" style="display:none;margin-top:8px;">
+                            <div class="uc-record-author" style="margin-bottom:6px;">
+                                <span class="uc-author-avatar">${renderAvatarPreview(like.author_avatar || '👤')}</span>
+                                <span class="uc-author-name">${escapeHtml(like.author)}</span>
+                                ${likeAuthorId ? `<span class="uc-author-id">ID ${likeAuthorId}</span>` : ''}
+                            </div>
+                            ${showContent ? `<div class="uc-record-desc" style="margin-bottom:6px;">${escapeHtml(like.content).replace(/\n/g, '<br>')}</div>` : ''}
+                            ${images.length > 0 ? `
+                                <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+                                    ${images.slice(0, 3).map(img => `
+                                        <img src="${img}" onclick="window.open('${img}','_blank')"
+                                             style="width:${images.length===1?'100%':'80px'};max-width:${images.length===1?'200px':'80px'};
+                                                    height:${images.length===1?'auto':'80px'};object-fit:cover;border-radius:6px;
+                                                    cursor:pointer;border:1px solid var(--border-color);">
+                                    `).join('')}
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
@@ -660,9 +695,12 @@ function recordBubbleView(bubbleId) {
             const bubbleIcon = BUBBLE_CONFIG[fav.type]?.icon || '📍';
             const bubbleColor = BUBBLE_CONFIG[fav.type]?.color || '#999';
             const timeStr = formatTimeSimple(fav.favorited_at);
-                
+            const images = fav.images ? (Array.isArray(fav.images) ? fav.images : JSON.parse(fav.images || '[]')) : [];
+            const showContent = fav.content && fav.content.trim();
+            const favAuthorId = fav.author_id || fav.authorId || fav.userId;
+
             html += `
-                <div class="uc-record-item">
+                <div class="uc-record-item" onclick="toggleBubbleCardDetail('favorites-${fav.bubble_id}')">
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
@@ -670,17 +708,34 @@ function recordBubbleView(bubbleId) {
                         <div class="uc-record-top">
                             <div class="uc-record-title">${escapeHtml(fav.title)}</div>
                             <div class="uc-record-top-actions">
-                                ${fav.author_id || fav.authorId || fav.userId ? `<button onclick="event.stopPropagation();startChatFromBubble('${fav.author_id || fav.authorId || fav.userId}')"
+                                ${favAuthorId ? `<button onclick="event.stopPropagation();startChatFromBubble('${favAuthorId}')"
                                     class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>` : ''}
-                                <button onclick="locateToBubble(${fav.lat}, ${fav.lng})" 
+                                <button onclick="event.stopPropagation();locateToBubble(${fav.lat}, ${fav.lng})" 
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
-                                <button onclick="deleteRecord('favorites', '${fav.bubble_id}', this)" 
+                                <button onclick="event.stopPropagation();deleteRecord('favorites', '${fav.bubble_id}', this)" 
                                     class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
                             </div>
                         </div>
-                        ${fav.content ? `<div class="uc-record-desc" style="margin:2px 0;">${escapeHtml(fav.content).replace(/\n/g, '<br>')}</div>` : ''}
                         <div class="uc-record-meta-row">
                             <span class="uc-record-meta">${renderAvatarPreview(fav.author_avatar || '👤')} ${escapeHtml(fav.author)} <span class="dot">•</span> 收藏于 ${timeStr}</span>
+                        </div>
+                        <div id="bubble-card-detail-favorites-${fav.bubble_id}" style="display:none;margin-top:8px;">
+                            <div class="uc-record-author" style="margin-bottom:6px;">
+                                <span class="uc-author-avatar">${renderAvatarPreview(fav.author_avatar || '👤')}</span>
+                                <span class="uc-author-name">${escapeHtml(fav.author)}</span>
+                                ${favAuthorId ? `<span class="uc-author-id">ID ${favAuthorId}</span>` : ''}
+                            </div>
+                            ${showContent ? `<div class="uc-record-desc" style="margin-bottom:6px;">${escapeHtml(fav.content).replace(/\n/g, '<br>')}</div>` : ''}
+                            ${images.length > 0 ? `
+                                <div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">
+                                    ${images.slice(0, 3).map(img => `
+                                        <img src="${img}" onclick="window.open('${img}','_blank')"
+                                             style="width:${images.length===1?'100%':'80px'};max-width:${images.length===1?'200px':'80px'};
+                                                    height:${images.length===1?'auto':'80px'};object-fit:cover;border-radius:6px;
+                                                    cursor:pointer;border:1px solid var(--border-color);">
+                                    `).join('')}
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
