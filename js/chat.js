@@ -1,4 +1,3 @@
-            // ==================== 公屏聊天功能 ====================
     function toggleChatPanel() {
         chatPanelVisible = !chatPanelVisible;
         const panel = document.getElementById('chatPanel');
@@ -317,6 +316,23 @@
     }
 
 
+    // 辅助工具函数在 js/utils.js
+
+    // ==================== 测试函数 ====================
+    function loginTestUser() {
+        // 使用测试账号快速登录
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                type: 'authLogin',
+                loginId: 'testuser',
+                password: '123456'
+            }));
+                
+            console.log("👤 尝试使用测试账号登录...");
+        } else {
+        }
+    }
+    
     // ==================== 聊天室功能模块 ====================
 
     /**
@@ -551,14 +567,5 @@
     notification.style.transition = 'opacity 0.5s';
     setTimeout(() => notification.remove(), 500);
         }, 3000);
-    }
-
-
-    // ==================== 在JavaScript中添加以下函数 ====================
-    // ==================== 显示私聊提示（借鉴提供的代码） ====================
-    function showPrivateChatHint(userId, nickname, position) {
-        // 简化为直接使用新的悬停功能
-        // 这个函数现在由 showUserInfoWindow 替代
-        console.log(`📢 提示: 点击用户标记可查看 ${nickname} 的详细信息`);
     }
 
