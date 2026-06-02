@@ -3397,41 +3397,27 @@ if (data.type === "searchCities") {
 
 // ==================== HTTP 监控服务器 ====================
 const httpServer = http.createServer((req, res) => {
-  if (req.method === "POST" && req.url === "/api/clearBubbles") {
-    let body = "";
-    req.on("data", chunk => {
-      body += chunk.toString();
-    });
-    req.on("end", () => {
-      try {
-        const data = JSON.parse(body);
-        
-        // 验证管理员密码
-        if (data.password !== ADMIN_PASSWORD) {
-          res.writeHead(401, { "Content-Type": "application/json" });
-          res.end(JSON.stringify({
-            success: false,
-            message: "管理员密码错误"
-          }));
-          return;
-        }
-        
-        // 执行清除操作
-        const result = clearAllBubbles(data.initiator || "HTTP管理员");
-        
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify(result));
-        
-      } catch (error) {
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({
-          success: false,
-          message: "请求处理失败: " + error.message
-        }));
-      }
-    });
-    return;
-  }
+    if (req.method === "POST" && req.url === "/api/forceLogoutAll") {
+      const count = onlineUsers.size;
+      broadcast({ type: "forceLogout", message: "管理员已强制执行下线" });
+      onlineUsers.forEach(({ ws: client }) => {
+        try { client.close(1000, "管理员强制执行下线"); } catch {}
+      });
+      onlineUsers.clear();
+      socketUser.clear();
+      userSocket.clear();
+      console.log(`🔐 管理员已强制 ${count} 个用户下线`);
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ success: true, message: `已强制 ${count} 个用户下线` }));
+      return;
+    }
+
+    if (req.method === "POST" && req.url === "/api/clearBubbles") {
+      const result = clearAllBubbles("HTTP管理员");
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify(result));
+      return;
+    }
 
   if (req.url === "/" || req.url === "/monitor") {
     const now = Date.now();
@@ -3446,247 +3432,69 @@ const httpServer = http.createServer((req, res) => {
   <meta charset="UTF-8">
   <meta http-equiv="refresh" content="3">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MomentMap 实时监控</title>
+  <title>监控</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin:0; padding:0; box-sizing:border-box; }
     body {
-      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-      font-family: "Segoe UI", Arial, sans-serif;
-      color: white;
-      padding: 20px;
-      min-height: 100vh;
+      background:#1a1a2e; color:#eee;
+      font-family:"Segoe UI",Arial,sans-serif; padding:30px;
     }
-    h1 {
-      text-align: center;
-      font-size: 32px;
-      margin-bottom: 30px;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    h1 { font-size:22px; margin-bottom:20px; }
+    .bar {
+      display:flex; gap:10px; margin-bottom:20px; flex-wrap:wrap;
     }
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 15px;
-      margin-bottom: 30px;
+    .bar button {
+      padding:8px 20px; border:none; border-radius:6px;
+      cursor:pointer; font-weight:bold; font-size:14px;
     }
-    .stat-box {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      padding: 20px;
-      border-radius: 10px;
-      text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-    }
-    .stat-box h3 {
-      font-size: 14px;
-      margin-bottom: 10px;
-      opacity: 0.9;
-    }
-    .stat-box .value {
-      font-size: 28px;
-      font-weight: bold;
-      color: #00ff00;
-    }
-    .section {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(10px);
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    .section h2 {
-      margin-bottom: 15px;
-      font-size: 20px;
-      color: #00ffff;
-    }
-    .user-item, .bubble-item {
-      padding: 10px;
-      margin: 5px 0;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 5px;
-      border-left: 3px solid #00ff00;
-    }
-    .bubble-item {
-      background: #0a0a0a;
-      padding: 15px;
-      margin: 10px 0;
-      border-left: 4px solid #ff00ff;
-    }
-    .bubble-item .title {
-      font-size: 18px;
-      color: #00ffff;
-      font-weight: bold;
-      margin-bottom: 5px;
-    }
-    .bubble-item .info {
-      font-size: 12px;
-      color: #888;
-    }
-    .location { color: #00ff00; }
-    .time { color: #ffff00; }
-    .refresh {
-      text-align: center;
-      color: #888;
-      margin-top: 20px;
-      font-size: 12px;
-    }
-    .admin-panel {
-      background: linear-gradient(135deg, #ff416c, #ff4b2b);
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-    }
-    .admin-panel h2 {
-      color: white;
-      margin-bottom: 15px;
-    }
-    .admin-button {
-      background: #ff0000;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-      margin-right: 10px;
-    }
-    .admin-button:hover {
-      background: #cc0000;
-    }
-    .admin-input {
-      padding: 8px;
-      border-radius: 5px;
-      border: 2px solid #00ff00;
-      background: #0a0a0a;
-      color: white;
-      margin-right: 10px;
-    }
+    .btn-clear { background:#e74c3c; color:#fff; }
+    .btn-clear:hover { background:#c0392b; }
+    .btn-kick { background:#8e44ad; color:#fff; }
+    .btn-kick:hover { background:#7d3c98; }
+    #msg { margin-top:10px; font-size:13px; }
+    .row { display:flex; gap:20px; flex-wrap:wrap; }
+    .col { flex:1; min-width:200px; }
+    .stat { margin-bottom:6px; font-size:14px; }
+    .stat b { color:#3498db; }
+    .list { margin-top:10px; }
+    .list div { padding:4px 0; font-size:13px; color:#ccc; border-bottom:1px solid #333; }
   </style>
 </head>
 <body>
-  <h1>🗺️ MomentMap 实时监控</h1>
-  
-  <div class="admin-panel">
-    <h2>🔐 管理员控制台</h2>
-    <input type="password" id="adminPassword" class="admin-input" placeholder="管理员密码" />
-    <button class="admin-button" onclick="clearBubbles()">🗑️ 清除所有气泡</button>
-    <button class="admin-button" onclick="saveBackup()">💾 立即备份</button>
-    <button class="admin-button" onclick="refreshStats()">🔄 刷新统计</button>
-    <div id="adminMessage" style="margin-top: 10px; color: yellow;"></div>
+  <h1>MomentMap 监控</h1>
+  <div class="bar">
+    <button class="btn-clear" onclick="clearBubbles()">🗑️ 清除所有气泡</button>
+    <button class="btn-kick" onclick="forceLogoutAll()">🚫 强制所有用户下线</button>
+    <div id="msg"></div>
   </div>
-  
-  <div class="stats">
-    <div class="stat-box">
-      <h3>🎈 内存气泡</h3>
-      <div class="value">${bubbles.size}</div>
+  <div class="row">
+    <div class="col">
+      <div class="stat">🎈 气泡: <b>${bubbles.size}</b></div>
+      <div class="stat">👥 在线: <b>${onlineUsers.size}</b></div>
+      <div class="stat">📤 发布: <b>${stats.totalPublished}</b></div>
     </div>
-    <div class="stat-box">
-      <h3>✅ 活跃气泡</h3>
-      <div class="value">${activeBubbles.length}</div>
-    </div>
-    <div class="stat-box">
-      <h3>👥 在线用户</h3>
-      <div class="value">${onlineUsers.size}</div>
-    </div>
-    <div class="stat-box">
-      <h3>📤 已发布</h3>
-      <div class="value">${stats.totalPublished}</div>
-    </div>
-    <div class="stat-box">
-      <h3>🔍 已查询</h3>
-      <div class="value">${stats.totalQueried}</div>
-    </div>
-    <div class="stat-box">
-      <h3>💬 消息数</h3>
-      <div class="value">${stats.totalMessages}</div>
-    </div>
-    <div class="stat-box">
-      <h3>🗑️ 最后清除</h3>
-      <div class="value" style="font-size: 16px;">
-        ${stats.lastCleared ? new Date(stats.lastCleared).toLocaleTimeString('zh-CN') : '从未'}
+    <div class="col">
+      <div class="stat">👤 在线用户</div>
+      <div class="list">
+        ${onlineUsers.size === 0 ? '<div style="color:#666;">无</div>' : ''}
+        ${Array.from(onlineUsers.values()).map(({ user }) =>
+          `<div>${user.avatar} ${user.nickname}</div>`
+        ).join('')}
       </div>
     </div>
   </div>
-
-  <div class="section">
-    <h2>👥 在线用户 (${onlineUsers.size})</h2>
-    ${onlineUsers.size === 0 ? '<div style="color: #888;">暂无在线用户</div>' : ''}
-    ${Array.from(onlineUsers.values()).map(({ user }) => `
-      <div class="user-item">
-        ${user.avatar} ${user.nickname} 
-        ${user.lat ? `<span class="location">(${user.lat.toFixed(4)}, ${user.lng.toFixed(4)})</span>` : '<span style="color: #ff0000;">(无位置)</span>'}
-      </div>
-    `).join('')}
-  </div>
-
-  <div class="section">
-    <h2>🎈 所有气泡 (${activeBubbles.length}/${bubbles.size})</h2>
-    ${activeBubbles.length === 0 ? '<div style="color: #888;">暂无气泡</div>' : ''}
-    ${activeBubbles.map(b => `
-      <div class="bubble-item">
-        <div class="title">${b.title}</div>
-        <div class="info">
-          作者: ${b.author} | 
-          类型: ${b.type} | 
-          位置: <span class="location">${b.lat.toFixed(4)}, ${b.lng.toFixed(4)}</span><br>
-          创建: <span class="time">${new Date(b.createdAt).toLocaleString('zh-CN')}</span> | 
-          过期: <span class="time">${new Date(b.expiresAt).toLocaleString('zh-CN')}</span>
-        </div>
-      </div>
-    `).join('')}
-  </div>
-
-  <div class="refresh">
-    页面每3秒自动刷新 | ${new Date().toLocaleString('zh-CN')}
-  </div>
-
   <script>
-    function showMessage(message, isError = false) {
-      const elem = document.getElementById('adminMessage');
-      elem.textContent = message;
-      elem.style.color = isError ? '#ff0000' : '#00ff00';
-      setTimeout(() => elem.textContent = '', 3000);
-    }
-    
+    function msg(t) { document.getElementById('msg').textContent = t; setTimeout(()=>msg(''),2000); }
     function clearBubbles() {
-      const password = document.getElementById('adminPassword').value;
-      if (!password) {
-        showMessage('请输入管理员密码', true);
-        return;
-      }
-      
-      fetch('/api/clearBubbles', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          password: password,
-          initiator: '监控大屏管理员'
-        })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          showMessage('✅ ' + data.message);
-          setTimeout(() => location.reload(), 1000);
-        } else {
-          showMessage('❌ ' + (data.message || data.error), true);
-        }
-      })
-      .catch(error => {
-        showMessage('❌ 请求失败: ' + error.message, true);
-      });
+      fetch('/api/clearBubbles',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+      .then(r=>r.json()).then(d=>{ msg(d.success?'✅ '+d.message:'❌ '+d.message); setTimeout(()=>location.reload(),1000); })
+      .catch(e=>msg('❌ '+e.message));
     }
-    
-    function saveBackup() {
-      showMessage('💾 备份功能已在服务器端定时执行');
-    }
-    
-    function refreshStats() {
-      showMessage('🔄 统计已刷新，页面3秒后自动更新');
+    function forceLogoutAll() {
+      if(!confirm('确定强制所有用户下线？')) return;
+      fetch('/api/forceLogoutAll',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+      .then(r=>r.json()).then(d=>msg(d.success?'✅ '+d.message:'❌ '+d.message))
+      .catch(e=>msg('❌ '+e.message));
     }
   </script>
 </body>
