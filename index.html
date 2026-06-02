@@ -348,23 +348,25 @@
                 <div class="uc-tab-content" id="uc-search" style="display: none;">
                     <!-- 搜索控制区域 -->
                     <div class="search-controls">
-                        <select id="searchSection" class="search-select">
-                            <option value="all">全部</option>
-                            <option value="likes">点赞</option>
-                            <option value="favorites">收藏</option>
-                            <option value="comments">评论</option>
-                            <option value="published">我发布的</option>
-                            <option value="views">浏览记录</option>
-                        </select>
-                        
-                        <input type="text" id="searchKeyword" 
-                               placeholder="输入关键字搜索..." 
-                               class="search-input"
-                               onkeypress="if(event.key==='Enter') performSearch()">
-                        
-                        <button onclick="performSearch()" class="search-btn">
-                            🔍 搜索
-                        </button>
+                        <div class="search-row">
+                            <select id="searchSection" class="search-select">
+                                <option value="all">全部</option>
+                                <option value="likes">点赞</option>
+                                <option value="favorites">收藏</option>
+                                <option value="comments">评论</option>
+                                <option value="published">我发布的</option>
+                                <option value="views">浏览记录</option>
+                            </select>
+                        </div>
+                        <div class="search-row search-row-input">
+                            <input type="text" id="searchKeyword" 
+                                   placeholder="输入关键字搜索..." 
+                                   class="search-input"
+                                   onkeypress="if(event.key==='Enter') performSearch()">
+                            <button onclick="performSearch()" class="search-btn">
+                                🔍 搜索
+                            </button>
+                        </div>
                     </div>
                     
                     <!-- 搜索结果区域 -->

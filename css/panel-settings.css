@@ -449,9 +449,9 @@
 
     /* Emoji 头像选择 - 统一样式；修复高亮异常 */
     .emoji-option {
-        padding: 12px;
+        padding: 10px;
         text-align: center;
-        font-size: 28px;
+        font-size: 26px;
         cursor: pointer;
         border-radius: 10px;
         transition: transform 0.15s ease, background 0.15s ease;

@@ -2071,25 +2071,36 @@
         box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
     }
 
-    /* ==================== 发布气泡面板 - ceshi.html风格底部弹出 ==================== */
     /* ==================== 搜索功能样式 ==================== */
     .search-controls {
         display: flex;
-        gap: 10px;
+        flex-direction: column;
+        gap: 8px;
         margin-bottom: 20px;
         padding: 15px;
         background: #F5F5F5;
         border-radius: 12px;
     }
 
+    .search-row {
+        width: 100%;
+    }
+
+    .search-row-input {
+        display: flex;
+        gap: 8px;
+    }
+
     .search-select {
-        padding: 10px 15px;
+        width: 100%;
+        padding: 10px 12px;
         border-radius: 8px;
         border: 1px solid #ddd;
-        font-size: 14px;
+        font-size: 13px;
         background: var(--card-bg);
         cursor: pointer;
         transition: all 0.3s;
+        box-sizing: border-box;
     }
 
     .search-select:hover {
@@ -2104,11 +2115,13 @@
 
     .search-input {
         flex: 1;
-        padding: 10px 15px;
+        min-width: 0;
+        padding: 10px 12px;
         border-radius: 8px;
         border: 1px solid #ddd;
-        font-size: 14px;
+        font-size: 13px;
         transition: all 0.3s;
+        box-sizing: border-box;
     }
 
     .search-input:hover {
@@ -2122,16 +2135,17 @@
     }
 
     .search-btn {
-        padding: 10px 25px;
+        padding: 10px 20px;
         background: linear-gradient(135deg, var(--primary-gradient-start) 0%, var(--primary-gradient-end) 100%);
         color: white;
         border: none;
         border-radius: 8px;
         cursor: pointer;
         font-weight: 600;
-        font-size: 14px;
+        font-size: 13px;
         transition: all 0.3s;
         white-space: nowrap;
+        flex-shrink: 0;
     }
 
     .search-btn:hover {

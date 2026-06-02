@@ -65,7 +65,7 @@
             const selfAvatarHTML = renderAvatarPreview(currentUser.avatar || '👤');
 
             html += `
-                <div class="chat-item chat-item-self" onclick="openSelfChat()">
+                <div class="chat-item" onclick="openSelfChat()">
                     <div class="chat-avatar">${selfAvatarHTML}</div>
                     <div class="chat-info">
                         <div class="chat-name">我 <span style="font-size: 11px; color: var(--text-tertiary); font-weight: 400;">(与自己的对话)</span></div>
@@ -277,7 +277,7 @@
             const timeStr = formatTimeSimple(msg.created_at);
             html += `
                 <div class="message-item message-sent">
-                    <div class="message-content self-chat-bubble">
+                    <div class="message-content">
                         ${escapeHtml(msg.message)}
                         <div class="message-time">${timeStr}</div>
                     </div>
@@ -1161,7 +1161,7 @@
             
         <!-- Emoji 选择面板 -->
         <div id="avatarEmojiPanel" style="max-height: 300px; overflow-y: auto;">
-            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px;">
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
                 ${emojis.map(emoji => `
                     <div data-emoji="${emoji}" onclick="selectAvatarEmoji('${emoji}')" 
                          class="emoji-option">

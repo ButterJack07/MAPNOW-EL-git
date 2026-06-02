@@ -2131,6 +2131,7 @@ if (data.type === "commentBubble") {
       const query = `
         SELECT 
           v.viewed_at,
+          v.bubble_id,
           b.*
         FROM bubble_views v
         LEFT JOIN bubbles b ON v.bubble_id = b.id
