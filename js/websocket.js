@@ -702,6 +702,44 @@ function connectWebSocket() {
         break;
 
 
+    // ⭐ vA1.1: 好友相关消息处理
+    case "friendRequestSent":
+        console.log('✅ 好友请求已发送');
+        queryFriends();
+        if (typeof showToast === 'function') showToast('好友请求已发送');
+        break;
+
+    case "friendRequestReceived":
+        console.log('📨 收到好友请求:', data.request);
+        queryFriendRequests();
+        queryFriends();
+        if (typeof showToast === 'function') showToast(`收到 ${data.request.fromUserName} 的好友请求`);
+        break;
+
+    case "friendRequestAccepted":
+        console.log('✅ 好友请求已接受');
+        queryFriends();
+        queryFriendRequests();
+        if (typeof showToast === 'function') showToast(data.friendUserName ? `${data.friendUserName} 已接受好友请求` : '好友请求已接受');
+        break;
+
+    case "friendRequestRejected":
+        console.log('ℹ️ 好友请求已拒绝');
+        queryFriendRequests();
+        break;
+
+    case "friendsResult":
+        if (typeof displayFriends === 'function') displayFriends(data.friends);
+        break;
+
+    case "friendRequestsResult":
+        if (typeof displayFriendRequests === 'function') displayFriendRequests(data.requests);
+        break;
+
+    case "queryUserForFriendResult":
+        if (typeof displayUserSearchResults === 'function') displayUserSearchResults(data.users);
+        break;
+
             default:
                 console.log("⚠️ 未处理的消息类型:", data.type);
         }

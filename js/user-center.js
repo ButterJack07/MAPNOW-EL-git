@@ -18,6 +18,8 @@
         document.getElementById('chatListOverlay').style.display = 'flex';
         queryPrivateChats();
         queryPrivateUnreadCount();
+        queryFriends();
+        queryFriendRequests();
         console.log('💬 打开私聊列表');
     }
 
@@ -1716,9 +1718,14 @@ function updateVipDisplay(vipData) {
         }
     });
 
-    // 添加好友（待开发）
+    // ⭐ vA1.1: 添加好友（打开搜索弹窗）
     function addFriend() {
         document.getElementById('addMenu').style.display = 'none';
+        const overlay = document.getElementById('friendAddOverlay');
+        overlay.style.display = 'flex';
+        document.getElementById('friendSearchInput').value = '';
+        document.getElementById('friendSearchResults').innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px;">输入关键词搜索用户</div>';
+        setTimeout(() => document.getElementById('friendSearchInput').focus(), 300);
     }
 
     // 发起群聊（待开发）
@@ -1809,11 +1816,171 @@ function updateVipDisplay(vipData) {
         console.log('✅ 名片卡更新完成');
     }
 
-    // 添加好友（待实现）
+    // ⭐ vA1.1: 从用户卡片添加好友
     function addFriendFromCard() {
+        const userId = currentChatUserId;
+        if (!userId || userId === 'self') return;
+        sendFriendRequest(userId);
     }
 
     // 举报用户（待实现）
     function reportUser() {
     }
+
+// ⭐ vA1.1: ==================== 好友系统 ====================
+
+// 发送好友请求
+function sendFriendRequest(toUserId) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        console.log('⚠️ WebSocket未连接');
+        if (typeof showToast === 'function') showToast('网络未连接');
+        return;
+    }
+    socket.send(JSON.stringify({ type: "sendFriendRequest", toUserId }));
+    console.log('📤 发送好友请求:', toUserId);
+}
+
+// 接受好友请求
+function acceptFriendRequest(requestId) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify({ type: "acceptFriendRequest", requestId }));
+    console.log('✅ 接受好友请求:', requestId);
+}
+
+// 拒绝好友请求
+function rejectFriendRequest(requestId) {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify({ type: "rejectFriendRequest", requestId }));
+    console.log('❌ 拒绝好友请求:', requestId);
+}
+
+// 查询好友列表
+function queryFriends() {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify({ type: "queryFriends" }));
+}
+
+// 查询待处理好友请求
+function queryFriendRequests() {
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    socket.send(JSON.stringify({ type: "queryFriendRequests" }));
+}
+
+// 搜索用户
+function searchUserForFriend(keyword) {
+    const container = document.getElementById('friendSearchResults');
+    if (!keyword || keyword.length < 1) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px;">输入关键词搜索用户</div>';
+        return;
+    }
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px;">搜索中...</div>';
+    socket.send(JSON.stringify({ type: "queryUserForFriend", keyword }));
+}
+
+// 显示搜索用户结果
+function displayUserSearchResults(users) {
+    const container = document.getElementById('friendSearchResults');
+    if (!container) return;
+    if (!users || users.length === 0) {
+        container.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-tertiary);font-size:13px;">未找到匹配的用户</div>';
+        return;
+    }
+    container.innerHTML = users.map(u => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;margin-bottom:6px;background:var(--bg-secondary,#f5f5f5);transition:background 0.2s;"
+             onmouseover="this.style.background='#eaeaea'" onmouseout="this.style.background='var(--bg-secondary,#f5f5f5)'">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:24px;">${u.avatar || '👤'}</span>
+                <div>
+                    <div style="font-weight:600;font-size:14px;color:var(--text-primary);">${escapeHtml(u.username)}</div>
+                    <div style="font-size:11px;color:var(--text-tertiary);">ID: ${u.id}</div>
+                </div>
+            </div>
+            <button onclick="sendFriendRequest('${u.id}')"
+                    style="padding:6px 14px;border:none;border-radius:8px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;font-size:12px;cursor:pointer;font-weight:500;">添加好友</button>
+        </div>
+    `).join('');
+}
+
+// 显示好友列表
+function displayFriends(friends) {
+    const container = document.getElementById('friendList');
+    const section = document.getElementById('friendListSection');
+    if (!container || !section) return;
+    if (!friends || friends.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+    section.style.display = 'block';
+    container.innerHTML = friends.map(f => {
+        const avatarSafe = escapeAttr(f.avatar || '👤');
+        const usernameSafe = escapeHtml(f.username).replace(/'/g, "\\'");
+        const isBase64 = f.avatar && f.avatar.startsWith('data:image');
+        const avatarHTML = isBase64 ? `<img src="${f.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">` : `<span style="font-size:28px;">${f.avatar || '👤'}</span>`;
+        return `
+        <div class="chat-item" onclick="openChatWithUser('${f.userId}','${usernameSafe}','${avatarSafe}')" style="cursor:pointer;">
+            <div style="display:flex;align-items:center;gap:10px;width:100%;">
+                <div style="position:relative;">
+                    ${avatarHTML}
+                    <span style="position:absolute;bottom:0;right:-2px;width:10px;height:10px;border-radius:50%;border:2px solid var(--card-bg,#fff);background:${f.isOnline ? '#4CAF50' : '#ccc'};"></span>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-weight:600;font-size:14px;color:var(--text-primary);">${escapeHtml(f.username)}</div>
+                    <div style="font-size:11px;color:var(--text-tertiary);">${f.isOnline ? '在线' : '离线'}</div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// 显示好友请求列表
+function displayFriendRequests(requests) {
+    const container = document.getElementById('friendRequestList');
+    const section = document.getElementById('friendRequestSection');
+    if (!container || !section) return;
+    if (!requests || requests.length === 0) {
+        section.style.display = 'none';
+        return;
+    }
+    section.style.display = 'block';
+    container.innerHTML = requests.map(r => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:10px;margin-bottom:6px;background:var(--bg-secondary,#f5f5f5);">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:24px;">${r.fromUserAvatar || '👤'}</span>
+                <div>
+                    <div style="font-weight:600;font-size:14px;color:var(--text-primary);">${escapeHtml(r.fromUserName)}</div>
+                    <div style="font-size:11px;color:var(--text-tertiary);">请求加为好友</div>
+                </div>
+            </div>
+            <div style="display:flex;gap:6px;">
+                <button onclick="acceptFriendRequest(${r.id})"
+                        style="padding:5px 12px;border:none;border-radius:6px;background:#4CAF50;color:#fff;font-size:12px;cursor:pointer;">接受</button>
+                <button onclick="rejectFriendRequest(${r.id})"
+                        style="padding:5px 12px;border:1px solid #ccc;border-radius:6px;background:#fff;color:#666;font-size:12px;cursor:pointer;">忽略</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ⭐ vA1.1: Toast提示（简易版）
+function showToast(message, duration = 2500) {
+    const existing = document.getElementById('globalToast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.id = 'globalToast';
+    toast.textContent = message;
+    toast.style.cssText = `
+        position:fixed;top:20px;left:50%;transform:translateX(-50%);
+        background:rgba(0,0,0,0.8);color:#fff;padding:10px 24px;
+        border-radius:12px;font-size:14px;z-index:99999;
+        animation:fadeIn 0.3s ease;max-width:80%;text-align:center;
+        pointer-events:none;
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.transition = 'opacity 0.3s';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
 

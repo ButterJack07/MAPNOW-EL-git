@@ -184,13 +184,41 @@ function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_private_messages_from_user ON private_messages(from_user_id);
     CREATE INDEX IF NOT EXISTS idx_private_messages_to_user ON private_messages(to_user_id);
     CREATE INDEX IF NOT EXISTS idx_private_messages_created_at ON private_messages(created_at);
+    
+    -- ⭐ vA1.1: 好友请求表
+    CREATE TABLE IF NOT EXISTS friend_requests (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      from_user_id TEXT NOT NULL,
+      to_user_id TEXT NOT NULL,
+      status TEXT DEFAULT 'pending',
+      created_at INTEGER NOT NULL,
+      handled_at INTEGER,
+      FOREIGN KEY (from_user_id) REFERENCES users(id),
+      FOREIGN KEY (to_user_id) REFERENCES users(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_friend_requests_from ON friend_requests(from_user_id);
+    CREATE INDEX IF NOT EXISTS idx_friend_requests_to ON friend_requests(to_user_id);
+    CREATE INDEX IF NOT EXISTS idx_friend_requests_status ON friend_requests(status);
+    
+    -- ⭐ vA1.1: 好友关系表
+    CREATE TABLE IF NOT EXISTS friends (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id TEXT NOT NULL,
+      friend_id TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (user_id) REFERENCES users(id),
+      FOREIGN KEY (friend_id) REFERENCES users(id),
+      UNIQUE(user_id, friend_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_friends_user_id ON friends(user_id);
+    CREATE INDEX IF NOT EXISTS idx_friends_friend_id ON friends(friend_id);
   `;
   
   db.exec(schema, (err) => {
     if (err) {
       console.error("❌ 数据库初始化失败:", err);
     } else {
-      console.log("✅ 数据库表初始化成功（用户表+气泡表+统计表+互动表）");
+      console.log("✅ 数据库表初始化成功（用户表+气泡表+统计表+互动表+好友表）");
       
       // 插入测试用户
       db.run(`INSERT OR IGNORE INTO users (id, phone, username, password, avatar, created_at) 
@@ -3224,12 +3252,106 @@ if (data.type === "searchCities") {
         }
     });
     return;
-}   
-
-
-  });
-
-  ws.on("close", () => {
+    }   
+    
+    // ⭐ vA1.1: 发送好友请求
+    if (data.type === "sendFriendRequest") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const toUserId = data.toUserId;
+      if (!toUserId || toUserId === user.id) return;
+      db.get(`SELECT 1 FROM friends WHERE user_id = ? AND friend_id = ?`, [user.id, toUserId], (err, row) => {
+        if (err || row) return;
+        db.get(`SELECT id, status FROM friend_requests WHERE ((from_user_id = ? AND to_user_id = ?) OR (from_user_id = ? AND to_user_id = ?)) AND status = 'pending'`,
+          [user.id, toUserId, toUserId, user.id], (err, existing) => {
+            if (err || existing) return;
+            db.run(`INSERT INTO friend_requests (from_user_id, to_user_id, status, created_at) VALUES (?, ?, 'pending', ?)`,
+              [user.id, toUserId, Date.now()], function(insertErr) {
+                if (insertErr) return;
+                ws.send(JSON.stringify({ type: "friendRequestSent", requestId: this.lastID, toUserId }));
+                const toWs = userSocket.get(toUserId);
+                if (toWs && toWs.readyState === WebSocket.OPEN) {
+                  toWs.send(JSON.stringify({ type: "friendRequestReceived", request: { id: this.lastID, fromUserId: user.id, fromUserName: user.nickname || user.username, fromUserAvatar: user.avatar || '👤', createdAt: Date.now() } }));
+                }
+              }
+            );
+          }
+        );
+      });
+      return;
+    }
+    
+    // ⭐ vA1.1: 接受好友请求
+    if (data.type === "acceptFriendRequest") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      db.get(`SELECT * FROM friend_requests WHERE id = ? AND to_user_id = ? AND status = 'pending'`,
+        [data.requestId, user.id], (err, request) => {
+          if (err || !request) return;
+          db.run(`UPDATE friend_requests SET status = 'accepted', handled_at = ? WHERE id = ?`, [Date.now(), data.requestId]);
+          const now = Date.now();
+          db.run(`INSERT OR IGNORE INTO friends (user_id, friend_id, created_at) VALUES (?, ?, ?)`, [user.id, request.from_user_id, now]);
+          db.run(`INSERT OR IGNORE INTO friends (user_id, friend_id, created_at) VALUES (?, ?, ?)`, [request.from_user_id, user.id, now]);
+          ws.send(JSON.stringify({ type: "friendRequestAccepted", friendUserId: request.from_user_id }));
+          const fromWs = userSocket.get(request.from_user_id);
+          if (fromWs && fromWs.readyState === WebSocket.OPEN) {
+            fromWs.send(JSON.stringify({ type: "friendRequestAccepted", friendUserId: user.id, friendUserName: user.nickname || user.username, friendUserAvatar: user.avatar || '👤' }));
+          }
+        }
+      );
+      return;
+    }
+    
+    // ⭐ vA1.1: 拒绝好友请求
+    if (data.type === "rejectFriendRequest") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      db.run(`UPDATE friend_requests SET status = 'rejected', handled_at = ? WHERE id = ? AND to_user_id = ? AND status = 'pending'`, [Date.now(), data.requestId, user.id]);
+      ws.send(JSON.stringify({ type: "friendRequestRejected", requestId: data.requestId }));
+      return;
+    }
+    
+    // ⭐ vA1.1: 查询好友列表
+    if (data.type === "queryFriends") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      db.all(`SELECT f.friend_id, u.username, u.avatar, f.created_at FROM friends f JOIN users u ON f.friend_id = u.id WHERE f.user_id = ? ORDER BY f.created_at DESC`,
+        [user.id], (err, rows) => {
+          ws.send(JSON.stringify({ type: "friendsResult", friends: (rows || []).map(r => ({ userId: r.friend_id, username: r.username, avatar: r.avatar, isOnline: userSocket.has(r.friend_id), becameFriendsAt: r.created_at })) }));
+        }
+      );
+      return;
+    }
+    
+    // ⭐ vA1.1: 查询待处理的好友请求
+    if (data.type === "queryFriendRequests") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      db.all(`SELECT fr.*, u.username, u.avatar FROM friend_requests fr JOIN users u ON fr.from_user_id = u.id WHERE fr.to_user_id = ? AND fr.status = 'pending' ORDER BY fr.created_at DESC`,
+        [user.id], (err, rows) => {
+          ws.send(JSON.stringify({ type: "friendRequestsResult", requests: (rows || []).map(r => ({ id: r.id, fromUserId: r.from_user_id, fromUserName: r.username, fromUserAvatar: r.avatar, createdAt: r.created_at })) }));
+        }
+      );
+      return;
+    }
+    
+    // ⭐ vA1.1: 搜索用户（按ID、用户名或手机号）
+    if (data.type === "queryUserForFriend") {
+      const keyword = data.keyword;
+      if (!keyword || keyword.length < 1) return;
+      db.all(`SELECT id, username, avatar FROM users WHERE id LIKE ? OR username LIKE ? OR phone LIKE ? ORDER BY username LIMIT 10`,
+        [`%${keyword}%`, `%${keyword}%`, `%${keyword}%`], (err, rows) => {
+          if (err) { ws.send(JSON.stringify({ type: "queryUserForFriendResult", users: [] })); return; }
+          const user = socketUser.get(ws);
+          ws.send(JSON.stringify({ type: "queryUserForFriendResult", users: (rows || []).filter(r => !user || r.id !== user.id) }));
+        }
+      );
+      return;
+    }
+    
+      });
+    
+      ws.on("close", () => {
     const user = socketUser.get(ws);
     if (user) {
       console.log(`\n👋 断开: ${user.nickname}`);
