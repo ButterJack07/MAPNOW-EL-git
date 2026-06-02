@@ -89,6 +89,11 @@ function toggleBubbleCardDetail(bubbleId) {
     detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
 }
 
+function toggleCardDetail(el) {
+    const detail = el.querySelector('.uc-card-detail');
+    if (detail) detail.style.display = detail.style.display === 'none' ? 'block' : 'none';
+}
+
 function openEditBubbleModal(bubbleId, title, content, showDelete) {
     let modal = document.getElementById('editBubbleModal');
     if (!modal) {
@@ -222,7 +227,7 @@ function displayViewsList(views) {
         const timeStr = formatTimeSimple(view.viewed_at);
 
         html += `
-                <div class="uc-record-item">
+                <div class="uc-record-item" onclick="toggleCardDetail(this)">
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
@@ -230,18 +235,16 @@ function displayViewsList(views) {
                         <div class="uc-record-top">
                             <div class="uc-record-title">${escapeHtml(view.title)}</div>
                             <div class="uc-record-top-actions">
-                                <button onclick="this.closest('.uc-record-item').querySelector('.uc-card-detail').style.display=this.dataset.expanded==='true'?((this.dataset.expanded='false')||'none'):(this.dataset.expanded='true')&&'block';this.style.transform=this.dataset.expanded==='true'?'rotate(180deg)':'rotate(0deg)'"
-                                    class="uc-icon-action-btn uc-btn-expand" title="展开详情" data-expanded="false">▾</button>
                                 ${(function () {
                                     const _aid = view.author_id || view.authorId || view.userId;
                                     const _me = currentUser && currentUser.id;
                                     if (!_aid || _aid === _me) return '';
-                                    return `<button onclick="startChatFromBubble('${_aid}')"
+                                    return `<button onclick="event.stopPropagation();startChatFromBubble('${_aid}')"
                                             class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
                                 })()}
-                                <button onclick="locateToBubble(${view.lat}, ${view.lng})"
+                                <button onclick="event.stopPropagation();locateToBubble(${view.lat}, ${view.lng})"
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
-                                <button onclick="deleteRecord('history', '${view.bubble_id}', this)"
+                                <button onclick="event.stopPropagation();deleteRecord('history', '${view.bubble_id}', this)"
                                     class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
                             </div>
                         </div>
@@ -314,7 +317,7 @@ function displaySearchResults(results, section) {
         }
 
         html += `
-                <div class="uc-record-item">
+                <div class="uc-record-item" onclick="toggleCardDetail(this)">
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
@@ -322,16 +325,14 @@ function displaySearchResults(results, section) {
                         <div class="uc-record-top">
                             <div class="uc-record-title">${escapeHtml(item.title)}</div>
                             <div class="uc-record-top-actions">
-                                <button onclick="this.closest('.uc-record-item').querySelector('.uc-card-detail').style.display=this.dataset.expanded==='true'?((this.dataset.expanded='false')||'none'):(this.dataset.expanded='true')&&'block';this.style.transform=this.dataset.expanded==='true'?'rotate(180deg)':'rotate(0deg)'"
-                                    class="uc-icon-action-btn uc-btn-expand" title="展开详情" data-expanded="false">▾</button>
                                 ${(function () {
                                     const _aid = item.author_id || item.authorId || item.userId;
                                     const _me = currentUser && currentUser.id;
                                     if (!_aid || _aid === _me) return '';
-                                    return `<button onclick="startChatFromBubble('${_aid}')"
+                                    return `<button onclick="event.stopPropagation();startChatFromBubble('${_aid}')"
                                             class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
                                 })()}
-                                <button onclick="locateToBubble(${item.lat}, ${item.lng})"
+                                <button onclick="event.stopPropagation();locateToBubble(${item.lat}, ${item.lng})"
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
                             </div>
                         </div>
@@ -576,7 +577,7 @@ function recordBubbleView(bubbleId) {
             const timeStr = formatTimeSimple(comment.commented_at);
                 
             html += `
-                <div class="uc-record-item">
+                <div class="uc-record-item" onclick="toggleCardDetail(this)">
                     <div class="uc-record-icon" style="background: ${bubbleColor};">
                         ${bubbleIcon}
                     </div>
@@ -588,20 +589,25 @@ function recordBubbleView(bubbleId) {
                                     const _aid = comment.author_id || comment.authorId || comment.userId;
                                     const _me  = currentUser && currentUser.id;
                                     if (!_aid || _aid === _me) return '';
-                                    return `<button onclick="startChatFromBubble('${_aid}')"
+                                    return `<button onclick="event.stopPropagation();startChatFromBubble('${_aid}')"
                                             class="uc-icon-action-btn uc-btn-chat" title="私聊">💬</button>`;
                                 })()}
-                                <button onclick="locateToBubble(${comment.lat}, ${comment.lng})" 
+                                <button onclick="event.stopPropagation();locateToBubble(${comment.lat}, ${comment.lng})" 
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>
-                                <button onclick="deleteRecord('comments', '${comment.id}', this)" 
+                                <button onclick="event.stopPropagation();deleteRecord('comments', '${comment.id}', this)" 
                                     class="uc-icon-action-btn uc-btn-delete" title="删除">🗑️</button>
                             </div>
                         </div>
-                        <div class="uc-comment-text" style="margin:2px 0;">
-                            ${escapeHtml(comment.comment_text).replace(/\n/g, '<br>')}
-                        </div>
                         <div class="uc-record-meta-row">
-                            <span class="uc-record-meta">评论于 ${timeStr} <span class="dot">•</span> ${renderAvatarPreview(comment.author_avatar || '👤')} ${escapeHtml(comment.author)}</span>
+                            <span class="uc-record-meta">评论于 ${timeStr}</span>
+                        </div>
+                        <div class="uc-card-detail" style="display:none;margin-top:6px;">
+                            <div class="uc-comment-text">
+                                ${escapeHtml(comment.comment_text).replace(/\n/g, '<br>')}
+                            </div>
+                            <div class="uc-record-meta" style="display:flex;gap:6px;align-items:center;margin-top:6px;">
+                                <span>${renderAvatarPreview(comment.author_avatar || '👤')} ${escapeHtml(comment.author)}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
