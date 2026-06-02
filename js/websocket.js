@@ -298,27 +298,14 @@ function connectWebSocket() {
             }
                     
             case "queryResult":
-                // ⭐ 新增：处理气泡查询结果并应用筛选
+                // ⭐ 全量同步：用服务器结果替换所有本地气泡
                 console.log("🔍 收到气泡查询结果:", data.bubbles.length, "个气泡");
-                if (data.bubbles && data.bubbles.length > 0) {
-                    // ⭐ 应用筛选
-                    const filteredBubbles = filterBubbles(data.bubbles);
-                    console.log("📊 筛选后气泡数:", filteredBubbles.length);
-                    filteredBubbles.forEach(bubble => addBubble(bubble, true, true));
-                    refreshBubbleMarkersForCurrentZoom();
-                } else {
-                    console.log("📭 附近没有气泡");
-                }
+                syncBubblesFromServer(data.bubbles || []);
                 break;
                     
             case "nearbyBubbles":
                 console.log(`📦 收到附近气泡: ${data.bubbles.length} 个`);
-                // ⭐ 应用筛选
-                const filteredNearbyBubbles = filterBubbles(data.bubbles);
-                console.log("📊 筛选后气泡数:", filteredNearbyBubbles.length);
-                // 服务端已按 radius 过滤，skipRangeCheck=true 避免重复计算
-                filteredNearbyBubbles.forEach(bubble => addBubble(bubble, true, true));
-                refreshBubbleMarkersForCurrentZoom();
+                syncBubblesFromServer(data.bubbles || []);
                 break;
                     
             case "publicChat":

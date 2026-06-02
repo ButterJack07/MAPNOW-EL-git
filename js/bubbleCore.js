@@ -538,54 +538,44 @@
         }
     };
 
-    let _lastBubbleFingerprint = '';
-    let _lastBubbleRefreshTime = 0;
     function refreshBubbleMarkersForCurrentZoom() {
         if (!map) return;
 
-        const now = Date.now();
-        if (now - _lastBubbleRefreshTime < 600) return;
-        _lastBubbleRefreshTime = now;
-
-        // 指纹对比：气泡组未变化则跳过重绘，消除闪动
-        const currentBubbles = typeof getFilteredBubbles === 'function' ? getFilteredBubbles() : bubbles;
-        const fingerprint = currentBubbles.map(b => b.id).sort().join(',');
-        if (fingerprint === _lastBubbleFingerprint) return;
-        _lastBubbleFingerprint = fingerprint;
-
         clearSpiderfy();
-        clearBubbleLabelsOnly();
 
+        const currentBubbles = typeof getFilteredBubbles === 'function' ? getFilteredBubbles() : bubbles;
         const groups = groupBubblesByDistance(currentBubbles);
+
+        // ⭐ 无闪烁重绘：先创建新标签，再移除旧标签（新标签已显示后，再移除旧标签）
+        const newMarkers = new Map();
+
+        // 创建所有新标签（此时旧标签仍在显示）
         groups.forEach((group, idx) => {
             if (!group.length) return;
 
+            // 单气泡标签
             if (group.length === 1) {
                 const bubble = group[0];
                 const label = addBubbleToMap(bubble);
-                if (label) bubbleMarkers.set(bubble.id, { bubble, label });
+                if (label) newMarkers.set(bubble.id, { bubble, label });
                 return;
             }
 
+            // 聚合簇标签
             const centerLat = group.reduce((s, b) => s + b.lat, 0) / group.length;
             const centerLng = group.reduce((s, b) => s + b.lng, 0) / group.length;
             const clusterId = `cluster_${idx}_${group.length}`;
-            clusterLookup.set(clusterId, group);
 
-            // 类型摘要：去重后取中文名，·分隔
             const typeNameMap = { recommend:'推荐', help:'求助', team:'组队', warning:'避雷', news:'见闻', group:'建群' };
             const typeSet = [...new Set(group.map(b => b.type || 'other'))];
             const typeLabel = typeSet.map(t => typeNameMap[t] || t).join('·');
-
-            // 模式读取
-            const isModeB = false;
 
             const clusterLabel = new qq.maps.Label({
                 position: new qq.maps.LatLng(centerLat, centerLng),
                 map,
                 content: `<div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none;">
                     <span class="bubble-cluster-glow" style="pointer-events:none;"></span>
-                    <div class="bubble-cluster" style="pointer-events:none;" title="${isModeB ? '点击展开' : '点击查看列表'}">${group.length}</div>
+                    <div class="bubble-cluster" style="pointer-events:none;" title="点击查看列表">${group.length}</div>
                     <div style="pointer-events:none;font-size:10px;color:var(--text-primary);background:rgba(248,247,244,.94);border:1px solid var(--border-light);border-radius:8px;padding:2px 7px;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${typeLabel}</div>
                 </div>`,
                 style: { border: 'none', background: 'transparent' }
@@ -593,43 +583,49 @@
 
             qq.maps.event.addListener(clusterLabel, 'click', function() {
                 const mode = localStorage.getItem('clusterInteractionMode') || 'A';
-
-                // 保存视图快照
-                preClusterZoomSnap = {
-                    zoom: map.getZoom(),
-                    center: map.getCenter()
-                };
-
-                // 聚焦地图（禁止触发重新聚合）
+                preClusterZoomSnap = { zoom: map.getZoom(), center: map.getCenter() };
                 _suppressRefresh = true;
                 map.setCenter(new qq.maps.LatLng(centerLat, centerLng));
-
                 if (mode === 'B') {
                     if (spiderfyState.clusterId === clusterId) {
                         _suppressRefresh = false;
                         clearSpiderfy();
                     } else {
                         spiderfyCluster(clusterId, centerLat, centerLng);
-                        // 等地图稳定后再显示遮罩，避免 bounds_changed 闪退
-                        setTimeout(() => {
-                            _suppressRefresh = false;
-                            showSpiderfyOverlay();
-                        }, 320);
+                        setTimeout(() => { _suppressRefresh = false; showSpiderfyOverlay(); }, 320);
                     }
                 } else {
-                    // 方式 A：显示气泡列表
                     setTimeout(() => { _suppressRefresh = false; }, 320);
-                    if (currentInfoWindow) {
-                        currentInfoWindow.close();
-                        currentInfoWindow = null;
-                    }
+                    if (currentInfoWindow) { currentInfoWindow.close(); currentInfoWindow = null; }
                     showOverlapBubbleList(clusterId, centerLat, centerLng);
                 }
             });
 
             group.forEach((bubble) => {
-                bubbleMarkers.set(bubble.id, { bubble, label: clusterLabel, clusterId });
+                newMarkers.set(bubble.id, { bubble, label: clusterLabel, clusterId });
             });
+        });
+
+        // 再移除旧标签（此时新标签已显示在地图上，无缝过渡无闪烁）
+        const oldLabels = new Set();
+        bubbleMarkers.forEach((info) => {
+            if (info && info.label && !oldLabels.has(info.label)) {
+                oldLabels.add(info.label);
+            }
+        });
+        oldLabels.forEach(label => label.setMap(null));
+        bubbleMarkers.clear();
+        clusterLookup.clear();
+
+        // 替换为新标签映射
+        newMarkers.forEach((v, k) => bubbleMarkers.set(k, v));
+
+        // 重新填充聚合查找表
+        groups.forEach((group, idx) => {
+            if (group.length > 1) {
+                const clusterId = `cluster_${idx}_${group.length}`;
+                clusterLookup.set(clusterId, group);
+            }
         });
     }
 
@@ -944,8 +940,39 @@
             clearTimeoutId = null;
         }
         console.log("🔄 已启用气泡接收");
+    }
+
+    // ⭐ 全量同步：用服务器数据完全替换本地气泡数组（无闪烁重绘）
+    function syncBubblesFromServer(serverBubbles) {
+        if (!serverBubbles || !Array.isArray(serverBubbles)) {
+            console.warn('⚠️ syncBubblesFromServer: 无效数据');
+            return;
+        }
+
+        if (window.clearBubblesFlag) {
+            console.log('🚫 清除模式中，忽略全量同步');
+            return;
+        }
+
+        // 应用客户端筛选（类型过滤等）
+        const filtered = typeof filterBubbles === 'function' ? filterBubbles(serverBubbles) : serverBubbles;
+
+        // 确保必要字段
+        const now = Date.now();
+        filtered.forEach(b => {
+            if (!b.createdAt) b.createdAt = now;
+            if (!b.time) b.time = b.createdAt;
+        });
+
+        // 替换全局气泡数组
+        bubbles.length = 0;
+        Array.prototype.push.apply(bubbles, filtered);
+
+        // 无闪烁重绘
+        refreshBubbleMarkersForCurrentZoom();
+
+        console.log(`🔄 全量同步完成: ${bubbles.length} 个气泡 (服务器返回 ${serverBubbles.length} 个)`);
     }   
   
-
 
             // ==================== 公屏聊天功能 ====================

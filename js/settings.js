@@ -1442,14 +1442,14 @@ function updateUserInfo(field, value) {
 
     // ==================== 定期刷新函数 ====================
     function startAutoRefresh() {
-        console.log("🔄 启动自动刷新定时器（每3秒刷新一次）");
+        console.log("🔄 启动自动刷新定时器（每10秒全量同步一次）");
             
         // 如果已有定时器，先清除
         if (refreshTimer) {
             clearInterval(refreshTimer);
         }
             
-        // 创建新的定时器，每3秒刷新一次
+        // 创建新的定时器，每10秒全量同步一次
         refreshTimer = setInterval(() => {
             console.log("⏰ 定时刷新触发 - " + new Date().toLocaleTimeString());
                 
@@ -1471,7 +1471,7 @@ function updateUserInfo(field, value) {
                 // 2. 刷新标记（即使位置不变也刷新）
                 refreshAllMarkers();
                     
-                // 3. 请求附近气泡 - 关键！
+                // 3. 请求附近气泡 - 关键！（全量同步由 queryResult 处理）
                 requestNearbyBubbles();
                     
                 // 4. 清理过期气泡
@@ -1479,9 +1479,9 @@ function updateUserInfo(field, value) {
             } else {
                 console.log("⏸️ 定时刷新暂停：用户未登录或地图未初始化");
             }
-        }, 3000); // 改为3000毫秒 = 3秒
+        }, 10000); // 改为10000毫秒 = 10秒
             
-        console.log("✅ 自动刷新定时器已启动，间隔3秒");
+        console.log("✅ 自动刷新定时器已启动，间隔10秒");
     }
 
     // ⭐ 新增：清理过期气泡函数
