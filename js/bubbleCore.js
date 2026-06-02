@@ -52,58 +52,61 @@
         console.log("✅ 选择气泡类型:", type);
     }
 
-    // ⭐ 新增：处理图片上传（发布面板）
     function handleImageUploadPanel(event) {
         const files = Array.from(event.target.files);
         
-        // 限制最多3张
-        const remainingSlots = 3 - bubbleImages.length;
-        const filesToAdd = files.slice(0, remainingSlots);
-        
-        if (files.length > remainingSlots) {
+        // 限制最多1张
+        if (bubbleImages.length >= 1) {
+            console.log('⚠️ 最多上传1张图片');
+            event.target.value = '';
+            return;
         }
         
-        filesToAdd.forEach(file => {
-            // 检查文件大小（最大5MB）
-            if (file.size > 5 * 1024 * 1024) {
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                bubbleImages.push(e.target.result);
-                updateImagePreviewPanel();
-            };
-            reader.readAsDataURL(file);
-        });
+        const file = files[0];
+        if (!file) return;
         
-        // 清空input以便再次选择
+        // 检查文件大小（最大5MB）
+        if (file.size > 5 * 1024 * 1024) {
+            console.log('⚠️ 图片超过5MB限制');
+            event.target.value = '';
+            return;
+        }
+        
+        bubbleImages = [];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            bubbleImages.push(e.target.result);
+            updateImagePreviewPanel();
+        };
+        reader.readAsDataURL(file);
+        
         event.target.value = '';
     }
 
-    // ⭐ 新增：更新图片预览（发布面板）
     function updateImagePreviewPanel() {
         const container = document.getElementById('imagePreviewPanel');
         if (!container) return;
         
         if (bubbleImages.length === 0) {
-            container.innerHTML = '<div style="color: var(--text-tertiary); font-size: 13px; text-align: center; width: 100%; padding: 10px;">暂无图片</div>';
+            container.innerHTML = '';
             return;
         }
         
         container.innerHTML = bubbleImages.map((img, index) => `
-            <div style="position: relative; width: 80px; height: 80px; border-radius: 6px; overflow: hidden; border: 2px solid #dee2e6;">
+            <div style="position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden; border: 2px solid var(--border-color);">
                 <img src="${img}" style="width: 100%; height: 100%; object-fit: cover;">
-                <button onclick="removeImagePanel(${index})" 
-                        style="position: absolute; top: 2px; right: 2px; width: 20px; height: 20px;
+                <button onclick="removeImagePanel(${index})"
+                        style="position: absolute; top: 4px; right: 4px; width: 24px; height: 24px;
                                background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%;
-                               cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center;"
+                               cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
+                               transition: background 0.2s;"
+                        onmouseover="this.style.background='rgba(0,0,0,0.8)'"
+                        onmouseout="this.style.background='rgba(0,0,0,0.6)'"
                         title="删除">×</button>
             </div>
         `).join('');
     }
 
-    // ⭐ 新增：删除图片（发布面板）
     function removeImagePanel(index) {
         bubbleImages.splice(index, 1);
         updateImagePreviewPanel();

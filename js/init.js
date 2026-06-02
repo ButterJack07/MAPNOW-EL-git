@@ -463,10 +463,11 @@ function sendBubbleWithTitle(title, content) {
             lat: publishPosition.lat,
             lng: publishPosition.lng,
             durationMinutes: finalDuration,
-            activityTags: []
+            activityTags: [],
+            images: bubbleImages
         }));
         
-        console.log("📤 发送气泡(publishBubble):", {title, type: selectedBubbleType, roomCode, duration: finalDuration + '分钟'});
+        console.log("📤 发送气泡(publishBubble):", {title, type: selectedBubbleType, roomCode, duration: finalDuration + '分钟', images: bubbleImages.length});
         
         // 显示发布成功通知
         showPublishSuccessNotification(title, selectedBubbleType, finalDuration);
@@ -474,6 +475,10 @@ function sendBubbleWithTitle(title, content) {
         // 清空输入框
         document.getElementById('bubbleTitle').value = '';
         document.getElementById('bubbleContent').value = '';
+        
+        // 清空图片
+        bubbleImages = [];
+        updateImagePreviewPanel();
         
         // 自动关闭发布面板
         hidePublishPanel();

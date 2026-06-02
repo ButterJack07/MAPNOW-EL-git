@@ -131,7 +131,7 @@ let publishWizardStep = 0;
                 lng: publishPosition.lng,
                 durationMinutes: selectedDuration,
                 activityTags: [],
-                images: [] // 暂时不支持图片
+                images: bubbleImages
             }));
             
             console.log("📤 从面板发布气泡:", {title, type: selectedBubbleTypePanel, duration: selectedDuration + '分钟'});
@@ -140,7 +140,9 @@ let publishWizardStep = 0;
         // 清空表单并关闭面板
         document.getElementById('bubbleTitlePanel').value = '';
         document.getElementById('bubbleContentPanel').value = '';
-        hidePublishPanel(); // 这行已经存在，应该保持
+        bubbleImages = [];
+        updateImagePreviewPanel();
+        hidePublishPanel();
     }
     
     // 更新发布面板的位置显示
@@ -276,10 +278,11 @@ function sendBubbleWithTitle(title, content) {
             lat: publishPosition.lat,
             lng: publishPosition.lng,
             durationMinutes: finalDuration,
-            activityTags: []
+            activityTags: [],
+            images: bubbleImages
         }));
         
-        console.log("📤 发送气泡(publishBubble):", {title, type: selectedBubbleType, roomCode, duration: finalDuration + '分钟'});
+        console.log("📤 发送气泡(publishBubble):", {title, type: selectedBubbleType, roomCode, duration: finalDuration + '分钟', images: bubbleImages.length});
         
         // 显示发布成功通知
         showPublishSuccessNotification(title, selectedBubbleType, finalDuration);
@@ -287,6 +290,10 @@ function sendBubbleWithTitle(title, content) {
         // 清空输入框
         document.getElementById('bubbleTitle').value = '';
         document.getElementById('bubbleContent').value = '';
+        
+        // 清空图片
+        bubbleImages = [];
+        updateImagePreviewPanel();
         
         // 自动关闭发布面板
         hidePublishPanel();

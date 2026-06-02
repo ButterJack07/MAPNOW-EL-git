@@ -22,6 +22,10 @@
             setBottomNavActive('publishButton');
             setPublishWizardStep(0);
             
+            // 重置图片
+            bubbleImages = [];
+            updateImagePreviewPanel();
+            
             // ⭐ v9.6.10: 初始化时间选择器滑动
             initTimeSelector();
             
@@ -171,6 +175,10 @@
         
         publishPanel.classList.add('show');
         if (publishBtn) publishBtn.classList.add('active');
+        
+        // 重置图片
+        bubbleImages = [];
+        updateImagePreviewPanel();
         
         // ⭐ v9.6.10: 初始化时间选择器滑动
         initTimeSelector();

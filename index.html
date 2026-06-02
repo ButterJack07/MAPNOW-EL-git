@@ -995,7 +995,7 @@
     let myPosition = null;
     let selectedBubbleType = "recommend";
     let selectedDuration = 60; // ⭐ 新增：默认气泡存留时间（分钟）
-    let bubbleImages = []; // ⭐ 新增：气泡图片数组（最多3张）
+    let bubbleImages = []; // ⭐ 气泡图片数组（最多1张）
     let bubbles = [];
     window.__getBubbles = () => bubbles;
     let bubbleMarkers = new Map(); // 存储气泡标记
@@ -1148,6 +1148,22 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
                     <div class="input-field">
                         <label>内容</label>
                         <textarea id="bubbleContent" placeholder="输入气泡内容"></textarea>
+                    </div>
+
+                    <div class="input-field" style="margin-top: 12px;">
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <span>🖼️ 图片</span>
+                            <span style="font-size: 11px; color: var(--text-tertiary);">(可选，最多1张)</span>
+                        </label>
+                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
+                            <button type="button" onclick="document.getElementById('bubbleImageInput').click()"
+                                    style="padding: 8px 16px; background: var(--bg-secondary); border: 1px dashed var(--border-color); border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--text-secondary);">
+                                📷 添加图片
+                            </button>
+                            <input type="file" id="bubbleImageInput" accept="image/*" style="display: none;" onchange="handleImageUploadPanel(event)">
+                        </div>
+                        <div id="imagePreviewPanel" style="display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; min-height: 30px;">
+                        </div>
                     </div>
                 </section>
 
