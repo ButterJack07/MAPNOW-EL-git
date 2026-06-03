@@ -10,6 +10,11 @@
         z-index: 10000;
         overflow-y: auto;
         transform-origin: right center;
+        animation: userCenterSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .user-center-overlay.closing {
+        animation: userCenterSlideOut 0.4s cubic-bezier(0.4, 0, 0.6, 1);
     }
     
     /* ⭐ v9.7.8: 暗夜模式下的个人中心背景 */
@@ -300,6 +305,10 @@
         padding: 30px 20px;
         border-radius: 0 0 12px 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .uc-tab-content {
+        animation: fadeIn 0.3s ease;
     }
 
     .uc-empty {

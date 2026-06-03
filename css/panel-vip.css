@@ -10,9 +10,11 @@
         align-items: center;
         justify-content: center;
         z-index: 10001;
+        animation: fadeIn 0.3s ease;
     }
     
     .vip-modal-container {
+        animation: slideUp 0.3s ease;
         background: var(--card-bg);
         border-radius: 20px;
         padding: 30px;
@@ -156,6 +158,7 @@
         max-width: 380px;
         width: 92%;
         position: relative;
+        animation: slideUp 0.25s ease;
         box-shadow: 0 16px 48px rgba(0,0,0,.22);
     }
 
@@ -336,9 +339,11 @@
         align-items: center;
         justify-content: center;
         z-index: 10002;
+        animation: fadeIn 0.3s ease;
     }
 
     .payment-container {
+        animation: slideUp 0.25s ease;
         background: #fff;
         border-radius: 20px;
         padding: 28px 24px 24px;

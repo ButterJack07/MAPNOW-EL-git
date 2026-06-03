@@ -10,10 +10,11 @@ display: flex;
 align-items: center;
 justify-content: center;
 z-index: 10007;
-        z-index: 10000;
+animation: fadeIn 0.3s ease;
     }
     
     .chat-list-container {
+        animation: slideUp 0.3s ease;
         background: var(--card-bg);
         border-radius: 16px;
         width: 90%;
@@ -256,6 +257,17 @@ flex-shrink: 0;
 
 .message-item {
 margin-bottom: 15px;
+animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+from {
+    opacity: 0;
+    transform: translateY(10px);
+}
+to {
+    opacity: 1;
+    transform: translateY(0);
 }
 }
 
@@ -361,6 +373,7 @@ padding: 10px;
 background: var(--bg-secondary);
 border-radius: 8px;
 margin-bottom: 8px;
+animation: slideIn 0.3s ease;
 }
 
 .comment-avatar {

@@ -10,9 +10,11 @@
         align-items: center;
         justify-content: center;
         z-index: 10000;
+        animation: fadeIn 0.3s ease;
     }
     
     .auth-container {
+        animation: slideUp 0.4s ease;
         background: var(--card-bg);
         border-radius: 20px;
         padding: 30px 25px;

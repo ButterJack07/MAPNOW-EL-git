@@ -20,6 +20,7 @@ max-width: 90%;
 background: var(--card-bg);
 border-radius: 20px;
 box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+animation: slideUpFromBottom 0.4s ease;
 
 border: 1px solid rgba(255,255,255,0.2);
 margin: 0 auto;

@@ -9,6 +9,12 @@
         z-index: 10004;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+        animation: slideInRight 0.3s ease;
+    }
+
+    @keyframes slideInRight {
+        from { transform: translateX(100%); }
+        to { transform: translateX(0); }
     }
 
     .settings-container {
@@ -142,9 +148,11 @@
         align-items: center;
         justify-content: center;
         z-index: 20000;
+        animation: fadeIn 0.2s ease;
     }
     
     .settings-modal-container {
+        animation: slideUp 0.25s ease;
         background: var(--card-bg, #fff);
         border-radius: 20px;
         width: 90%;
