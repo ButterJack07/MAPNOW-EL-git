@@ -235,8 +235,8 @@
             }
         });
         
-        // 更新内容显示
-        document.querySelectorAll('.chat-tab-content').forEach(content => {
+        // 更新内容显示（仅公屏聊天面板）
+        document.querySelectorAll('#chatPanel .chat-tab-content').forEach(content => {
             if (content.id === 'tab' + tabId.charAt(0).toUpperCase() + tabId.slice(1)) {
                 content.classList.add('active');
             } else {

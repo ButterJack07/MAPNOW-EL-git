@@ -238,7 +238,6 @@
                 <div class="uc-menu-item" onclick="createGroupChat()" style="padding: 12px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px;">
                     <span>💬</span>
                     <span>发起群聊</span>
-                    <span style="color: var(--text-tertiary); font-size: 11px; margin-left: auto;">待开发</span>
                 </div>
             </div>
         </div>
@@ -804,10 +803,10 @@
         <div class="chat-list-container">
             <div class="chat-list-header">
                 <button class="chat-back" onclick="closeChatList()">←</button>
-                <h2>私聊</h2>
+                <h2>消息</h2>
             </div>
-            <!-- 收件箱区域（位于私聊列表上方） -->
-            <div class="chat-inbox-section">
+            <!-- 收件箱区域 -->
+            <div class="chat-inbox-section" style="flex-wrap:wrap;">
                 <div class="chat-inbox-item" onclick="showNotificationsList('like')">
                     <span class="chat-inbox-icon">❤️</span>
                     <span class="chat-inbox-label">点赞</span>
@@ -823,26 +822,43 @@
                     <span class="chat-inbox-label">评论</span>
                     <span class="chat-inbox-badge" id="tabCommentBadge">0</span>
                 </div>
+                <div class="chat-inbox-item" onclick="showNotificationsList('friend_request')">
+                    <span class="chat-inbox-icon">👤</span>
+                    <span class="chat-inbox-label">好友请求</span>
+                    <span class="chat-inbox-badge" id="tabFriendRequestBadge">0</span>
+                </div>
+            </div>
+            <!-- 选项卡栏 -->
+            <div class="chat-tab-bar">
+                <button class="chat-tab-btn active" data-tab="friend" onclick="switchChatTab('friend')">👤 好友</button>
+                <button class="chat-tab-btn" data-tab="dm" onclick="switchChatTab('dm')">💬 私信</button>
+                <button class="chat-tab-btn" data-tab="group" onclick="switchChatTab('group')">👥 群聊</button>
             </div>
             <div class="chat-inbox-divider"></div>
-            <!-- ⭐ vA1.1: 好友请求区域 -->
-            <div id="friendRequestSection" style="display:none;margin-bottom:8px;">
-                <div style="display:flex;align-items:center;gap:6px;padding:4px 12px 6px;">
-                    <span style="font-size:12px;color:var(--text-tertiary);font-weight:600;">好友请求</span>
+            <!-- ⭐ 好友选项卡内容 -->
+            <div id="chatFriendTab" class="chat-tab-content" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;">
+                <!-- 好友列表区域 -->
+                <div id="friendListSection" style="display:none;margin-bottom:8px;padding:0 10px;">
+                    <div style="display:flex;align-items:center;gap:6px;padding:4px 12px 6px;">
+                        <span style="font-size:12px;color:var(--text-tertiary);font-weight:600;">好友</span>
+                    </div>
+                    <div id="friendList"></div>
+                    <div class="chat-inbox-divider"></div>
                 </div>
-                <div id="friendRequestList"></div>
-                <div class="chat-inbox-divider"></div>
-            </div>
-            <!-- ⭐ vA1.1: 好友列区域 -->
-            <div id="friendListSection" style="display:none;margin-bottom:8px;">
-                <div style="display:flex;align-items:center;gap:6px;padding:4px 12px 6px;">
-                    <span style="font-size:12px;color:var(--text-tertiary);font-weight:600;">好友</span>
+                <!-- 好友私聊列表 -->
+                <div class="chat-list" id="friendChatList" style="flex:1;">
+                    <div class="uc-empty">暂无好友聊天<br><small style="color: var(--text-tertiary); font-size: 12px; margin-top: 10px; display: block;">与好友的聊天记录会显示在这里</small></div>
                 </div>
-                <div id="friendList"></div>
-                <div class="chat-inbox-divider"></div>
             </div>
-            <div class="chat-list" id="chatList">
-                <div class="uc-empty">暂无私聊<br><small style="color: var(--text-tertiary); font-size: 12px; margin-top: 10px; display: block;">通过用户信息卡或气泡信息卡发起私聊</small></div>
+            <!-- ⭐ 私信选项卡内容 -->
+            <div id="chatDMTab" class="chat-tab-content" style="flex:1;overflow-y:auto;display:none;flex-direction:column;">
+                <div class="chat-list" id="chatList" style="flex:1;">
+                    <div class="uc-empty">暂无私信<br><small style="color: var(--text-tertiary); font-size: 12px; margin-top: 10px; display: block;">与非好友的聊天记录会显示在这里</small></div>
+                </div>
+            </div>
+            <!-- ⭐ 群聊选项卡内容 -->
+            <div id="chatGroupTab" class="chat-tab-content" style="flex:1;overflow-y:auto;display:none;flex-direction:column;">
+                <div id="groupList" style="padding:10px;"></div>
             </div>
         </div>
     </div>
@@ -865,6 +881,35 @@
             <div id="friendSearchResults" style="max-height:300px;overflow-y:auto;">
                 <div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px;">输入关键词搜索用户</div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- ⭐ vA1.2: 创建群聊弹窗 -->
+<div class="friend-add-overlay" id="groupCreateOverlay" style="display: none; position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:30000;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--card-bg,#fff);border-radius:20px;width:88%;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,0.3);overflow:hidden;animation:slideUp 0.25s ease;">
+        <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="color:#fff;font-size:16px;font-weight:600;">💬 创建群聊</span>
+            <button onclick="document.getElementById('groupCreateOverlay').style.display='none'" style="width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">×</button>
+        </div>
+        <div style="padding:20px;">
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px;color:var(--text-secondary,#666);display:block;margin-bottom:6px;">群聊名称</label>
+                <input type="text" id="groupNameInput" placeholder="输入群聊名称..."
+                       style="width:100%;box-sizing:border-box;border:2px solid #e8ecff;border-radius:10px;padding:10px 12px;font-size:14px;outline:none;color:var(--text-primary,#333);"
+                       onfocus="this.style.borderColor='#667eea'" onblur="this.style.borderColor='#e8ecff'"
+                       onkeypress="if(event.key==='Enter') confirmCreateGroup()">
+            </div>
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px;color:var(--text-secondary,#666);display:block;margin-bottom:6px;">邀请好友</label>
+                <div id="groupMemberList" style="max-height:250px;overflow-y:auto;border:1px solid #e8ecff;border-radius:10px;padding:8px;">
+                    <div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px;">加载中...</div>
+                </div>
+            </div>
+            <p style="font-size:12px;color:var(--text-tertiary);margin-bottom:16px;">被选中的好友将收到群聊邀请，同意后即可加入</p>
+            <button onclick="confirmCreateGroup()"
+                    style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;"
+                    onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">创建群聊</button>
         </div>
     </div>
 </div>
@@ -943,6 +988,101 @@
         </div>
     </div>
 </div>
+
+<!-- ⭐ vA1.2: 群聊界面 -->
+<div class="chat-overlay" id="groupChatOverlay" style="display: none;">
+    <div class="chat-container">
+        <div class="chat-header">
+            <button class="chat-back" onclick="closeGroupChat()">←</button>
+            <div class="chat-user-info" style="cursor:pointer;" onclick="openGroupInfo()">
+                <span class="chat-user-avatar" id="groupChatUserAvatar">💬</span>
+                <span class="chat-user-name" id="groupChatUserName">群聊</span>
+            </div>
+            <button class="chat-dropdown-btn" id="groupInfoBtn" onclick="openGroupInfo()" style="display:none;">ℹ️</button>
+        </div>
+        <div class="chat-messages group-chat-messages" id="groupChatMessages">
+            <div class="uc-empty" style="color: var(--text-tertiary); padding: 40px 20px;">暂无消息<br><small style="font-size: 12px; margin-top: 10px; display: block;">发送消息开始群聊</small></div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="groupChatInput" placeholder="输入群消息..." onkeypress="if(event.key==='Enter') sendGroupMessage()">
+            <button onclick="sendGroupMessage()" class="chat-send-btn">发送</button>
+        </div>
+    </div>
+</div>
+
+<!-- ⭐ vA1.2: 群聊信息面板 -->
+<div class="chat-overlay" id="groupInfoOverlay" style="display: none;">
+    <div class="chat-list-container">
+        <div class="chat-list-header">
+            <button class="chat-back" onclick="closeGroupInfo()">←</button>
+            <h2>群聊信息</h2>
+        </div>
+        <div style="padding:16px 20px;border-bottom:1px solid #e0e0e0;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <div style="font-size:36px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;" id="groupInfoAvatar">💬</div>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:16px;font-weight:600;color:var(--text-primary);" id="groupInfoName">群聊</div>
+                    <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+                        <span style="font-size:12px;color:var(--text-tertiary);" id="groupInfoMemberCount">0 名成员</span>
+                        <span id="groupInfoOwnerBadge" style="display:none;font-size:11px;color:#FFD700;font-weight:600;">👑 群主</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="flex:1;overflow-y:auto;padding:8px 16px;" id="groupInfoMemberList">
+            <div style="text-align:center;padding:15px;color:var(--text-tertiary);font-size:13px;">加载中...</div>
+        </div>
+        <div id="groupInfoOwnerActions" style="display:none;padding:10px 16px;border-top:1px solid #e0e0e0;display:none;flex-direction:column;gap:6px;">
+            <button onclick="showInviteMembers()" style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#43cea2,#185a9d);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">➕ 邀请成员</button>
+            <button onclick="updateGroupInfo()" style="width:100%;padding:10px;border:none;border-radius:10px;background:var(--primary-color,#667eea);color:#fff;font-size:13px;font-weight:600;cursor:pointer;">✏️ 修改群名称</button>
+            <button onclick="dissolveGroup()" style="width:100%;padding:10px;border:none;border-radius:10px;background:#ff6b6b;color:#fff;font-size:13px;font-weight:600;cursor:pointer;">🗑️ 解散群聊</button>
+        </div>
+        <div id="groupInfoLeaveBtn" style="display:none;padding:10px 16px;border-top:1px solid #e0e0e0;">
+            <button onclick="leaveGroup()" style="width:100%;padding:10px;border:1px solid #ff6b6b;border-radius:10px;background:transparent;color:#ff6b6b;font-size:13px;font-weight:600;cursor:pointer;">🚪 退出群聊</button>
+        </div>
+    </div>
+</div>
+
+<!-- ⭐ vA1.2: 编辑群信息弹窗 -->
+<div class="friend-add-overlay" id="groupEditOverlay" style="display: none; position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:30000;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--card-bg,#fff);border-radius:20px;width:88%;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,0.3);overflow:hidden;animation:slideUp 0.25s ease;">
+        <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="color:#fff;font-size:16px;font-weight:600;">✏️ 修改群名称</span>
+            <button onclick="closeGroupEdit()" style="width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">×</button>
+        </div>
+        <div style="padding:20px;">
+            <div style="margin-bottom:12px;">
+                <label style="font-size:13px;color:var(--text-secondary,#666);display:block;margin-bottom:6px;">群聊名称</label>
+                <input type="text" id="groupEditNameInput" placeholder="输入新的群聊名称..."
+                       style="width:100%;box-sizing:border-box;border:2px solid #e8ecff;border-radius:10px;padding:10px 12px;font-size:14px;outline:none;color:var(--text-primary,#333);"
+                       onfocus="this.style.borderColor='#667eea'" onblur="this.style.borderColor='#e8ecff'"
+                       onkeypress="if(event.key==='Enter') confirmUpdateGroupInfo()">
+            </div>
+            <button onclick="confirmUpdateGroupInfo()"
+                    style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;"
+                    onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- ⭐ vA1.3: 邀请成员加入群聊弹窗 -->
+<div class="friend-add-overlay" id="groupInviteOverlay" style="display: none; position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:30000;display:none;align-items:center;justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+    <div style="background:var(--card-bg,#fff);border-radius:20px;width:88%;max-width:380px;box-shadow:0 10px 40px rgba(0,0,0,0.3);overflow:hidden;animation:slideUp 0.25s ease;">
+        <div style="background:linear-gradient(135deg,#43cea2 0%,#185a9d 100%);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;">
+            <span style="color:#fff;font-size:16px;font-weight:600;">➕ 邀请成员</span>
+            <button onclick="closeGroupInvite()" style="width:30px;height:30px;border-radius:50%;border:none;background:rgba(255,255,255,0.2);color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;">×</button>
+        </div>
+        <div style="padding:20px;max-height:50vh;overflow-y:auto;" id="groupInviteMemberList">
+            <div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px;">加载好友列表...</div>
+        </div>
+        <div style="padding:0 20px 20px;">
+            <button onclick="confirmInviteMembers()"
+                    style="width:100%;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#43cea2 0%,#185a9d 100%);color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.3s;"
+                    onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">确认邀请</button>
+        </div>
+    </div>
+</div>
+
     <!-- 主容器 -->
     <div class="container">
         <!-- 左侧：地图 -->

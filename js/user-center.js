@@ -9,6 +9,12 @@
     let currentChatUserAvatar = '';
     let chatUnreadCount = 0;
 
+    // 群聊全局变量
+    let currentChatGroupId = null;
+    let currentChatGroupName = '';
+    let currentChatGroupAvatar = '';
+    let currentChatGroupOwner = null;
+
     // 打开私聊列表
     /**
      * 打开私聊列表面板
@@ -16,11 +22,36 @@
      */
     function openChatList() {
         document.getElementById('chatListOverlay').style.display = 'flex';
+        switchChatTab('friend');
         queryPrivateChats();
         queryPrivateUnreadCount();
         queryFriends();
-        queryFriendRequests();
+        queryMyGroups();
         console.log('💬 打开私聊列表');
+    }
+
+    // 切换好友/群聊选项卡
+    function switchChatTab(tab) {
+        const friendTab = document.getElementById('chatFriendTab');
+        const dmTab = document.getElementById('chatDMTab');
+        const groupTab = document.getElementById('chatGroupTab');
+        const btns = document.querySelectorAll('.chat-tab-btn');
+        btns.forEach(b => b.classList.remove('active'));
+        friendTab.style.display = 'none';
+        dmTab.style.display = 'none';
+        groupTab.style.display = 'none';
+        if (tab === 'friend') {
+            friendTab.style.display = 'flex';
+            btns[0]?.classList.add('active');
+        } else if (tab === 'dm') {
+            dmTab.style.display = 'flex';
+            btns[1]?.classList.add('active');
+            queryPrivateChats();
+        } else {
+            groupTab.style.display = 'flex';
+            btns[2]?.classList.add('active');
+            queryMyGroups();
+        }
     }
 
     // 关闭私聊列表
@@ -55,58 +86,54 @@
      * @param {Array} chats - 会话对象数组
      */
     function displayPrivateChats(chats) {
-        const container = document.getElementById('chatList');
-    
-        let html = '';
+        const friendContainer = document.getElementById('friendChatList');
+        const dmContainer = document.getElementById('chatList');
 
-        // ⭐ 自聊：始终置顶显示
-        if (currentUser) {
-            const selfMessages = getSelfMessages();
-            const lastSelfMsg = selfMessages.length > 0 ? selfMessages[selfMessages.length - 1].message : '';
-            const selfLastMsgPreview = lastSelfMsg ? (lastSelfMsg.length > 30 ? lastSelfMsg.substring(0, 30) + '...' : lastSelfMsg) : '给自己留言';
-            const selfAvatarHTML = renderAvatarPreview(currentUser.avatar || '👤');
+        let friendHtml = '';
+        let dmHtml = '';
 
-            html += `
-                <div class="chat-item" onclick="openSelfChat()">
-                    <div class="chat-avatar">${selfAvatarHTML}</div>
+        if (!chats || chats.length === 0) {
+            if (friendContainer) friendContainer.innerHTML = '<div class="uc-empty">暂无好友聊天<br><small style="color: var(--text-tertiary); font-size: 12px; margin-top: 10px; display: block;">与好友的聊天记录会显示在这里</small></div>';
+            if (dmContainer) dmContainer.innerHTML = '<div class="uc-empty">暂无私信<br><small style="color: var(--text-tertiary); font-size: 12px; margin-top: 10px; display: block;">与非好友的聊天记录会显示在这里</small></div>';
+            return;
+        }
+
+        chats.forEach(chat => {
+            const isBase64 = chat.avatar && chat.avatar.startsWith('data:image');
+            const avatarHTML = isBase64 
+                ? `<img src="${chat.avatar}">`
+                : chat.avatar || '👤';
+            
+            const lastMsgPrefix = chat.isSentByMe ? '我: ' : '';
+            const lastMsgText = chat.lastMessage.length > 30 
+                ? chat.lastMessage.substring(0, 30) + '...' 
+                : chat.lastMessage;
+            
+            const item = `
+                <div class="chat-item" onclick="openChatWithUser('${chat.userId}', '${escapeHtml(chat.username)}', '${escapeAttr(chat.avatar || '👤')}')">
+                    <div class="chat-avatar">${avatarHTML}</div>
                     <div class="chat-info">
-                        <div class="chat-name">我 <span style="font-size: 11px; color: var(--text-tertiary); font-weight: 400;">(与自己的对话)</span></div>
-                        <div class="chat-last-message">${escapeHtml(selfLastMsgPreview)}</div>
+                        <div class="chat-name">${escapeHtml(chat.username)}</div>
+                        <div class="chat-last-message">${lastMsgPrefix}${escapeHtml(lastMsgText)}</div>
                     </div>
+                    ${chat.unreadCount > 0 ? `<div class="chat-unread">${chat.unreadCount > 99 ? '99+' : chat.unreadCount}</div>` : ''}
                 </div>
             `;
-        }
-    
-        if (chats.length === 0) {
-    container.innerHTML = html || '<div class="uc-empty">暂无私聊<br><small style="color: var(--text-tertiary); font-size: 12px; margin-top: 10px; display: block;">通过用户信息卡或气泡信息卡发起私聊</small></div>';
-    return;
-        }
-    
-        chats.forEach(chat => {
-    const isBase64 = chat.avatar && chat.avatar.startsWith('data:image');
-    const avatarHTML = isBase64 
-        ? `<img src="${chat.avatar}">`
-        : chat.avatar || '👤';
-        
-    const lastMsgPrefix = chat.isSentByMe ? '我: ' : '';
-    const lastMsgText = chat.lastMessage.length > 30 
-        ? chat.lastMessage.substring(0, 30) + '...' 
-        : chat.lastMessage;
-        
-    html += `
-        <div class="chat-item" onclick="openChatWithUser('${chat.userId}', '${escapeHtml(chat.username)}', '${escapeAttr(chat.avatar || '👤')}')">
-            <div class="chat-avatar">${avatarHTML}</div>
-            <div class="chat-info">
-                <div class="chat-name">${escapeHtml(chat.username)}</div>
-                <div class="chat-last-message">${lastMsgPrefix}${escapeHtml(lastMsgText)}</div>
-            </div>
-            ${chat.unreadCount > 0 ? `<div class="chat-unread">${chat.unreadCount > 99 ? '99+' : chat.unreadCount}</div>` : ''}
-        </div>
-    `;
+
+            if (chat.isFriend) {
+                friendHtml += item;
+            } else {
+                dmHtml += item;
+            }
         });
-    
-        container.innerHTML = html;
-        console.log(`✅ 显示 ${chats.length} 个私聊会话（含自聊）`);
+
+        if (friendContainer) {
+            friendContainer.innerHTML = friendHtml || '<div class="uc-empty">暂无好友聊天</div>';
+        }
+        if (dmContainer) {
+            dmContainer.innerHTML = dmHtml || '<div class="uc-empty">暂无私信<br><small style="color: var(--text-tertiary); font-size: 12px; margin-top: 10px; display: block;">与非好友的聊天记录会显示在这里</small></div>';
+        }
+        console.log(`✅ 显示 ${chats.length} 个私聊会话（好友: ${chats.filter(c => c.isFriend).length}, 私信: ${chats.filter(c => !c.isFriend).length}）`);
     }
 
     // 辅助函数：转义属性中的引号
@@ -398,6 +425,273 @@
         input.value = '';
     
         console.log(`💬 发送消息给 ${currentChatUserId}: ${message.substring(0, 20)}${message.length > 20 ? '...' : ''}`);
+    }
+
+    // ==================== ⭐ vA1.2: 群聊系统 ====================
+
+    // 查询我的群聊列表
+    function queryMyGroups() {
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({ type: "queryMyGroups" }));
+        console.log('💬 查询群聊列表');
+    }
+
+    // 显示群聊列表
+    function displayMyGroups(groups) {
+        window.cachedGroups = groups || [];
+        const container = document.getElementById('groupList');
+        if (!container) return;
+        if (!groups || groups.length === 0) {
+            container.innerHTML = '<div class="uc-empty" style="padding:30px 20px;text-align:center;color:var(--text-tertiary);font-size:13px;">暂无群聊<br><small style="font-size:12px;margin-top:8px;display:block;">点击上方➕创建群聊</small></div>';
+            return;
+        }
+        let html = '';
+        groups.forEach(g => {
+            const memberInfo = g.member_count ? `${g.member_count}人` : '';
+            const lastMsg = g.last_message 
+                ? (g.last_sender ? `${g.last_sender}: ${g.last_message.length > 20 ? g.last_message.substring(0, 20) + '...' : g.last_message}` : g.last_message.length > 20 ? g.last_message.substring(0, 20) + '...' : g.last_message)
+                : '';
+            html += `
+                <div class="chat-item" onclick="openGroupChat(${g.id})">
+                    <div class="chat-avatar">${g.avatar || '💬'}</div>
+                    <div class="chat-info">
+                        <div class="chat-name">${escapeHtml(g.name)} <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">${memberInfo}</span></div>
+                        <div class="chat-last-message">${escapeHtml(lastMsg)}</div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        console.log(`✅ 显示 ${groups.length} 个群聊`);
+    }
+
+    // 查询群消息历史
+    function queryGroupMessages(groupId) {
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({ type: "queryGroupMessages", groupId }));
+        console.log(`💬 查询群聊 ${groupId} 的消息`);
+    }
+
+    // 显示群消息（采用与公屏相同的聊天气泡设计）
+    function displayGroupMessages(groupId, messages) {
+        const container = document.getElementById('groupChatMessages');
+        if (!container) return;
+        if (!messages || messages.length === 0) {
+            container.innerHTML = '<div class="uc-empty" style="color: var(--text-tertiary); padding: 40px 20px;">暂无消息<br><small style="font-size: 12px; margin-top: 10px; display: block;">发送消息开始群聊</small></div>';
+            return;
+        }
+        let html = '';
+        messages.forEach(msg => {
+            const isSentByMe = msg.user_id === currentUser.id;
+            const rowClass = isSentByMe ? 'message-row self' : 'message-row other';
+            const name = isSentByMe ? '我' : (msg.username || '未知用户');
+            let avatarHtml = '👤';
+            if (msg.avatar) {
+                const isBase64 = msg.avatar.startsWith('data:image');
+                avatarHtml = isBase64 
+                    ? `<img src="${msg.avatar}">` 
+                    : msg.avatar;
+            }
+            html += `
+                <div class="${rowClass}">
+                    <div class="message-package">
+                        <div class="message-pill">
+                            <div class="pill-top">
+                                <div class="user-badge">
+                                    <div class="avatar-circle">${avatarHtml}</div>
+                                    <span class="badge-id">${escapeHtml(name)}</span>
+                                </div>
+                            </div>
+                            <div class="pill-content">
+                                <div class="bubble-text">${escapeHtml(msg.message)}</div>
+                            </div>
+                        </div>
+                        <div class="time-stamp">${formatTime(msg.created_at)}</div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+        setTimeout(() => { container.scrollTop = container.scrollHeight; }, 100);
+        console.log(`✅ 显示 ${messages.length} 条群消息`);
+    }
+
+    // 发送群消息
+    function sendGroupMessage() {
+        const input = document.getElementById('groupChatInput');
+        const message = input.value.trim();
+        if (!message || !currentChatGroupId) return;
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({
+            type: "sendGroupMessage",
+            groupId: currentChatGroupId,
+            message: message
+        }));
+        input.value = '';
+        console.log(`💬 发送群消息到 ${currentChatGroupId}: ${message.substring(0, 20)}${message.length > 20 ? '...' : ''}`);
+    }
+
+    // 打开群聊窗口
+    function openGroupChat(groupId) {
+        if (!groupId) return;
+        currentChatGroupId = Number(groupId);
+        const cached = (window.cachedGroups || []).find(g => g.id === currentChatGroupId);
+        currentChatGroupName = cached ? (cached.name || '') : '';
+        currentChatGroupAvatar = cached ? (cached.avatar || '💬') : '💬';
+        currentChatGroupOwner = cached ? (cached.creator_id || null) : null;
+        document.getElementById('chatListOverlay').style.display = 'none';
+        document.getElementById('groupChatOverlay').style.display = 'flex';
+        const avatarEl = document.getElementById('groupChatUserAvatar');
+        if (avatarEl) avatarEl.textContent = currentChatGroupAvatar;
+        const nameEl = document.getElementById('groupChatUserName');
+        if (nameEl) nameEl.textContent = currentChatGroupName || '群聊';
+        document.getElementById('groupChatInput').value = '';
+        queryGroupMessages(currentChatGroupId);
+        queryGroupMembers(currentChatGroupId);
+        updateGroupInfoButton();
+        console.log(`💬 打开群聊 ${currentChatGroupName} (${currentChatGroupId})`);
+    }
+
+    // 更新群聊信息按钮状态（是否显示群主操作）
+    function updateGroupInfoButton() {
+        const btn = document.getElementById('groupInfoBtn');
+        if (!btn) return;
+        btn.style.display = 'flex';
+    }
+
+    // 打开群聊信息面板
+    function openGroupInfo() {
+        if (!currentChatGroupId) return;
+        const overlay = document.getElementById('groupInfoOverlay');
+        if (!overlay) return;
+        overlay.style.display = 'flex';
+        document.getElementById('groupInfoName').textContent = currentChatGroupName || '群聊';
+        document.getElementById('groupInfoAvatar').textContent = currentChatGroupAvatar || '💬';
+        const isOwner = currentUser && currentChatGroupOwner === currentUser.id;
+        document.getElementById('groupInfoOwnerBadge').style.display = isOwner ? 'inline-block' : 'none';
+        document.getElementById('groupInfoOwnerActions').style.display = isOwner ? 'flex' : 'none';
+        document.getElementById('groupInfoLeaveBtn').style.display = isOwner ? 'none' : 'flex';
+        queryGroupMembers(currentChatGroupId);
+    }
+
+    // 关闭群聊信息面板
+    function closeGroupInfo() {
+        const overlay = document.getElementById('groupInfoOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    // 关闭群聊窗口
+    function closeGroupChat() {
+        document.getElementById('groupChatOverlay').style.display = 'none';
+        document.getElementById('groupInfoOverlay').style.display = 'none';
+        currentChatGroupId = null;
+        currentChatGroupName = '';
+        currentChatGroupAvatar = '';
+        currentChatGroupOwner = null;
+        openChatList();
+    }
+
+    // 查询群成员
+    function queryGroupMembers(groupId) {
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({ type: "queryGroupMembers", groupId }));
+    }
+
+    // 显示群成员
+    function displayGroupMembers(groupId, members) {
+        const container = document.getElementById('groupInfoMemberList');
+        if (!container) return;
+        window.cachedGroupMembers = members || [];
+        if (!members || members.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:15px;color:var(--text-tertiary);font-size:13px;">暂无成员</div>';
+            return;
+        }
+        const isOwner = currentUser && currentChatGroupOwner === currentUser.id;
+        container.innerHTML = members.map(m => {
+            const avatarHTML = m.avatar && m.avatar.startsWith('data:image')
+                ? `<img src="${m.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">`
+                : `<span style="font-size:28px;">${m.avatar || '👤'}</span>`;
+            const isSelf = currentUser && m.userId === currentUser.id;
+            const isGroupOwner = currentChatGroupOwner === m.userId;
+            return `
+                <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;margin-bottom:4px;background:var(--bg-secondary,#f5f5f5);">
+                    <div style="position:relative;">
+                        ${avatarHTML}
+                        <span style="position:absolute;bottom:0;right:-2px;width:10px;height:10px;border-radius:50%;border:2px solid var(--card-bg,#fff);background:${m.isOnline ? '#4CAF50' : '#ccc'};"></span>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:500;font-size:13px;color:var(--text-primary);">
+                            ${escapeHtml(m.username)} ${isGroupOwner ? '<span style="font-size:11px;color:#FFD700;font-weight:600;">👑</span>' : ''} ${isSelf ? '<span style="font-size:11px;color:var(--text-tertiary);">(我)</span>' : ''}
+                        </div>
+                    </div>
+                    ${isOwner && !isGroupOwner && !isSelf ? `<button onclick="kickGroupMember('${m.userId}')" style="padding:4px 10px;border:none;border-radius:6px;background:#ff6b6b;color:#fff;font-size:11px;cursor:pointer;">踢出</button>` : ''}
+                </div>
+            `;
+        }).join('');
+        document.getElementById('groupInfoMemberCount').textContent = `${members.length} 名成员`;
+    }
+
+    // 踢出群成员
+    function kickGroupMember(targetUserId) {
+        if (!currentChatGroupId || !targetUserId) return;
+        if (!confirm('确定要踢出该成员吗？')) return;
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({
+            type: "kickGroupMember",
+            groupId: currentChatGroupId,
+            targetUserId: targetUserId
+        }));
+    }
+
+    // 解散群聊
+    function dissolveGroup() {
+        if (!currentChatGroupId) return;
+        if (!confirm('确定要解散群聊吗？此操作不可恢复！')) return;
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({
+            type: "dissolveGroup",
+            groupId: currentChatGroupId
+        }));
+    }
+
+    // 退出群聊
+    function leaveGroup() {
+        if (!currentChatGroupId) return;
+        if (!confirm('确定要退出群聊吗？')) return;
+        if (!socket || socket.readyState !== WebSocket.OPEN) return;
+        socket.send(JSON.stringify({
+            type: "leaveGroup",
+            groupId: currentChatGroupId
+        }));
+    }
+
+    // 更新群信息（名称/头像）
+    function updateGroupInfo() {
+        if (!currentChatGroupId) return;
+        const overlay = document.getElementById('groupEditOverlay');
+        if (!overlay) return;
+        overlay.style.display = 'flex';
+        document.getElementById('groupEditNameInput').value = currentChatGroupName || '';
+    }
+
+    // 关闭编辑群信息面板
+    function closeGroupEdit() {
+        const overlay = document.getElementById('groupEditOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    // 确认更新群信息
+    function confirmUpdateGroupInfo() {
+        const name = document.getElementById('groupEditNameInput').value.trim();
+        if (!name) { showToast('请输入群聊名称'); return; }
+        if (!socket || socket.readyState !== WebSocket.OPEN) { showToast('网络未连接'); return; }
+        socket.send(JSON.stringify({
+            type: "updateGroupInfo",
+            groupId: currentChatGroupId,
+            name: name
+        }));
+        document.getElementById('groupEditOverlay').style.display = 'none';
+        showToast('正在更新群信息...');
     }
 
     // 查询私聊未读总数
@@ -1728,9 +2022,134 @@ function updateVipDisplay(vipData) {
         setTimeout(() => document.getElementById('friendSearchInput').focus(), 300);
     }
 
-    // 发起群聊（待开发）
+    // 发起群聊
     function createGroupChat() {
         document.getElementById('addMenu').style.display = 'none';
+        const overlay = document.getElementById('groupCreateOverlay');
+        overlay.style.display = 'flex';
+        document.getElementById('groupNameInput').value = '';
+        const container = document.getElementById('groupMemberList');
+        if (container) {
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px;">加载好友列表...</div>';
+        }
+        queryFriends();
+        setTimeout(() => document.getElementById('groupNameInput').focus(), 300);
+    }
+
+    // 渲染好友复选框列表（用于创建群聊）
+    function renderFriendCheckboxes() {
+        const container = document.getElementById('groupMemberList');
+        const friends = window.cachedFriends || [];
+        if (friends.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px;">暂无好友，请先添加好友</div>';
+            return;
+        }
+        container.innerHTML = friends.map(f => {
+            const avatarHTML = f.avatar && f.avatar.startsWith('data:image')
+                ? `<img src="${f.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">`
+                : `<span style="font-size:28px;">${f.avatar || '👤'}</span>`;
+            return `
+                <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;cursor:pointer;transition:background 0.2s;"
+                       onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'">
+                    <input type="checkbox" value="${f.userId}" style="width:16px;height:16px;accent-color:#667eea;cursor:pointer;">
+                    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                        ${avatarHTML}
+                        <span style="font-weight:500;font-size:14px;color:var(--text-primary);">${escapeHtml(f.username)}</span>
+                    </div>
+                </label>
+            `;
+        }).join('');
+    }
+
+    // 确认创建群聊
+    function confirmCreateGroup() {
+        const name = document.getElementById('groupNameInput').value.trim();
+        if (!name) {
+            showToast('请输入群聊名称');
+            return;
+        }
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            showToast('网络未连接');
+            return;
+        }
+        const checkboxes = document.querySelectorAll('#groupMemberList input[type="checkbox"]:checked');
+        const memberIds = Array.from(checkboxes).map(cb => cb.value);
+        socket.send(JSON.stringify({
+            type: "createGroup",
+            name: name,
+            memberIds: memberIds
+        }));
+        document.getElementById('groupCreateOverlay').style.display = 'none';
+        showToast('正在创建群聊...');
+    }
+
+    // ⭐ vA1.3: 显示邀请成员弹窗
+    function showInviteMembers() {
+        if (!currentChatGroupId) return;
+        const overlay = document.getElementById('groupInviteOverlay');
+        if (!overlay) return;
+        overlay.style.display = 'flex';
+        const container = document.getElementById('groupInviteMemberList');
+        if (container) {
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px;">加载好友列表...</div>';
+        }
+        queryFriends();
+    }
+
+    // ⭐ vA1.3: 关闭邀请成员弹窗
+    function closeGroupInvite() {
+        const overlay = document.getElementById('groupInviteOverlay');
+        if (overlay) overlay.style.display = 'none';
+    }
+
+    // ⭐ vA1.3: 渲染邀请成员的好友复选框（排除已是群成员的好友）
+    function renderInviteFriendCheckboxes() {
+        const container = document.getElementById('groupInviteMemberList');
+        if (!container) return;
+        const friends = window.cachedFriends || [];
+        const existingMemberIds = window.cachedGroupMembers ? window.cachedGroupMembers.map(m => m.userId) : [];
+        const available = friends.filter(f => !existingMemberIds.includes(f.userId));
+        if (available.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-tertiary);font-size:13px;">没有可邀请的好友</div>';
+            return;
+        }
+        container.innerHTML = available.map(f => {
+            const avatarHTML = f.avatar && f.avatar.startsWith('data:image')
+                ? `<img src="${f.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">`
+                : `<span style="font-size:28px;">${f.avatar || '👤'}</span>`;
+            return `
+                <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;cursor:pointer;transition:background 0.2s;"
+                       onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background='transparent'">
+                    <input type="checkbox" value="${f.userId}" style="width:16px;height:16px;accent-color:#43cea2;cursor:pointer;">
+                    <div style="display:flex;align-items:center;gap:8px;flex:1;">
+                        ${avatarHTML}
+                        <span style="font-weight:500;font-size:14px;color:var(--text-primary);">${escapeHtml(f.username)}</span>
+                    </div>
+                </label>
+            `;
+        }).join('');
+    }
+
+    // ⭐ vA1.3: 确认邀请成员
+    function confirmInviteMembers() {
+        if (!currentChatGroupId) return;
+        const checkboxes = document.querySelectorAll('#groupInviteMemberList input[type="checkbox"]:checked');
+        const memberIds = Array.from(checkboxes).map(cb => cb.value);
+        if (memberIds.length === 0) {
+            showToast('请至少选择一位好友');
+            return;
+        }
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+            showToast('网络未连接');
+            return;
+        }
+        socket.send(JSON.stringify({
+            type: "addGroupMembers",
+            groupId: currentChatGroupId,
+            memberIds: memberIds
+        }));
+        document.getElementById('groupInviteOverlay').style.display = 'none';
+        showToast('正在邀请成员...');
     }
 
     // 切换用户名片卡展开/收起
@@ -1904,33 +2323,42 @@ function displayUserSearchResults(users) {
 
 // 显示好友列表
 function displayFriends(friends) {
+    window.cachedFriends = friends || [];
     const container = document.getElementById('friendList');
     const section = document.getElementById('friendListSection');
-    if (!container || !section) return;
-    if (!friends || friends.length === 0) {
-        section.style.display = 'none';
-        return;
-    }
-    section.style.display = 'block';
-    container.innerHTML = friends.map(f => {
-        const avatarSafe = escapeAttr(f.avatar || '👤');
-        const usernameSafe = escapeHtml(f.username).replace(/'/g, "\\'");
-        const isBase64 = f.avatar && f.avatar.startsWith('data:image');
-        const avatarHTML = isBase64 ? `<img src="${f.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">` : `<span style="font-size:28px;">${f.avatar || '👤'}</span>`;
-        return `
-        <div class="chat-item" onclick="openChatWithUser('${f.userId}','${usernameSafe}','${avatarSafe}')" style="cursor:pointer;">
-            <div style="display:flex;align-items:center;gap:10px;width:100%;">
-                <div style="position:relative;">
-                    ${avatarHTML}
-                    <span style="position:absolute;bottom:0;right:-2px;width:10px;height:10px;border-radius:50%;border:2px solid var(--card-bg,#fff);background:${f.isOnline ? '#4CAF50' : '#ccc'};"></span>
-                </div>
+    if (container && section) {
+        if (!friends || friends.length === 0) {
+            section.style.display = 'none';
+        } else {
+            section.style.display = 'block';
+            container.innerHTML = friends.map(f => {
+                const avatarSafe = escapeAttr(f.avatar || '👤');
+                const usernameSafe = escapeHtml(f.username).replace(/'/g, "\\'");
+                const isBase64 = f.avatar && f.avatar.startsWith('data:image');
+                const avatarHTML = isBase64 ? `<img src="${f.avatar}" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">` : `<span style="font-size:28px;">${f.avatar || '👤'}</span>`;
+                return `
+                <div class="chat-item" onclick="openChatWithUser('${f.userId}','${usernameSafe}','${avatarSafe}')" style="cursor:pointer;">
+                    <div style="display:flex;align-items:center;gap:10px;width:100%;">
+                        <div style="position:relative;">
+                            ${avatarHTML}
+                            <span style="position:absolute;bottom:0;right:-2px;width:10px;height:10px;border-radius:50%;border:2px solid var(--card-bg,#fff);background:${f.isOnline ? '#4CAF50' : '#ccc'};"></span>
+                        </div>
                 <div style="flex:1;min-width:0;">
                     <div style="font-weight:600;font-size:14px;color:var(--text-primary);">${escapeHtml(f.username)}</div>
-                    <div style="font-size:11px;color:var(--text-tertiary);">${f.isOnline ? '在线' : '离线'}</div>
                 </div>
-            </div>
-        </div>`;
-    }).join('');
+                    </div>
+                </div>`;
+            }).join('');
+        }
+    }
+    const groupOverlay = document.getElementById('groupCreateOverlay');
+    if (groupOverlay && (groupOverlay.style.display === 'flex')) {
+        renderFriendCheckboxes();
+    }
+    const inviteOverlay = document.getElementById('groupInviteOverlay');
+    if (inviteOverlay && (inviteOverlay.style.display === 'flex')) {
+        renderInviteFriendCheckboxes();
+    }
 }
 
 // 显示好友请求列表

@@ -864,15 +864,15 @@
         color: #ff5050;
     }
 
-    /* ⭐ 选项卡内容容器 */
-    .chat-tab-content {
+    /* ⭐ 选项卡内容容器（仅公屏聊天面板） */
+    #chatPanel .chat-tab-content {
         display: none;
         flex-direction: column;
         flex: 1;
         overflow: hidden;
     }
 
-    .chat-tab-content.active {
+    #chatPanel .chat-tab-content.active {
         display: flex;
     }
 
@@ -1887,7 +1887,6 @@
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(0,0,0,0.3);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        animation: bubbleAppear 0.5s ease-out, bubbleFloat 3s ease-in-out infinite;
         position: relative;
     }
     

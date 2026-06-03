@@ -522,6 +522,13 @@ function connectWebSocket() {
             commentBadge.textContent = commentCount;
             commentBadge.style.display = commentCount > 0 ? 'inline-block' : 'none';
         }
+
+        const friendRequestBadge = document.getElementById('tabFriendRequestBadge');
+        if (friendRequestBadge) {
+            const friendRequestCount = data.counts.friend_request || 0;
+            friendRequestBadge.textContent = friendRequestCount;
+            friendRequestBadge.style.display = friendRequestCount > 0 ? 'inline-block' : 'none';
+        }
         break;
                 
             // ⭐ 新增：某类型通知列表查询结果
@@ -713,6 +720,7 @@ function connectWebSocket() {
         console.log('📨 收到好友请求:', data.request);
         queryFriendRequests();
         queryFriends();
+        if (typeof queryInboxUnread === 'function') queryInboxUnread();
         if (typeof showToast === 'function') showToast(`收到 ${data.request.fromUserName} 的好友请求`);
         break;
 
@@ -720,6 +728,14 @@ function connectWebSocket() {
         console.log('✅ 好友请求已接受');
         queryFriends();
         queryFriendRequests();
+        if (typeof queryInboxUnread === 'function') queryInboxUnread();
+        if (typeof showToast === 'function') showToast(data.friendUserName ? `${data.friendUserName} 已接受好友请求` : '好友请求已接受');
+        break;
+
+    case "friendRequestRejected":
+        console.log('❌ 好友请求已拒绝');
+        queryFriendRequests();
+        if (typeof queryInboxUnread === 'function') queryInboxUnread();
         if (typeof showToast === 'function') showToast(data.friendUserName ? `${data.friendUserName} 已接受好友请求` : '好友请求已接受');
         break;
 
@@ -740,6 +756,96 @@ function connectWebSocket() {
         if (typeof displayUserSearchResults === 'function') displayUserSearchResults(data.users);
         break;
 
+        case "groupCreated":
+            if (data.success) {
+                if (typeof showToast === 'function') showToast('群聊创建成功');
+                if (typeof queryMyGroups === 'function') queryMyGroups();
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || '创建群聊失败');
+            }
+            break;
+        case "myGroupsResult":
+            if (typeof displayMyGroups === 'function') displayMyGroups(data.groups);
+            break;
+        case "groupMessagesResult":
+            if (typeof displayGroupMessages === 'function') displayGroupMessages(data.groupId, data.messages);
+            break;
+        case "groupMessageSent":
+            if (typeof currentChatGroupId !== 'undefined' && currentChatGroupId === data.groupId) {
+                if (typeof queryGroupMessages === 'function') queryGroupMessages(data.groupId);
+            }
+            if (typeof queryMyGroups === 'function') queryMyGroups();
+            break;
+        case "groupMessageReceived":
+            if (typeof currentChatGroupId !== 'undefined' && currentChatGroupId === data.groupId) {
+                if (typeof queryGroupMessages === 'function') queryGroupMessages(data.groupId);
+            }
+            if (typeof queryMyGroups === 'function') queryMyGroups();
+            break;
+        case "groupMemberAdded":
+            if (typeof showToast === 'function') showToast('您已被添加到群聊: ' + (data.groupName || ''));
+            if (typeof queryMyGroups === 'function') queryMyGroups();
+            if (typeof queryInboxUnread === 'function') queryInboxUnread();
+            break;
+        case "groupMembersResult":
+            if (typeof displayGroupMembers === 'function') displayGroupMembers(data.groupId, data.members);
+            break;
+        case "groupInfoUpdated":
+            if (typeof showToast === 'function') showToast('群聊信息已更新');
+            if (typeof queryMyGroups === 'function') queryMyGroups();
+            if (typeof currentChatGroupId !== 'undefined' && currentChatGroupId === data.groupId) {
+                if (data.name && typeof currentChatGroupName !== 'undefined') {
+                    currentChatGroupName = data.name;
+                    const nameEl = document.getElementById('groupChatUserName');
+                    if (nameEl) nameEl.textContent = data.name;
+                }
+            }
+            break;
+        case "groupMembersAdded":
+            if (data.success) {
+                if (typeof showToast === 'function') showToast('已邀请成员加入群聊');
+                if (typeof queryGroupMembers === 'function' && typeof currentChatGroupId !== 'undefined') queryGroupMembers(currentChatGroupId);
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || '邀请失败');
+            }
+            break;
+        case "groupDissolved":
+            if (typeof showToast === 'function') showToast('群聊已解散');
+            if (typeof closeGroupChat === 'function' && typeof currentChatGroupId !== 'undefined' && currentChatGroupId === data.groupId) {
+                closeGroupChat();
+            } else if (typeof queryMyGroups === 'function') {
+                queryMyGroups();
+            }
+            break;
+        case "memberKicked":
+            if (data.success) {
+                if (typeof showToast === 'function') showToast('已踢出成员');
+                if (typeof queryGroupMembers === 'function' && typeof currentChatGroupId !== 'undefined') queryGroupMembers(currentChatGroupId);
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || '操作失败');
+            }
+            break;
+        case "kickedFromGroup":
+            if (typeof showToast === 'function') showToast('您已被移出群聊');
+            if (typeof closeGroupChat === 'function' && typeof currentChatGroupId !== 'undefined' && currentChatGroupId === data.groupId) {
+                closeGroupChat();
+            }
+            if (typeof queryMyGroups === 'function') queryMyGroups();
+            if (typeof queryInboxUnread === 'function') queryInboxUnread();
+            break;
+        case "leftGroup":
+            if (data.success) {
+                if (typeof showToast === 'function') showToast('已退出群聊');
+                if (typeof closeGroupChat === 'function' && typeof currentChatGroupId !== 'undefined' && currentChatGroupId === data.groupId) {
+                    closeGroupChat();
+                } else if (typeof queryMyGroups === 'function') {
+                    queryMyGroups();
+                }
+            } else {
+                if (typeof showToast === 'function') showToast(data.message || '退出失败');
+            }
+            break;
+
             default:
                 console.log("⚠️ 未处理的消息类型:", data.type);
         }
@@ -748,6 +854,8 @@ function connectWebSocket() {
 function handleLoginSuccess(user) {
     console.log("✅ 登录成功:", user);  
     queryPrivateUnreadCount();
+    if (typeof queryMyGroups === 'function') queryMyGroups();
+    if (typeof queryInboxUnread === 'function') queryInboxUnread();
     // 更新用户信息
     if (!currentUser) {
         currentUser = {

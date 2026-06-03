@@ -212,6 +212,40 @@ function initDatabase() {
     );
     CREATE INDEX IF NOT EXISTS idx_friends_user_id ON friends(user_id);
     CREATE INDEX IF NOT EXISTS idx_friends_friend_id ON friends(friend_id);
+    
+    -- ⭐ vA1.2: 群聊表
+    CREATE TABLE IF NOT EXISTS chat_groups (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      creator_id TEXT NOT NULL,
+      avatar TEXT DEFAULT '💬',
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    
+    -- ⭐ vA1.2: 群成员表
+    CREATE TABLE IF NOT EXISTS group_members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      group_id INTEGER NOT NULL,
+      user_id TEXT NOT NULL,
+      joined_at INTEGER NOT NULL,
+      UNIQUE(group_id, user_id),
+      FOREIGN KEY (group_id) REFERENCES chat_groups(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members(group_id);
+    CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members(user_id);
+    
+    -- ⭐ vA1.2: 群消息表
+    CREATE TABLE IF NOT EXISTS group_messages (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      group_id INTEGER NOT NULL,
+      user_id TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (group_id) REFERENCES chat_groups(id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_group_messages_group ON group_messages(group_id);
+    CREATE INDEX IF NOT EXISTS idx_group_messages_created ON group_messages(created_at);
   `;
   
   db.exec(schema, (err) => {
@@ -251,6 +285,20 @@ function initDatabase() {
         } else {
           console.log("✅ 已添加images字段");
         }
+      });
+      
+      // ⭐ vA1.3: 清理已失效气泡的关联记录
+      db.run(`DELETE FROM bubble_likes WHERE bubble_id NOT IN (SELECT id FROM bubbles) OR bubble_id IN (SELECT id FROM bubbles WHERE is_active = 0)`, (err) => {
+        if (!err) console.log("🧹 已清理失效气泡的点赞记录");
+      });
+      db.run(`DELETE FROM bubble_favorites WHERE bubble_id NOT IN (SELECT id FROM bubbles)`, (err) => {
+        if (!err) console.log("🧹 已清理已删除气泡的收藏记录");
+      });
+      db.run(`DELETE FROM bubble_comments WHERE bubble_id NOT IN (SELECT id FROM bubbles) OR bubble_id IN (SELECT id FROM bubbles WHERE is_active = 0)`, (err) => {
+        if (!err) console.log("🧹 已清理失效气泡的评论记录");
+      });
+      db.run(`DELETE FROM bubble_views WHERE bubble_id NOT IN (SELECT id FROM bubbles) OR bubble_id IN (SELECT id FROM bubbles WHERE is_active = 0)`, (err) => {
+        if (!err) console.log("🧹 已清理失效气泡的浏览记录");
       });
       
       // 启动气泡过期清理任务
@@ -424,11 +472,16 @@ function getBubbleCount(callback) {
 // 清理过期气泡（定期任务）
 function cleanupExpiredBubbles() {
   const now = Date.now();
+  // 先删除过期气泡的点赞、评论、浏览记录
+  db.run(`DELETE FROM bubble_likes WHERE bubble_id IN (SELECT id FROM bubbles WHERE expires_at <= ? AND is_active = 1)`, [now]);
+  db.run(`DELETE FROM bubble_comments WHERE bubble_id IN (SELECT id FROM bubbles WHERE expires_at <= ? AND is_active = 1)`, [now]);
+  db.run(`DELETE FROM bubble_views WHERE bubble_id IN (SELECT id FROM bubbles WHERE expires_at <= ? AND is_active = 1)`, [now]);
+  // 标记气泡为失效（收藏记录保留，内容快照保留在数据库中）
   db.run(`UPDATE bubbles SET is_active = 0 WHERE expires_at <= ? AND is_active = 1`, [now], function(err) {
     if (err) {
       console.error("❌ 清理过期气泡失败:", err);
     } else if (this.changes > 0) {
-      console.log(`🧹 已清理 ${this.changes} 个过期气泡`);
+      console.log(`🧹 已清理 ${this.changes} 个过期气泡（点赞/浏览记录已移除，收藏保留）`);
     }
   });
 }
@@ -443,6 +496,9 @@ function startBubbleCleanupTask() {
 
 // 清除所有气泡
 function clearAllBubblesDB(callback) {
+  const now = Date.now();
+  db.run(`DELETE FROM bubble_likes WHERE bubble_id IN (SELECT id FROM bubbles WHERE is_active = 1)`, []);
+  db.run(`DELETE FROM bubble_views WHERE bubble_id IN (SELECT id FROM bubbles WHERE is_active = 1)`, []);
   db.run(`UPDATE bubbles SET is_active = 0 WHERE is_active = 1`, function(err) {
     if (err) {
       console.error("❌ 清除所有气泡失败:", err);
@@ -2452,14 +2508,15 @@ if (data.type === "commentBubble") {
           const counts = {
             like: 0,
             favorite: 0,
-            comment: 0
+            comment: 0,
+            friend_request: 0
           };
           
           rows.forEach(row => {
             counts[row.type] = row.count;
           });
           
-          const totalCount = counts.like + counts.favorite + counts.comment;
+          const totalCount = counts.like + counts.favorite + counts.comment + counts.friend_request;
           
           console.log(`📨 收件箱未读: ${user.nickname || user.username} - 总计${totalCount}条`);
           
@@ -2725,6 +2782,19 @@ if (data.type === "queryNotificationsByType") {
           console.error(`❌ 删除${section}记录失败:`, err);
         } else {
           console.log(`🗑️ ${user.nickname} 删除了${this.changes}条${section}记录`);
+          // 删除气泡时同步清理关联的点赞、收藏、评论、浏览记录
+          if (section === 'published') {
+            const likePlaceholders = recordIds.map(() => '?').join(',');
+            const favPlaceholders = recordIds.map(() => '?').join(',');
+            const commentPlaceholders = recordIds.map(() => '?').join(',');
+            const viewPlaceholders = recordIds.map(() => '?').join(',');
+            db.run(`DELETE FROM bubble_likes WHERE bubble_id IN (${likePlaceholders})`, [...recordIds]);
+            db.run(`DELETE FROM bubble_favorites WHERE bubble_id IN (${favPlaceholders})`, [...recordIds]);
+            db.run(`DELETE FROM bubble_comments WHERE bubble_id IN (${commentPlaceholders})`, [...recordIds]);
+            db.run(`DELETE FROM bubble_views WHERE bubble_id IN (${viewPlaceholders})`, [...recordIds]);
+            db.run(`DELETE FROM notifications WHERE bubble_id IN (${likePlaceholders})`, [...recordIds]);
+            console.log(`🧹 已清理 ${recordIds.length} 个气泡的关联记录`);
+          }
           
           ws.send(JSON.stringify({
             type: "recordsDeleted",
@@ -2862,14 +2932,17 @@ if (data.type === "queryNotificationsByType") {
                     FROM private_messages
                     WHERE from_user_id = ? AND to_user_id = ? AND is_read = 0
                   `, [otherUserId, user.id], (err, unreadInfo) => {
-                    resolve({
-                      userId: userInfo.id,
-                      username: userInfo.username,
-                      avatar: userInfo.avatar,
-                      lastMessage: lastMsg ? lastMsg.message : '',
-                      lastMessageTime: lastMsg ? lastMsg.created_at : 0,
-                      isSentByMe: lastMsg ? lastMsg.from_user_id === user.id : false,
-                      unreadCount: unreadInfo ? unreadInfo.unread_count : 0
+                    db.get(`SELECT 1 FROM friends WHERE user_id = ? AND friend_id = ?`, [user.id, otherUserId], (err, fRow) => {
+                      resolve({
+                        userId: userInfo.id,
+                        username: userInfo.username,
+                        avatar: userInfo.avatar,
+                        lastMessage: lastMsg ? lastMsg.message : '',
+                        lastMessageTime: lastMsg ? lastMsg.created_at : 0,
+                        isSentByMe: lastMsg ? lastMsg.from_user_id === user.id : false,
+                        unreadCount: unreadInfo ? unreadInfo.unread_count : 0,
+                        isFriend: !!fRow
+                      });
                     });
                   });
                 });
@@ -3298,6 +3371,8 @@ if (data.type === "searchCities") {
                 if (toWs && toWs.readyState === WebSocket.OPEN) {
                   toWs.send(JSON.stringify({ type: "friendRequestReceived", request: { id: this.lastID, fromUserId: user.id, fromUserName: user.nickname || user.username, fromUserAvatar: user.avatar || '👤', createdAt: Date.now() } }));
                 }
+                db.run(`INSERT INTO notifications (user_id, type, bubble_id, from_user_id, from_user_name, from_user_avatar, content, is_read, created_at) VALUES (?, 'friend_request', 'system', ?, ?, ?, ?, 0, ?)`,
+                  [toUserId, user.id, user.nickname || user.username, user.avatar || '👤', String(this.lastID), Date.now()]);
               }
             );
           }
@@ -3318,6 +3393,8 @@ if (data.type === "searchCities") {
           db.run(`INSERT OR IGNORE INTO friends (user_id, friend_id, created_at) VALUES (?, ?, ?)`, [user.id, request.from_user_id, now]);
           db.run(`INSERT OR IGNORE INTO friends (user_id, friend_id, created_at) VALUES (?, ?, ?)`, [request.from_user_id, user.id, now]);
           ws.send(JSON.stringify({ type: "friendRequestAccepted", friendUserId: request.from_user_id }));
+          // 删除相关的通知记录
+          db.run(`DELETE FROM notifications WHERE user_id = ? AND type = 'friend_request' AND content = ?`, [user.id, String(data.requestId)]);
           const fromWs = userSocket.get(request.from_user_id);
           if (fromWs && fromWs.readyState === WebSocket.OPEN) {
             fromWs.send(JSON.stringify({ type: "friendRequestAccepted", friendUserId: user.id, friendUserName: user.nickname || user.username, friendUserAvatar: user.avatar || '👤' }));
@@ -3332,6 +3409,7 @@ if (data.type === "searchCities") {
       const user = socketUser.get(ws);
       if (!user) return;
       db.run(`UPDATE friend_requests SET status = 'rejected', handled_at = ? WHERE id = ? AND to_user_id = ? AND status = 'pending'`, [Date.now(), data.requestId, user.id]);
+      db.run(`DELETE FROM notifications WHERE user_id = ? AND type = 'friend_request' AND content = ?`, [user.id, String(data.requestId)]);
       ws.send(JSON.stringify({ type: "friendRequestRejected", requestId: data.requestId }));
       return;
     }
@@ -3369,6 +3447,249 @@ if (data.type === "searchCities") {
           if (err) { ws.send(JSON.stringify({ type: "queryUserForFriendResult", users: [] })); return; }
           const user = socketUser.get(ws);
           ws.send(JSON.stringify({ type: "queryUserForFriendResult", users: (rows || []).filter(r => !user || r.id !== user.id) }));
+        }
+      );
+      return;
+    }
+    
+    // ⭐ vA1.2: 创建群聊
+    if (data.type === "createGroup") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const { name, memberIds } = data;
+      if (!name) return;
+      const ids = (memberIds && Array.isArray(memberIds)) ? memberIds : [];
+      const now = Date.now();
+      db.run(`INSERT INTO chat_groups (name, creator_id, avatar, created_at, updated_at) VALUES (?, ?, '💬', ?, ?)`,
+        [name.trim(), user.id, now, now], function(err) {
+          if (err) { ws.send(JSON.stringify({ type: "groupCreated", success: false, message: "创建群聊失败" })); return; }
+          const groupId = this.lastID;
+          const members = [user.id, ...ids];
+          const stmt = db.prepare(`INSERT OR IGNORE INTO group_members (group_id, user_id, joined_at) VALUES (?, ?, ?)`);
+          members.forEach(mid => stmt.run([groupId, mid, now]));
+          stmt.finalize();
+          members.forEach(mid => {
+            if (mid !== user.id && userSocket.has(mid)) {
+              try { userSocket.get(mid).send(JSON.stringify({ type: "groupMemberAdded", groupId, groupName: name.trim() })); } catch {}
+            }
+          });
+          ws.send(JSON.stringify({ type: "groupCreated", success: true, groupId, groupName: name.trim() }));
+        }
+      );
+      return;
+    }
+    
+    // ⭐ vA1.2: 查询我的群聊
+    if (data.type === "queryMyGroups") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      db.all(`SELECT g.*, 
+        (SELECT COUNT(*) FROM group_members WHERE group_id = g.id) as member_count,
+        (SELECT message FROM group_messages WHERE group_id = g.id ORDER BY created_at DESC LIMIT 1) as last_message,
+        (SELECT username FROM group_messages gm LEFT JOIN users u ON gm.user_id = u.id WHERE gm.group_id = g.id ORDER BY gm.created_at DESC LIMIT 1) as last_sender
+        FROM chat_groups g INNER JOIN group_members m ON g.id = m.group_id WHERE m.user_id = ? ORDER BY g.updated_at DESC`,
+        [user.id], (err, rows) => {
+          if (err) { ws.send(JSON.stringify({ type: "myGroupsResult", groups: [] })); return; }
+          ws.send(JSON.stringify({ type: "myGroupsResult", groups: rows || [] }));
+        }
+      );
+      return;
+    }
+    
+    // ⭐ vA1.2: 查询群成员
+    if (data.type === "queryGroupMembers") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const groupId = data.groupId;
+      if (!groupId) return;
+      db.all(`SELECT m.user_id, m.joined_at, u.username, u.avatar FROM group_members m LEFT JOIN users u ON m.user_id = u.id WHERE m.group_id = ?`,
+        [groupId], (err, rows) => {
+          if (err) { ws.send(JSON.stringify({ type: "groupMembersResult", groupId, members: [] })); return; }
+          const members = (rows || []).map(r => ({
+            userId: r.user_id,
+            username: r.username || '未知用户',
+            avatar: r.avatar || '👤',
+            joined_at: r.joined_at,
+            isOnline: userSocket.has(r.user_id)
+          }));
+          ws.send(JSON.stringify({ type: "groupMembersResult", groupId, members }));
+        }
+      );
+      return;
+    }
+    
+    // ⭐ vA1.2: 更新群信息（名称/头像）
+    if (data.type === "updateGroupInfo") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const { groupId, name, avatar } = data;
+      if (!groupId) return;
+      db.get(`SELECT * FROM chat_groups WHERE id = ?`, [groupId], (err, group) => {
+        if (err || !group) { ws.send(JSON.stringify({ type: "groupInfoUpdated", success: false, message: "群聊不存在" })); return; }
+        if (group.creator_id !== user.id) { ws.send(JSON.stringify({ type: "groupInfoUpdated", success: false, message: "只有群主可以修改群信息" })); return; }
+        const updates = [];
+        const params = [];
+        if (name && name.trim()) { updates.push("name = ?"); params.push(name.trim()); }
+        if (avatar) { updates.push("avatar = ?"); params.push(avatar); }
+        if (updates.length === 0) { ws.send(JSON.stringify({ type: "groupInfoUpdated", success: false, message: "没有需要更新的内容" })); return; }
+        params.push(groupId);
+        db.run(`UPDATE chat_groups SET ${updates.join(", ")} WHERE id = ?`, params, (err) => {
+          if (err) { ws.send(JSON.stringify({ type: "groupInfoUpdated", success: false, message: "更新失败" })); return; }
+          db.all(`SELECT user_id FROM group_members WHERE group_id = ?`, [groupId], (err, members) => {
+            const info = { groupId, name: name ? name.trim() : group.name, avatar: avatar || group.avatar };
+            if (members) {
+              members.forEach(m => {
+                if (userSocket.has(m.user_id)) {
+                  try { userSocket.get(m.user_id).send(JSON.stringify({ type: "groupInfoUpdated", ...info })); } catch {}
+                }
+              });
+            }
+          });
+        });
+      });
+      return;
+    }
+    
+    // ⭐ vA1.2: 解散群聊
+    if (data.type === "dissolveGroup") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const groupId = data.groupId;
+      if (!groupId) return;
+      db.get(`SELECT * FROM chat_groups WHERE id = ?`, [groupId], (err, group) => {
+        if (err || !group) { ws.send(JSON.stringify({ type: "groupDissolved", success: false, message: "群聊不存在" })); return; }
+        if (group.creator_id !== user.id) { ws.send(JSON.stringify({ type: "groupDissolved", success: false, message: "只有群主可以解散群聊" })); return; }
+        db.all(`SELECT user_id FROM group_members WHERE group_id = ?`, [groupId], (err, members) => {
+          db.run(`DELETE FROM group_messages WHERE group_id = ?`, [groupId]);
+          db.run(`DELETE FROM group_members WHERE group_id = ?`, [groupId]);
+          db.run(`DELETE FROM chat_groups WHERE id = ?`, [groupId], (err) => {
+            if (err) { ws.send(JSON.stringify({ type: "groupDissolved", success: false, message: "解散失败" })); return; }
+            if (members) {
+              members.forEach(m => {
+                if (userSocket.has(m.user_id)) {
+                  try { userSocket.get(m.user_id).send(JSON.stringify({ type: "groupDissolved", groupId })); } catch {}
+                }
+              });
+            }
+            ws.send(JSON.stringify({ type: "groupDissolved", success: true, groupId }));
+          });
+        });
+      });
+      return;
+    }
+    
+    // ⭐ vA1.2: 踢出群成员
+    if (data.type === "kickGroupMember") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const { groupId, targetUserId } = data;
+      if (!groupId || !targetUserId) return;
+      db.get(`SELECT * FROM chat_groups WHERE id = ?`, [groupId], (err, group) => {
+        if (err || !group) { ws.send(JSON.stringify({ type: "memberKicked", success: false, message: "群聊不存在" })); return; }
+        if (group.creator_id !== user.id) { ws.send(JSON.stringify({ type: "memberKicked", success: false, message: "只有群主可以踢出成员" })); return; }
+        if (targetUserId === group.creator_id) { ws.send(JSON.stringify({ type: "memberKicked", success: false, message: "不能踢出群主" })); return; }
+        db.run(`DELETE FROM group_members WHERE group_id = ? AND user_id = ?`, [groupId, targetUserId], (err) => {
+          if (err) { ws.send(JSON.stringify({ type: "memberKicked", success: false, message: "操作失败" })); return; }
+          if (userSocket.has(targetUserId)) {
+            try { userSocket.get(targetUserId).send(JSON.stringify({ type: "kickedFromGroup", groupId })); } catch {}
+          }
+          ws.send(JSON.stringify({ type: "memberKicked", success: true, groupId, targetUserId }));
+        });
+      });
+      return;
+    }
+    
+    // ⭐ vA1.3: 邀请成员加入群聊
+    if (data.type === "addGroupMembers") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const { groupId, memberIds } = data;
+      if (!groupId || !memberIds || !Array.isArray(memberIds) || memberIds.length === 0) return;
+      db.get(`SELECT * FROM chat_groups WHERE id = ?`, [groupId], (err, group) => {
+        if (err || !group) { ws.send(JSON.stringify({ type: "groupMembersAdded", success: false, message: "群聊不存在" })); return; }
+        if (group.creator_id !== user.id) { ws.send(JSON.stringify({ type: "groupMembersAdded", success: false, message: "只有群主可以邀请成员" })); return; }
+        const now = Date.now();
+        const stmt = db.prepare(`INSERT OR IGNORE INTO group_members (group_id, user_id, joined_at) VALUES (?, ?, ?)`);
+        memberIds.forEach(mid => stmt.run([groupId, mid, now]));
+        stmt.finalize();
+        db.run(`UPDATE chat_groups SET updated_at = ? WHERE id = ?`, [now, groupId]);
+        memberIds.forEach(mid => {
+          if (userSocket.has(mid)) {
+            try { userSocket.get(mid).send(JSON.stringify({ type: "groupMemberAdded", groupId, groupName: group.name })); } catch {}
+          }
+        });
+        ws.send(JSON.stringify({ type: "groupMembersAdded", success: true, groupId }));
+      });
+      return;
+    }
+    
+    // ⭐ vA1.2: 退出群聊
+    if (data.type === "leaveGroup") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const groupId = data.groupId;
+      if (!groupId) return;
+      db.get(`SELECT * FROM chat_groups WHERE id = ?`, [groupId], (err, group) => {
+        if (err || !group) { ws.send(JSON.stringify({ type: "leftGroup", success: false, message: "群聊不存在" })); return; }
+        if (group.creator_id === user.id) { ws.send(JSON.stringify({ type: "leftGroup", success: false, message: "群主不能退出群聊，请解散群聊" })); return; }
+        db.run(`DELETE FROM group_members WHERE group_id = ? AND user_id = ?`, [groupId, user.id], (err) => {
+          if (err) { ws.send(JSON.stringify({ type: "leftGroup", success: false, message: "退出失败" })); return; }
+          ws.send(JSON.stringify({ type: "leftGroup", success: true, groupId }));
+        });
+      });
+      return;
+    }
+    
+    // ⭐ vA1.2: 查询群消息
+    if (data.type === "queryGroupMessages") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const groupId = data.groupId;
+      db.all(`SELECT gm.*, u.username, u.avatar FROM group_messages gm LEFT JOIN users u ON gm.user_id = u.id WHERE gm.group_id = ? ORDER BY gm.created_at ASC`,
+        [groupId], (err, rows) => {
+          if (err) { ws.send(JSON.stringify({ type: "groupMessagesResult", groupId, messages: [] })); return; }
+          ws.send(JSON.stringify({ type: "groupMessagesResult", groupId, messages: rows || [] }));
+        }
+      );
+      return;
+    }
+    
+    // ⭐ vA1.2: 发送群消息
+    if (data.type === "sendGroupMessage") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const { groupId, message } = data;
+      if (!groupId || !message) return;
+      const now = Date.now();
+      db.run(`INSERT INTO group_messages (group_id, user_id, message, created_at) VALUES (?, ?, ?, ?)`,
+        [groupId, user.id, message, now], function(err) {
+          if (err) return;
+          // 更新群聊的 updated_at
+          db.run(`UPDATE chat_groups SET updated_at = ? WHERE id = ?`, [now, groupId]);
+          // 广播给所有群成员
+          db.all(`SELECT user_id FROM group_members WHERE group_id = ?`, [groupId], (err, members) => {
+            if (members) {
+              const msgObj = {
+                type: "groupMessageReceived",
+                groupId,
+                message: {
+                  id: this.lastID,
+                  group_id: groupId,
+                  user_id: user.id,
+                  username: user.nickname,
+                  avatar: user.avatar,
+                  message,
+                  created_at: now
+                }
+              };
+              members.forEach(m => {
+                if (userSocket.has(m.user_id)) {
+                  try { userSocket.get(m.user_id).send(JSON.stringify(msgObj)); } catch {}
+                }
+              });
+            }
+          });
+          ws.send(JSON.stringify({ type: "groupMessageSent", groupId, message: { id: this.lastID, group_id: groupId, user_id: user.id, message, created_at: now } }));
         }
       );
       return;

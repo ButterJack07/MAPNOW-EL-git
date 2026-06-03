@@ -550,22 +550,21 @@ function updateUserInfo(field, value) {
         map = new qq.maps.Map(document.getElementById('map'), mapOptions);
 
         let zoomRefreshTimer = null;
-        let _suppressRefresh = false; // 聚合交互时临时禁止刷新
+        let _suppressRefresh = false;
         qq.maps.event.addListener(map, 'zoom_changed', function() {
             if (_suppressRefresh) return;
             if (zoomRefreshTimer) clearTimeout(zoomRefreshTimer);
             zoomRefreshTimer = setTimeout(() => {
-                refreshBubbleMarkersForCurrentZoom();
+                if (typeof refreshClusterLabels === 'function') refreshClusterLabels();
             }, 120);
         });
 
-        // 平移时重新聚合（bounds 变化 → 像素坐标变化）
         let panRefreshTimer = null;
         qq.maps.event.addListener(map, 'bounds_changed', function() {
             if (_suppressRefresh) return;
             if (panRefreshTimer) clearTimeout(panRefreshTimer);
             panRefreshTimer = setTimeout(() => {
-                refreshBubbleMarkersForCurrentZoom();
+                if (typeof refreshClusterLabels === 'function') refreshClusterLabels();
             }, 200);
         });
     
@@ -764,6 +763,7 @@ function updateUserInfo(field, value) {
 
     function setLocationMode(mode) {
         locationMode = mode;
+        try { window._forcePanTo = true; } catch (e) {}
     
         // 获取所有相关按钮
         const gpsCircleBtn = document.getElementById('gpsModeBtn');
@@ -880,7 +880,14 @@ function updateUserInfo(field, value) {
 
         // 更新地图中心（平滑移动）
         if (map) {
-            map.panTo(new qq.maps.LatLng(position.lat, position.lng));
+            try {
+                if (!window._userInteractingWithMap && !window._forcePanTo) {
+                    map.panTo(new qq.maps.LatLng(position.lat, position.lng));
+                } else if (window._forcePanTo) {
+                    map.panTo(new qq.maps.LatLng(position.lat, position.lng));
+                    window._forcePanTo = false;
+                }
+            } catch (e) { console.warn('panTo 失败', e); }
         }
 
         // 更新发布位置显示
@@ -933,7 +940,7 @@ function updateUserInfo(field, value) {
         const markerLatLng = new qq.maps.LatLng(markerPos.lat, markerPos.lng);
 
         if (myMarker) {
-            try { myMarker.setPosition(markerLatLng); myMarker.setMap(map); } catch (e) { console.warn('更新现有 myMarker 位置失败', e); }
+            try { myMarker.setPosition(markerLatLng); } catch (e) { console.warn('更新现有 myMarker 位置失败', e); }
         } else {
             // 创建占位图标（简单圆点 SVG），立即显示
             const placeholderSvg = `data:image/svg+xml;utf8,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><circle cx='20' cy='20' r='10' fill='%23FFAA00' stroke='white' stroke-width='2'/></svg>`)}`;
@@ -944,26 +951,30 @@ function updateUserInfo(field, value) {
                 new qq.maps.Point(20, 20)
             );
             myMarker = new qq.maps.Marker({ map: map, position: markerLatLng, title: currentUser ? currentUser.nickname : '我的位置', icon: phIcon });
-        }
-
-        // 异步生成并替换为头像 icon（不会阻塞 marker 的即时显示）
-        (async () => {
             try {
-                const avatar  = currentUser?.avatar || '👤';
-                const iconUrl = await generateAvatarIconUrl(avatar, 48, '#FFAA00', true);
-                if (!map || !myMarker) return;
-                const icon = new qq.maps.MarkerImage(
-                    iconUrl,
-                    new qq.maps.Size(48, 48),
-                    new qq.maps.Point(0, 0),
-                    new qq.maps.Point(24, 24)
-                );
-                myMarker.setIcon(icon);
-                myMarker.setTitle(currentUser ? currentUser.nickname : '我的位置');
-            } catch (e) {
-                console.warn('异步生成头像失败，保留占位图标', e);
-            }
-        })();
+                qq.maps.event.addListener(myMarker, 'dblclick', function() {
+                    centerAndZoomToRange();
+                });
+            } catch (e) {}
+            // 首次创建时异步生成头像
+            (async () => {
+                try {
+                    const avatar  = currentUser?.avatar || '👤';
+                    const iconUrl = await generateAvatarIconUrl(avatar, 48, '#FFAA00', true);
+                    if (!map || !myMarker) return;
+                    const icon = new qq.maps.MarkerImage(
+                        iconUrl,
+                        new qq.maps.Size(48, 48),
+                        new qq.maps.Point(0, 0),
+                        new qq.maps.Point(24, 24)
+                    );
+                    myMarker.setIcon(icon);
+                    myMarker.setTitle(currentUser ? currentUser.nickname : '我的位置');
+                } catch (e) {
+                    console.warn('异步生成头像失败，保留占位图标', e);
+                }
+            })();
+        }
     }
 
     // ==================== 更新我的可见范围圆圈 ====================
@@ -1008,7 +1019,8 @@ function updateUserInfo(field, value) {
                 radius: visibleRange,
                 fillColor: new qq.maps.Color(c.r, c.g, c.b, 0.24),
                 strokeColor: new qq.maps.Color(c.r, c.g, c.b, 0.58),
-                strokeWeight: 2
+                strokeWeight: 2,
+                clickable: false
             });
             try { window._lastRangeCreatedAt = Date.now(); } catch (e) {}
             console.log('✅ 范围圆圈已创建', { centerPos, visibleRange });
@@ -1044,6 +1056,33 @@ function updateUserInfo(field, value) {
     }
         
     // ==================== ⭐ 局域范围调节功能 ====================
+        // 根据范围返回一个合适的缩放等级（经验映射）
+        function getZoomForRange(rangeMeters) {
+            if (!rangeMeters || rangeMeters <= 0) return 15;
+            if (rangeMeters <= 100) return 18;
+            if (rangeMeters <= 250) return 17;
+            if (rangeMeters <= 500) return 16;
+            if (rangeMeters <= 1000) return 15;
+            if (rangeMeters <= 2000) return 14;
+            if (rangeMeters <= 5000) return 13;
+            return 12;
+        }
+
+        // 将视角移到我的位置（或 manualPosition）并按当前局域范围设置缩放
+        function centerAndZoomToRange() {
+            if (!map || !myPosition) return;
+            const centerPos = (locationMode === 'manual' && manualPosition) ? manualPosition : myPosition;
+            try {
+                window._forcePanTo = true;
+            } catch (e) {}
+            try {
+                map.panTo(new qq.maps.LatLng(centerPos.lat, centerPos.lng));
+            } catch (e) {}
+            try {
+                const z = getZoomForRange(visibleRange || 1000);
+                map.setZoom(z);
+            } catch (e) {}
+        }
         
         
 
@@ -1090,6 +1129,7 @@ function updateUserInfo(field, value) {
         // 4. 显示提示
             
         console.log(`✅ 范围调整完成，已触发气泡刷新和用户可见性更新`);
+        try { centerAndZoomToRange(); } catch (e) {}
     }
         
     // 格式化范围显示

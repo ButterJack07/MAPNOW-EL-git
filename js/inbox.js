@@ -85,7 +85,8 @@ function showNotificationsList(type) {
     const titles = {
         like: '❤️ 点赞通知',
         favorite: '⭐ 收藏通知',
-        comment: '💬 评论通知'
+        comment: '💬 评论通知',
+        friend_request: '👤 好友请求'
     };
     document.getElementById('notificationsTitle').textContent = titles[type] || '通知列表';
 
@@ -121,6 +122,7 @@ function displayNotificationsList(notifications, type) {
         const readClass = isRead ? 'read' : '';
 
         let contentText = '';
+        let actionButtons = '';
         if (type === 'like') {
             contentText = `${notif.from_user_name} 赞了你的气泡`;
         } else if (type === 'favorite') {
@@ -130,6 +132,14 @@ function displayNotificationsList(notifications, type) {
             if (notif.content) {
                 contentText += `: "${notif.content}"`;
             }
+        } else if (type === 'friend_request') {
+            const requestId = notif.content || '';
+            contentText = `${notif.from_user_name} 请求加你为好友`;
+            actionButtons = `
+                <div style="display:flex;gap:6px;margin-top:8px;">
+                    <button onclick="event.stopPropagation();acceptFriendRequest(${requestId});setTimeout(function(){showNotificationsList('friend_request')},500);" style="padding:5px 12px;border:none;border-radius:6px;background:#4CAF50;color:#fff;font-size:12px;cursor:pointer;">同意</button>
+                    <button onclick="event.stopPropagation();rejectFriendRequest(${requestId});setTimeout(function(){showNotificationsList('friend_request')},500);" style="padding:5px 12px;border:1px solid #ccc;border-radius:6px;background:#fff;color:#666;font-size:12px;cursor:pointer;">拒绝</button>
+                </div>`;
         }
 
         html += `
@@ -139,6 +149,7 @@ function displayNotificationsList(notifications, type) {
                 <div class="notification-text">${contentText}</div>
                 <div class="notification-time">${timeStr}</div>
                 ${notif.bubble_title ? `<div class="notification-bubble-title">「${escapeHtml(notif.bubble_title)}」</div>` : ''}
+                ${actionButtons}
             </div>
         </div>
     `;
@@ -147,7 +158,7 @@ function displayNotificationsList(notifications, type) {
 
     container.innerHTML = html;
 
-    const badgeMap = { like: 'tabLikeBadge', favorite: 'tabFavoriteBadge', comment: 'tabCommentBadge' };
+    const badgeMap = { like: 'tabLikeBadge', favorite: 'tabFavoriteBadge', comment: 'tabCommentBadge', friend_request: 'tabFriendRequestBadge' };
     const badgeId = badgeMap[type];
     if (badgeId) {
         const badge = document.getElementById(badgeId);

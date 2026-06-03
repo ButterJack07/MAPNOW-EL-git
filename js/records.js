@@ -90,6 +90,8 @@ function displayPublishedList(bubbles) {
         const images = bubble.images ? (Array.isArray(bubble.images) ? bubble.images : JSON.parse(bubble.images || '[]')) : [];
         window._editBubbleImages[bubble.id] = images;
         const showContent = bubble.content && bubble.content.trim();
+        const isExpired = bubble.is_active === 0 || (bubble.expires_at && bubble.expires_at < Date.now());
+        const expireLabel = isExpired ? ' <span style="font-size:11px;color:#ff6b6b;font-weight:600;">[已过期]</span>' : '';
 
         html += `
                 <div class="uc-record-item" id="bubble-card-${bubble.id}" onclick="toggleBubbleCardDetail('${bubble.id}')">
@@ -98,7 +100,7 @@ function displayPublishedList(bubbles) {
                     </div>
                     <div class="uc-record-body">
                         <div class="uc-record-top">
-                            <div class="uc-record-title">${escapeHtml(bubble.title || '无标题')}</div>
+                            <div class="uc-record-title">${escapeHtml(bubble.title || '无标题')}${expireLabel}</div>
                             <div class="uc-record-top-actions">
                                 <button onclick="event.stopPropagation();locateToBubble(${bubble.lat},${bubble.lng})"
                                     class="uc-icon-action-btn uc-btn-locate" title="定位">📍</button>

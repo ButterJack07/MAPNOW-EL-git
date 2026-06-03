@@ -719,17 +719,14 @@ body::before {
     border: 2px solid var(--bubble-cluster-border);
     font-size: 14px;
     font-weight: 800;
-    box-shadow: 0 4px 12px var(--bubble-cluster-shadow);
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: bubbleAppear 0.5s ease-out, bubbleFloat 3s ease-in-out infinite;
     position: relative;
     letter-spacing: -0.5px;
 }
 
 .bubble-cluster:hover {
     transform: scale(1.15);
-    box-shadow: 0 6px 20px var(--bubble-cluster-shadow);
 }
 
 .bubble-spider {
@@ -750,11 +747,7 @@ body::before {
 .bubble-spider:hover { transform: scale(1.12); }
 
 .bubble-cluster-glow {
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    background: var(--bubble-cluster-glow);
-    pointer-events: none;
+    display: none;
 }
 
 @keyframes clusterPulse {
@@ -1548,18 +1541,21 @@ button[class*="btn"]:hover {
     appearance: none !important;
 }
 
-.chat-panel .message-pill {
+.chat-panel .message-pill,
+.group-chat-messages .message-pill {
     background: var(--bg-secondary) !important;
     border: 1px solid var(--border-light) !important;
     box-shadow: none !important;
 }
 
-.chat-panel .message-row.self .message-pill {
+.chat-panel .message-row.self .message-pill,
+.group-chat-messages .message-row.self .message-pill {
     background: var(--panel-active-bg) !important;
     border: 1px solid var(--panel-active-border) !important;
 }
 
-.chat-panel .message-row.self .bubble-text {
+.chat-panel .message-row.self .bubble-text,
+.group-chat-messages .message-row.self .bubble-text {
     color: var(--panel-active-text) !important;
 }
 

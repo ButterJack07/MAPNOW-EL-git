@@ -322,11 +322,6 @@
 [data-theme="gradient"] .bubble-cluster {
     background: var(--bubble-cluster-bg) !important;
     border-color: var(--bubble-cluster-border) !important;
-    box-shadow: 0 4px 12px var(--bubble-cluster-shadow) !important;
-}
-
-[data-theme="gradient"] .bubble-cluster:hover {
-    box-shadow: 0 6px 20px var(--bubble-cluster-shadow) !important;
 }
 
 [data-theme="gradient"] .bubble-cluster-glow {

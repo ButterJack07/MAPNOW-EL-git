@@ -534,8 +534,8 @@
             currentInfoWindow = null;
         }
 
-        const markerInfo = bubbleMarkers.get(bubble.id);
-        const label = markerInfo && markerInfo.label;
+        const clusterInfo = bubbleMarkers.get(clusterId);
+        const label = clusterInfo && clusterInfo.label;
         if (label) {
             showBubbleInfoWindow(bubble, label);
         }
@@ -634,6 +634,80 @@
 
     // 暴露给外部筛选函数调用
     window.refreshBubbleMarkersForCurrentZoom = refreshBubbleMarkersForCurrentZoom;
+
+    // 轻量刷新：只更新聚合簇，不动已有单独气泡
+    function refreshClusterLabels() {
+        if (!map) return;
+        const oldClusterKeys = [...bubbleMarkers.keys()].filter(k => k.startsWith('cluster_'));
+        oldClusterKeys.forEach(id => {
+            const info = bubbleMarkers.get(id);
+            if (info && info.label) info.label.setMap(null);
+            bubbleMarkers.delete(id);
+        });
+        clusterLookup.clear();
+
+        const currentBubbles = typeof getFilteredBubbles === 'function' ? getFilteredBubbles() : bubbles;
+        const groups = groupBubblesByDistance(currentBubbles);
+        const typeNameMap = { recommend:'推荐', help:'求助', team:'组队', warning:'避雷', news:'见闻', group:'建群' };
+
+        // 收集需要聚合的气泡ID
+        const clusteredIds = new Set();
+        groups.forEach(group => { if (group.length >= 2) group.forEach(b => clusteredIds.add(b.id)); });
+
+        // 移除这些气泡原有的单独标记（如果有）
+        clusteredIds.forEach(id => {
+            const info = bubbleMarkers.get(id);
+            if (info && info.label && !info.clusterId) {
+                info.label.setMap(null);
+                bubbleMarkers.delete(id);
+            }
+        });
+
+        // 创建新聚合簇
+        groups.forEach((group, idx) => {
+            if (group.length < 2) return;
+            const centerLat = group.reduce((s, b) => s + b.lat, 0) / group.length;
+            const centerLng = group.reduce((s, b) => s + b.lng, 0) / group.length;
+            const clusterId = `cluster_${idx}_${group.length}`;
+            const typeSet = [...new Set(group.map(b => b.type || 'other'))];
+            const typeLabel = typeSet.map(t => typeNameMap[t] || t).join('·');
+
+            const clusterLabel = new qq.maps.Label({
+                position: new qq.maps.LatLng(centerLat, centerLng),
+                map,
+                content: `<div style="position:relative;display:inline-flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none;">
+                    <div class="bubble-cluster" style="pointer-events:none;" title="点击查看列表">${group.length}</div>
+                    <div style="pointer-events:none;font-size:10px;color:var(--text-primary);background:rgba(248,247,244,.94);border:1px solid var(--border-light);border-radius:8px;padding:2px 7px;max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${typeLabel}</div>
+                </div>`,
+                style: { border: 'none', background: 'transparent' }
+            });
+
+            qq.maps.event.addListener(clusterLabel, 'click', function() {
+                const mode = localStorage.getItem('clusterInteractionMode') || 'A';
+                preClusterZoomSnap = { zoom: map.getZoom(), center: map.getCenter() };
+                _suppressRefresh = true;
+                map.setCenter(new qq.maps.LatLng(centerLat, centerLng));
+                if (mode === 'B') {
+                    if (spiderfyState.clusterId === clusterId) {
+                        _suppressRefresh = false;
+                        clearSpiderfy();
+                    } else {
+                        spiderfyCluster(clusterId, centerLat, centerLng);
+                        setTimeout(() => { _suppressRefresh = false; showSpiderfyOverlay(); }, 320);
+                    }
+                } else {
+                    setTimeout(() => { _suppressRefresh = false; }, 320);
+                    if (currentInfoWindow) { currentInfoWindow.close(); currentInfoWindow = null; }
+                    showOverlapBubbleList(clusterId, centerLat, centerLng);
+                }
+            });
+
+            bubbleMarkers.set(clusterId, { clusterId, label: clusterLabel });
+            clusterLookup.set(clusterId, group);
+        });
+    }
+    window.refreshClusterLabels = refreshClusterLabels;
+
     function showBubbleInfoWindow(bubble, label) {
         console.log(`🪟 显示气泡信息窗口: ${bubble.title}`);
     

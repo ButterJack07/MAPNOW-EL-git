@@ -27,6 +27,50 @@ animation: slideUp 0.3s ease;
 box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 
+/* 选项卡栏 */
+.chat-tab-bar {
+    display: flex;
+    border-bottom: 1px solid #e0e0e0;
+    background: var(--card-bg);
+    flex-shrink: 0;
+    padding: 0 10px;
+}
+
+.chat-tab-btn {
+    flex: 1;
+    padding: 10px 0;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    position: relative;
+    transition: all 0.3s;
+}
+
+.chat-tab-btn.active {
+    color: var(--primary-color, #667eea);
+    font-weight: 600;
+}
+
+.chat-tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 20%;
+    width: 60%;
+    height: 2px;
+    background: var(--primary-color, #667eea);
+    border-radius: 2px;
+}
+
+.chat-tab-content {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
 .chat-list-header, .chat-header {
 display: flex;
 align-items: center;
@@ -600,5 +644,49 @@ box-shadow: 0 4px 12px rgba(255,107,107,0.3);
     border: none;
     border-radius: 10px;
     cursor: pointer;
+}
+
+/* ==================== ⭐ vA1.2: 群聊消息发送者样式 ==================== */
+.message-sender {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    padding-left: 2px;
+}
+
+.message-sender-avatar {
+    font-size: 16px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.message-sender-avatar img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.message-sender-name {
+    font-size: 12px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+}
+
+.message-received .message-content {
+    border-bottom-left-radius: 4px;
+}
+
+/* ==================== ⭐ vA1.2: 群聊信息面板样式 ==================== */
+#groupInfoOverlay .chat-list-container {
+    max-height: 80vh;
+}
+
+#groupInfoOverlay .chat-list-header h2 {
+    font-size: 16px;
 }
 
