@@ -366,6 +366,16 @@ function connectWebSocket() {
                 }
                 break;
                 
+            // ⭐ vA1.3: 气泡交互状态查询结果
+            case "bubbleInteractionStatus":
+                if (!bubbleInteractions[data.bubbleId]) {
+                    bubbleInteractions[data.bubbleId] = {};
+                }
+                bubbleInteractions[data.bubbleId].liked = data.liked;
+                bubbleInteractions[data.bubbleId].favorited = data.favorited;
+                updateBubbleCardButtons(data.bubbleId, data.liked, data.favorited);
+                break;
+
             // ⭐ 新增：处理点赞记录查询结果
             case "userLikesResult":
                 console.log("📊 收到点赞记录:", data.likes.length, "条");

@@ -875,6 +875,11 @@
     });
         
     console.log("✅ 气泡信息窗口已打开");
+    
+    // 请求服务器查询当前用户对该气泡的交互状态
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'queryBubbleInteraction', bubbleId: bubble.id }));
+    }
         
     // 高亮选中的气泡
     document.querySelectorAll('.bubble').forEach(el => el.classList.remove('active'));

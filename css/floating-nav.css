@@ -100,16 +100,9 @@
     transform: scale(0.96);
 }
 
-.float-btn::before,
-.mobile-user-btn::before {
-    content: "";
-    position: absolute;
-    inset: -40% auto auto -130%;
-    width: 80%;
-    height: 180%;
-    background: linear-gradient(110deg, rgba(255,255,255,0), rgba(255,255,255,0.42), rgba(255,255,255,0));
-    transform: rotate(14deg);
-    pointer-events: none;
+.float-btn:hover {
+    transform: scale(1.07) translateX(-4px) translateY(-1px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.28);
 }
 
 .float-btn:hover::before,
@@ -254,14 +247,14 @@
     .float-btn.active {
         background: var(--panel-active-bg) !important;
         color: var(--panel-active-text) !important;
-        box-shadow: 0 0 0 3px rgba(160, 152, 144, 0.32), 0 4px 16px rgba(82, 78, 72, 0.28) !important;
+        box-shadow: 0 0 0 3px var(--dock-glow-color, rgba(160, 152, 144, 0.32)), 0 4px 16px var(--dock-glow-shadow, rgba(82, 78, 72, 0.28)) !important;
         transform: scale(1.04) !important;
     }
 
     .mobile-user-btn.active {
         background: var(--panel-active-bg) !important;
         color: var(--panel-active-text) !important;
-        box-shadow: 0 0 0 3px rgba(160, 152, 144, 0.32), 0 4px 16px rgba(82, 78, 72, 0.28);
+        box-shadow: 0 0 0 3px var(--dock-glow-color, rgba(160, 152, 144, 0.32)), 0 4px 16px var(--dock-glow-shadow, rgba(82, 78, 72, 0.28));
     }
 }
 
@@ -344,14 +337,14 @@
     .float-btn.active {
         background: var(--panel-active-bg) !important;
         color: var(--panel-active-text) !important;
-        box-shadow: 0 0 0 3px rgba(160, 152, 144, 0.32), 0 4px 16px rgba(82, 78, 72, 0.28) !important;
+        box-shadow: 0 0 0 3px var(--dock-glow-color, rgba(160, 152, 144, 0.32)), 0 4px 16px var(--dock-glow-shadow, rgba(82, 78, 72, 0.28)) !important;
         transform: scale(1.04) !important;
     }
 
     .mobile-user-btn.active {
         background: var(--panel-active-bg) !important;
         color: var(--panel-active-text) !important;
-        box-shadow: 0 0 0 3px rgba(160, 152, 144, 0.32), 0 4px 16px rgba(82, 78, 72, 0.28);
+        box-shadow: 0 0 0 3px var(--dock-glow-color, rgba(160, 152, 144, 0.32)), 0 4px 16px var(--dock-glow-shadow, rgba(82, 78, 72, 0.28));
     }
 
     .nav-label { display: none; }

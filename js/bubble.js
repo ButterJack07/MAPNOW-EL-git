@@ -1,5 +1,18 @@
 // ==================== 气泡互动功能 ====================
 
+function updateBubbleCardButtons(bubbleId, liked, favorited) {
+    const likeBtn = document.getElementById('likeBtn-' + bubbleId);
+    if (likeBtn) {
+        likeBtn.textContent = (liked ? '❤️' : '🤍') + ' 点赞';
+        likeBtn.style.color = liked ? '#FF6B6B' : '#666';
+    }
+    const favBtn = document.getElementById('favBtn-' + bubbleId);
+    if (favBtn) {
+        favBtn.textContent = (favorited ? '⭐' : '☆') + ' 收藏';
+        favBtn.style.color = favorited ? '#FFD700' : '#666';
+    }
+}
+
 function likeBubble(bubbleId) {
     if (!bubbleInteractions[bubbleId]) {
         bubbleInteractions[bubbleId] = {};

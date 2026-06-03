@@ -1837,6 +1837,22 @@ if (data.type === "getUserFullInfo") {
       );
     }
     
+    // ⭐ vA1.3: 查询用户对气泡的交互状态（点赞/收藏）
+    if (data.type === "queryBubbleInteraction") {
+      const user = socketUser.get(ws);
+      if (!user) return;
+      const bubbleId = data.bubbleId;
+      if (!bubbleId) return;
+      db.get(`SELECT 1 as liked FROM bubble_likes WHERE bubble_id = ? AND user_id = ?`, [bubbleId, user.id], (err, likeRow) => {
+        const liked = !!likeRow;
+        db.get(`SELECT 1 as favorited FROM bubble_favorites WHERE bubble_id = ? AND user_id = ?`, [bubbleId, user.id], (err, favRow) => {
+          const favorited = !!favRow;
+          ws.send(JSON.stringify({ type: "bubbleInteractionStatus", bubbleId, liked, favorited }));
+        });
+      });
+      return;
+    }
+    
     // ⭐ 新增：点赞气泡
     if (data.type === "likeBubble") {
       const user = socketUser.get(ws);
