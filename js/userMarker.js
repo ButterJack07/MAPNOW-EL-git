@@ -65,17 +65,6 @@
                 return;
             }
             
-            // 跳过设置了「暂时勿扰」的用户（他们主动隐藏了位置）
-            if (user && user.invisible) {
-                if (userMarkers[userId]) {
-                    userMarkers[userId].setMap(null);
-                }
-                if (userRangeCircles[userId]) {
-                    userRangeCircles[userId].setMap(null);
-                }
-                return;
-            }
-
             // 检查用户是否有位置
             if (!user || !user.lat || !user.lng) {
                 console.log(`⚠️ 用户 ${userId} (${user?.nickname || '未知'}) 无位置信息`);

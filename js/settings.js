@@ -908,18 +908,10 @@ function updateUserInfo(field, value) {
     // ==================== 更新我的标记 ====================
     /**
      * 更新地图上自己的位置标记。
-     * - 若状态为「暂时勿扰」(statusId=6) 则隐藏标记，不暴露位置。
      * - 头像为圆形裁剪，支持 emoji 与 Base64 图片。
      */
     async function updateMyMarker() {
         if (!map || !myPosition) return;
-
-        // 暂时勿扰：隐藏位置标记和范围圆圈
-            if (userStats && userStats.status === 6) {
-            console.log('🔕 暂时勿扰模式：位置标记已隐藏');
-            safeRemoveMyRangeCircle(true); // 强制移除
-            return;
-        }
 
         // 局域模式：通常使用圆圈代表位置，但若是明确的 GPS 模式，应显示人物 marker
         // 搜索（manual）模式 或 全局模式：显示 marker，不显示圆圈
@@ -1208,17 +1200,6 @@ function updateUserInfo(field, value) {
                 return;
             }
             
-            // 跳过设置了「暂时勿扰」的用户（他们主动隐藏了位置）
-            if (user && user.invisible) {
-                if (userMarkers[userId]) {
-                    userMarkers[userId].setMap(null);
-                }
-                if (userRangeCircles[userId]) {
-                    userRangeCircles[userId].setMap(null);
-                }
-                return;
-            }
-
             // 检查用户是否有位置
             if (!user || !user.lat || !user.lng) {
                 console.log(`⚠️ 用户 ${userId} (${user?.nickname || '未知'}) 无位置信息`);

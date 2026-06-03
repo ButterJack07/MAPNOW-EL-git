@@ -1252,20 +1252,6 @@
         overlay.classList.add('show');
         setBottomNavActive('mobileUserButton');
 
-        const statusIconEl = document.getElementById('ucStatusIcon');
-        const iconMap = {
-            1: '🎉',
-            2: '🚶',
-            3: '🎪',
-            4: '🤝',
-            5: '👥',
-            6: '🔕'
-        };
-        if (statusIconEl) {
-            statusIconEl.textContent = iconMap[userStats.status] || '🚶';
-            statusIconEl.title = userStats.statusText || '状态';
-        }
-
         // 打开时如果尚未预加载，立即预取一次发布记录
         if (!window.userPublishedPrefetched) {
             queryUserPublished();
@@ -1704,56 +1690,6 @@
     }
 
 
-    // 切换状态选择器
-    function toggleStatusSelector() {
-        const selector = document.getElementById('statusSelector');
-        selector.style.display = selector.style.display === 'none' ? 'block' : 'none';
-    }
-        
-    // 选择状态
-    function selectStatus(statusId, statusText) {
-        userStats.status = statusId;
-        userStats.statusText = statusText;
-        document.getElementById('statusSelector').style.display = 'none';
-
-        const iconMap = {
-            1: '🎉',
-            2: '🚶',
-            3: '🎪',
-            4: '🤝',
-            5: '👥',
-            6: '🔕'
-        };
-        const statusIconEl = document.getElementById('ucStatusIcon');
-        if (statusIconEl) {
-            statusIconEl.textContent = iconMap[statusId] || '🚶';
-            statusIconEl.title = statusText;
-        }
-
-        const isDnd = (statusId === 6); // 暂时勿扰
-
-        // 发送到服务器（携带是否隐形标志）
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify({
-                type: 'updateStatus',
-                status: statusId,
-                statusText: statusText,
-                invisible: isDnd   // 服务端据此决定是否广播此用户位置
-            }));
-        }
-
-        // 立即刷新自身地图标记（勿扰时隐藏，其他状态时显示）
-        updateMyMarker();
-
-        // 勿扰时不再上报位置，直到状态变更
-        if (isDnd) {
-        } else {
-            sendPositionToServer();
-        }
-
-        console.log('✨ 状态更新:', statusText, isDnd ? '（已隐藏位置）' : '');
-    }
-        
     // 打开会员中心
     // 打开会员中心
     function openVipCenter() {
@@ -2215,21 +2151,6 @@ function updateVipDisplay(vipData) {
         document.getElementById('userCardRegion').innerHTML = `
             <span class="detail-icon">📍</span>
             <span class="detail-text">${region}</span>
-        `;
-
-        // 更新状态
-        const statusMap = {
-            1: { icon: '🎉', text: '空闲可约' },
-            2: { icon: '🚶', text: '正在路上' },
-            3: { icon: '🎪', text: '活动ing' },
-            4: { icon: '🤝', text: '乐于助人' },
-            5: { icon: '👥', text: '寻找同伴' },
-            6: { icon: '🔕', text: '暂时勿扰' }
-        };
-        const status = statusMap[user.status] || statusMap[2];
-        document.getElementById('userCardStatus').innerHTML = `
-            <span class="detail-icon">${status.icon}</span>
-            <span class="detail-text">${status.text}</span>
         `;
 
         // 更新VIP标识

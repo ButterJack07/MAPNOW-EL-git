@@ -88,8 +88,6 @@ function initDatabase() {
       likes_count INTEGER DEFAULT 0,
       favorites_count INTEGER DEFAULT 0,
       comments_count INTEGER DEFAULT 0,
-      status INTEGER DEFAULT 1,
-      status_text TEXT DEFAULT '正在路上',
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
     
@@ -1259,7 +1257,6 @@ if (data.type === "queryUserByIdOrPhone") {
           birthday: user.birthday || '',
           region: user.region || '未设置',
           bio: user.bio || '',
-          status: 2,                   // 默认状态
           isVip: user.is_vip ? true : false
         }
       }));
@@ -1817,24 +1814,6 @@ if (data.type === "getUserFullInfo") {
         userId: user.id,
         avatar: data.avatar
       });
-    }
-    
-    // ⭐ 新增：更新状态
-    if (data.type === "updateStatus") {
-      const user = socketUser.get(ws);
-      if (!user) return;
-      
-      db.run(`INSERT OR REPLACE INTO user_stats (user_id, status, status_text) 
-              VALUES (?, ?, ?)`,
-        [user.id, data.status, data.statusText],
-        (err) => {
-          if (err) {
-            console.error("❌ 更新状态失败:", err);
-          } else {
-            console.log(`✨ 更新状态: ${user.nickname} -> ${data.statusText}`);
-          }
-        }
-      );
     }
     
     // ⭐ vA1.3: 查询用户对气泡的交互状态（点赞/收藏）

@@ -264,7 +264,6 @@
                     <div class="uc-main-info">
                         <div class="uc-username-row">
                             <div class="uc-username" id="ucUsername" onclick="editNickname()" style="cursor:pointer;">用户名</div>
-                            <button class="uc-status-icon" id="ucStatusIcon" onclick="toggleStatusSelector()" title="状态">🚶</button>
                         </div>
                         <div class="uc-userid" id="ucUserId">ID: USER000000</div>
 
@@ -279,15 +278,6 @@
                     <!-- 个人简介将通过JS动态填充 -->
                 </div>
 
-                <!-- 状态选择器（隐藏） -->
-                <div class="status-selector" id="statusSelector" style="display: none;">
-                    <button class="status-option" onclick="selectStatus(1, '空闲可约')">🎉 空闲可约</button>
-                    <button class="status-option" onclick="selectStatus(2, '正在路上')">🚶 正在路上</button>
-                    <button class="status-option" onclick="selectStatus(3, '活动ing')">🎪 活动ing</button>
-                    <button class="status-option" onclick="selectStatus(4, '乐于助人')">🤝 乐于助人</button>
-                    <button class="status-option" onclick="selectStatus(5, '寻找同伴')">👥 寻找同伴</button>
-                    <button class="status-option" onclick="selectStatus(6, '暂时勿扰')">🔕 暂时勿扰</button>
-                </div>
             </div>
             
             <!-- 统计标签栏 -->
@@ -962,10 +952,6 @@
                         <span class="detail-icon">📍</span>
                         <span class="detail-text">未设置</span>
                     </div>
-                    <div class="detail-item" id="userCardStatus">
-                        <span class="detail-icon">🚶</span>
-                        <span class="detail-text">正在路上</span>
-                    </div>
                 </div>
                 
                 <!-- 操作按钮 -->
@@ -1202,7 +1188,7 @@
     let myRangeCircle = null;
     let userMarkers = {}; // 存储其他用户的标记 {userId: marker}
     let userRangeCircles = {}; // 存储其他用户的范围圆圈
-    let onlineUsers = {}; // 在线用户信息 {userId: {lat, lng, nickname, avatar, range, invisible}}
+    let onlineUsers = {}; // 在线用户信息 {userId: {lat, lng, nickname, avatar, range}}
 
 
 let visibleRange = 1000; // 可见范围，单位米
@@ -1241,8 +1227,6 @@ let lastManualLocationName = ''; // 最近一次搜索定位名称
         likesCount: 0,
         favoritesCount: 0,
         commentsCount: 0,
-        status: 1,  // 1-6 对应不同状态
-        statusText: '空闲可约'
     };
         
     // 气泡互动数据 {bubbleId: {liked: bool, favorited: bool, comments: []}}

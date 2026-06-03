@@ -221,7 +221,7 @@
         margin-top: 20px;
     }
 
-    .uc-status-btn, .uc-vip-btn {
+    .uc-vip-btn {
         padding: 12px 30px;
         border-radius: 25px;
         border: 2px solid #E0E0E0;
@@ -233,44 +233,10 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    .uc-status-btn:hover, .uc-vip-btn:hover {
+    .uc-vip-btn:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         border-color: var(--primary-color);
-    }
-
-    /* 状态选择器 */
-    .status-selector {
-        position: absolute;
-        background: var(--card-bg);
-        border-radius: 12px;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-        padding: 10px;
-        margin-top: 10px;
-        z-index: 1000;
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
-        min-width: 280px;
-        left: 50%;
-        transform: translateX(-50%);
-    }
-
-    .status-option {
-        padding: 10px 15px;
-        border: 1px solid #E0E0E0;
-        border-radius: 8px;
-        background: var(--card-bg);
-        cursor: pointer;
-        transition: all 0.3s;
-        font-size: 14px;
-        text-align: left;
-    }
-
-    .status-option:hover {
-        background: #F5F5F5;
-        border-color: var(--primary-color);
-        transform: translateY(-2px);
     }
 
     /* 标签栏 */

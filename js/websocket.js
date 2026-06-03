@@ -115,8 +115,7 @@ function connectWebSocket() {
             avatar: currentUser.avatar || '👤',
             lat: myPosition.lat,
             lng: myPosition.lng,
-            range: visibleRange,
-            invisible: (userStats.status === 6)
+            range: visibleRange
         }));
             
         console.log("📤 发送登录信息:", currentUser.nickname, "范围:", visibleRange + "米");
@@ -131,12 +130,6 @@ function connectWebSocket() {
             myPosition = { lat: 31.28, lng: 121.50 };
         }
             
-        // 暂时勿扰时不上报位置（避免服务端广播我的坐标）
-        if (userStats.status === 6) {
-            console.log('🔕 暂时勿扰：跳过位置上报');
-            return;
-        }
-
         socket.send(JSON.stringify({
             type: 'position',
             lat: myPosition.lat,
@@ -1057,7 +1050,6 @@ function updateCustomTimeButtonState() {
                     nickname: user.nickname,
                     avatar: user.avatar || '👤',
                     range: user.range || 1000,
-                    invisible: !!user.invisible,
                     isVip: user.isVip || false
                 };
             });
@@ -1100,7 +1092,6 @@ function updateCustomTimeButtonState() {
             nickname: data.nickname,
             avatar: data.avatar || onlineUsers[data.userId]?.avatar || '👤',
             range: newRange,
-            invisible: !!data.invisible,
             isVip: data.isVip || false
         };
             
