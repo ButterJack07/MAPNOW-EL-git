@@ -860,7 +860,15 @@
     // 打开信息窗口
     infoWindow.open();
     currentInfoWindow = infoWindow;
-    currentOpenBubbleId = bubble.id; // ⭐ v9.7.6: 记录当前打开的气泡ID
+    currentOpenBubbleId = bubble.id;
+    currentOpenBubbleLabel = label;
+    currentOpenBubble = bubble;
+
+    // 请求服务器查询当前用户对该气泡的交互状态（仅首次打开时查询）
+    if (!window._skipBubbleInteractionQuery && socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: 'queryBubbleInteraction', bubbleId: bubble.id }));
+    }
+    window._skipBubbleInteractionQuery = false;
     
     // ⭐ v9.7.6: 监听信息窗口关闭事件（点击×按钮时）
     qq.maps.event.addListener(infoWindow, 'closeclick', function() {
@@ -875,11 +883,6 @@
     });
         
     console.log("✅ 气泡信息窗口已打开");
-    
-    // 请求服务器查询当前用户对该气泡的交互状态
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ type: 'queryBubbleInteraction', bubbleId: bubble.id }));
-    }
         
     // 高亮选中的气泡
     document.querySelectorAll('.bubble').forEach(el => el.classList.remove('active'));

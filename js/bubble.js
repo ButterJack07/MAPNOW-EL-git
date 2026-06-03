@@ -21,20 +21,17 @@ function refreshCurrentBubbleWindow(bubbleId, liked, favorited) {
     bubbleInteractions[bubbleId].liked = liked;
     bubbleInteractions[bubbleId].favorited = favorited;
     
-    if (currentOpenBubbleId !== bubbleId) return;
-    
-    const bubble = bubbles.find(b => b.id === bubbleId);
-    if (!bubble) return;
+    if (typeof currentOpenBubbleId === 'undefined' || currentOpenBubbleId !== bubbleId) return;
+    if (typeof currentOpenBubble === 'undefined' || !currentOpenBubble) return;
+    if (typeof currentOpenBubbleLabel === 'undefined' || !currentOpenBubbleLabel) return;
     
     if (currentInfoWindow) {
         currentInfoWindow.close();
         currentInfoWindow = null;
     }
     
-    const markerInfo = bubbleMarkers.get(bubbleId);
-    if (markerInfo && markerInfo.label) {
-        showBubbleInfoWindow(bubble, markerInfo.label);
-    }
+    window._skipBubbleInteractionQuery = true;
+    showBubbleInfoWindow(currentOpenBubble, currentOpenBubbleLabel);
 }
 
 function likeBubble(bubbleId) {

@@ -368,6 +368,11 @@ function connectWebSocket() {
                 
             // ⭐ vA1.3: 气泡交互状态查询结果
             case "bubbleInteractionStatus":
+                if (!bubbleInteractions[data.bubbleId]) {
+                    bubbleInteractions[data.bubbleId] = {};
+                }
+                bubbleInteractions[data.bubbleId].liked = data.liked;
+                bubbleInteractions[data.bubbleId].favorited = data.favorited;
                 refreshCurrentBubbleWindow(data.bubbleId, data.liked, data.favorited);
                 break;
 
