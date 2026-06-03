@@ -713,15 +713,23 @@
      */
     function updateChatBadge(count) {
         chatUnreadCount = count;
-        const badge = document.getElementById('chatBadge');
-        if (badge) {
-    if (count > 0) {
-        badge.textContent = count > 99 ? '99+' : count;
-        badge.style.display = 'block';
-    } else {
-        badge.style.display = 'none';
-    }
+        let badge = document.getElementById('chatBadge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.id = 'chatBadge';
+            badge.className = 'chat-badge';
+            badge.style.display = 'none';
+            badge.textContent = '0';
+            const chatBtn = document.getElementById('chatButton');
+            if (chatBtn) chatBtn.appendChild(badge);
         }
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+        if (typeof refreshHeaderBadge === 'function') refreshHeaderBadge();
     }
 
     // ==================== ⭐ v9.4.0: 评论展示功能 ====================

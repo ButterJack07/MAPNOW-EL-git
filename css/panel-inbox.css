@@ -54,6 +54,7 @@
         align-items: center;
         justify-content: center;
         padding: 0 4px;
+        line-height: 1;
         box-shadow: 0 2px 4px rgba(239,68,68,0.3);
     }
 

@@ -13,11 +13,11 @@ function queryUnreadNotifications() {
 }
 
 function updateNotificationBadge(count) {
-    const badge = document.getElementById('notificationBadge');
+    let badge = document.getElementById('notificationBadge') || document.getElementById('inboxBadge');
     if (badge) {
         if (count > 0) {
             badge.textContent = count > 99 ? '99+' : count;
-            badge.style.display = 'block';
+            badge.style.display = '';
         } else {
             badge.style.display = 'none';
         }
@@ -49,7 +49,7 @@ function updateInboxBadge(count) {
     if (badge) {
         if (count > 0) {
             badge.textContent = count > 99 ? '99+' : count;
-            badge.style.display = 'block';
+            badge.style.display = '';
         } else {
             badge.style.display = 'none';
         }
@@ -58,19 +58,28 @@ function updateInboxBadge(count) {
 }
 
 function refreshHeaderBadge() {
-    const chatCount = parseInt(document.getElementById('chatBadge')?.textContent || '0', 10);
-    const inboxCount = parseInt(document.getElementById('inboxBadge')?.textContent || '0', 10);
-    const chatVisible = document.getElementById('chatBadge')?.style.display !== 'none';
-    const inboxVisible = document.getElementById('inboxBadge')?.style.display !== 'none';
+    const chatEl = document.getElementById('chatBadge');
+    const inboxEl = document.getElementById('inboxBadge');
+    const chatCount = chatEl ? parseInt(chatEl.textContent || '0', 10) : 0;
+    const inboxCount = inboxEl ? parseInt(inboxEl.textContent || '0', 10) : 0;
+    const chatVisible = chatEl && chatEl.style.display !== 'none';
+    const inboxVisible = inboxEl && inboxEl.style.display !== 'none';
     const total = (chatVisible ? chatCount : 0) + (inboxVisible ? inboxCount : 0);
-    const hb = document.getElementById('headerBadge');
-    if (hb) {
-        if (total > 0) {
-            hb.textContent = total > 99 ? '99+' : total;
-            hb.style.display = 'block';
-        } else {
-            hb.style.display = 'none';
-        }
+    let hb = document.getElementById('headerBadge');
+    if (!hb) {
+        hb = document.createElement('span');
+        hb.id = 'headerBadge';
+        hb.className = 'chat-badge';
+        hb.style.display = 'none';
+        hb.textContent = '0';
+        const userBtn = document.getElementById('mobileUserButton');
+        if (userBtn) userBtn.appendChild(hb);
+    }
+    if (total > 0) {
+        hb.textContent = total > 99 ? '99+' : total;
+        hb.style.display = '';
+    } else {
+        hb.style.display = 'none';
     }
 }
 
@@ -162,7 +171,10 @@ function displayNotificationsList(notifications, type) {
     const badgeId = badgeMap[type];
     if (badgeId) {
         const badge = document.getElementById(badgeId);
-        if (badge) badge.textContent = '0';
+        if (badge) {
+            badge.textContent = '0';
+            badge.style.display = 'none';
+        }
     }
 
     console.log(`✅ 显示 ${notifications.length} 条${type}通知`);

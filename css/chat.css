@@ -175,11 +175,15 @@ right: 10px;
 background: #FF6B6B;
 color: white;
 font-size: 11px;
-padding: 2px 6px;
-border-radius: 10px;
-font-weight: 600;
+font-weight: 700;
 min-width: 18px;
-text-align: center;
+height: 18px;
+border-radius: 9px;
+display: flex;
+align-items: center;
+justify-content: center;
+padding: 0 5px;
+line-height: 1;
 }
 
 .chat-user-info {
