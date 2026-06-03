@@ -9,17 +9,10 @@
         background: linear-gradient(135deg, #E3F2FD 0%, #BBDEFB 100%);
         z-index: 10000;
         overflow-y: auto;
-        /* ⭐ v9.6.10: 酷炫的侧滑进入动画 */
-        animation: userCenterSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         transform-origin: right center;
     }
     
     /* ⭐ v9.7.8: 暗夜模式下的个人中心背景 */
-    
-    /* ⭐ v9.6.10: 个人中心关闭动画 */
-    .user-center-overlay.closing {
-        animation: userCenterSlideOut 0.4s cubic-bezier(0.4, 0, 0.6, 1);
-    }
     
     @keyframes userCenterSlideIn {
         0% {
@@ -307,10 +300,6 @@
         padding: 30px 20px;
         border-radius: 0 0 12px 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .uc-tab-content {
-        animation: fadeIn 0.3s ease;
     }
 
     .uc-empty {

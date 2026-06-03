@@ -11,7 +11,6 @@
         align-items: center;
         justify-content: center;
         /* ⭐ v9.6.10: 遮罩淡入动画 */
-        animation: overlayFadeIn 0.3s ease;
     }
     
     .publish-panel.show {
@@ -43,14 +42,7 @@
         max-height: 95vh;  /* 从80vh改为90vh，增加高度 */
         height: auto;      /* 添加height: auto让容器根据内容自动调整 */
         box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        /* 修改为从下往上浮出动画 */
-        animation: slideUpFromBottom 0.4s ease;
         overflow-y: auto;  /* 保持auto，但内容应该不会溢出 */
-    }
-
-    /* 添加关闭动画 */
-    .publish-panel.closing .publish-panel-container {
-        animation: slideDownToBottom 0.3s ease forwards;
     }
 
     @keyframes slideUpFromBottom {

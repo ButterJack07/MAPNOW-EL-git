@@ -1121,70 +1121,7 @@ button[class*="btn"]:hover {
     transition: opacity var(--motion-base) var(--ease-out-soft), visibility var(--motion-base) var(--ease-out-soft);
 }
 
-.chat-panel.show,
-.publish-panel.show,
-.user-center-overlay.show,
-.range-panel-overlay.show {
-    animation: fadeInSoft var(--motion-base) var(--ease-out-soft);
-}
 
-.settings-overlay[style*="display: block"],
-.settings-overlay[style*="display: flex"],
-.vip-modal-overlay[style*="display: block"],
-.vip-modal-overlay[style*="display: flex"],
-.info-modal-overlay[style*="display: block"],
-.info-modal-overlay[style*="display: flex"],
-.inbox-overlay[style*="display: block"],
-.inbox-overlay[style*="display: flex"],
-.notifications-overlay[style*="display: block"],
-.notifications-overlay[style*="display: flex"],
-.chat-list-overlay[style*="display: block"],
-.chat-list-overlay[style*="display: flex"],
-.chat-overlay[style*="display: block"],
-.chat-overlay[style*="display: flex"],
-#locationModal[style*="display: block"],
-#locationModal[style*="display: flex"] {
-    animation: fadeInSoft var(--motion-base) var(--ease-out-soft);
-}
-
-.chat-panel-container,
-.publish-panel-container,
-.user-center-container,
-.range-panel,
-#filterModal > div,
-#rangeModal > div,
-#locationModal > div {
-    transform-origin: center bottom;
-}
-
-.chat-panel.show .chat-panel-container,
-.publish-panel.show .publish-panel-container,
-.user-center-overlay:not(.closing) .user-center-container,
-.range-panel-overlay[style*="display: flex"] .range-panel,
-#filterModal[style*="display: flex"] > div,
-#rangeModal[style*="display: flex"] > div,
-#locationModal[style*="display: flex"] > div {
-    animation: panelLift var(--motion-panel) var(--ease-out-emphasis);
-}
-
-.settings-overlay[style*="display: block"] .settings-container,
-.settings-overlay[style*="display: flex"] .settings-container,
-.vip-modal-overlay[style*="display: block"] .vip-purchase-container,
-.vip-modal-overlay[style*="display: flex"] .vip-purchase-container,
-.info-modal-overlay[style*="display: block"] .info-modal-container,
-.info-modal-overlay[style*="display: flex"] .info-modal-container,
-.inbox-overlay[style*="display: block"] .inbox-container,
-.inbox-overlay[style*="display: flex"] .inbox-container,
-.notifications-overlay[style*="display: block"] .notifications-container,
-.notifications-overlay[style*="display: flex"] .notifications-container,
-.chat-list-overlay[style*="display: block"] .chat-list-container,
-.chat-list-overlay[style*="display: flex"] .chat-list-container,
-.chat-overlay[style*="display: block"] .chat-container,
-.chat-overlay[style*="display: flex"] .chat-container,
-#locationModal[style*="display: block"] .modal-content,
-#locationModal[style*="display: flex"] .modal-content {
-    animation: panelLift var(--motion-panel) var(--ease-out-emphasis);
-}
 
 .chat-panel.closing .chat-panel-container,
 .publish-panel.closing .publish-panel-container,
