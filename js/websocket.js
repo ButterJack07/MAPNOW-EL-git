@@ -373,6 +373,23 @@ function connectWebSocket() {
                 }
                 bubbleInteractions[data.bubbleId].liked = data.liked;
                 bubbleInteractions[data.bubbleId].favorited = data.favorited;
+                // 写入所有内存引用
+                bubbles.forEach(b => {
+                    if (b.id === data.bubbleId) {
+                        b._likedByMe = data.liked;
+                        b._favoritedByMe = data.favorited;
+                    }
+                });
+                bubbleMarkers.forEach(info => {
+                    if (info.bubble && info.bubble.id === data.bubbleId) {
+                        info.bubble._likedByMe = data.liked;
+                        info.bubble._favoritedByMe = data.favorited;
+                    }
+                });
+                if (typeof currentOpenBubble !== 'undefined' && currentOpenBubble && currentOpenBubble.id === data.bubbleId) {
+                    currentOpenBubble._likedByMe = data.liked;
+                    currentOpenBubble._favoritedByMe = data.favorited;
+                }
                 refreshCurrentBubbleWindow(data.bubbleId, data.liked, data.favorited);
                 break;
 
@@ -382,6 +399,8 @@ function connectWebSocket() {
                     bubbleInteractions[data.bubbleId] = {};
                 }
                 bubbleInteractions[data.bubbleId].liked = data.liked;
+                bubbles.forEach(b => { if (b.id === data.bubbleId) b._likedByMe = data.liked; });
+                bubbleMarkers.forEach(info => { if (info.bubble && info.bubble.id === data.bubbleId) info.bubble._likedByMe = data.liked; });
                 if (typeof currentOpenBubbleId !== 'undefined' && currentOpenBubbleId === data.bubbleId) {
                     updateBubbleCardButtons(data.bubbleId, data.liked, bubbleInteractions[data.bubbleId].favorited);
                 }
@@ -394,6 +413,8 @@ function connectWebSocket() {
                     bubbleInteractions[data.bubbleId] = {};
                 }
                 bubbleInteractions[data.bubbleId].favorited = data.favorited;
+                bubbles.forEach(b => { if (b.id === data.bubbleId) b._favoritedByMe = data.favorited; });
+                bubbleMarkers.forEach(info => { if (info.bubble && info.bubble.id === data.bubbleId) info.bubble._favoritedByMe = data.favorited; });
                 if (typeof currentOpenBubbleId !== 'undefined' && currentOpenBubbleId === data.bubbleId) {
                     updateBubbleCardButtons(data.bubbleId, bubbleInteractions[data.bubbleId].liked, data.favorited);
                 }

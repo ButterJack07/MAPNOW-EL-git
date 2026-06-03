@@ -43,6 +43,11 @@ function likeBubble(bubbleId) {
     const newLiked = !wasLiked;
     bubbleInteractions[bubbleId].liked = newLiked;
     
+    // 写入所有内存引用
+    bubbles.forEach(b => { if (b.id === bubbleId) b._likedByMe = newLiked; });
+    bubbleMarkers.forEach(info => { if (info.bubble && info.bubble.id === bubbleId) info.bubble._likedByMe = newLiked; });
+    if (currentOpenBubble && currentOpenBubble.id === bubbleId) currentOpenBubble._likedByMe = newLiked;
+    
     refreshCurrentBubbleWindow(bubbleId, newLiked, bubbleInteractions[bubbleId].favorited);
 
     if (socket && socket.readyState === WebSocket.OPEN) {
@@ -65,6 +70,11 @@ function favoriteBubble(bubbleId) {
     const wasFavorited = bubbleInteractions[bubbleId].favorited;
     const newFavorited = !wasFavorited;
     bubbleInteractions[bubbleId].favorited = newFavorited;
+    
+    // 写入所有内存引用
+    bubbles.forEach(b => { if (b.id === bubbleId) b._favoritedByMe = newFavorited; });
+    bubbleMarkers.forEach(info => { if (info.bubble && info.bubble.id === bubbleId) info.bubble._favoritedByMe = newFavorited; });
+    if (currentOpenBubble && currentOpenBubble.id === bubbleId) currentOpenBubble._favoritedByMe = newFavorited;
     
     refreshCurrentBubbleWindow(bubbleId, bubbleInteractions[bubbleId].liked, newFavorited);
 

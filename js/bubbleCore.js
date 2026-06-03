@@ -746,10 +746,9 @@
         </button>
     </div>` : '';
     
-        // ⭐ 气泡互动状态
-        const bubbleInteraction = bubbleInteractions[bubble.id] || {};
-        const isLiked = bubbleInteraction.liked || false;
-        const isFavorited = bubbleInteraction.favorited || false;
+        // ⭐ 气泡互动状态（优先从 bubble 对象上读取）
+        const isLiked = bubble._likedByMe || (bubbleInteractions[bubble.id] && bubbleInteractions[bubble.id].liked) || false;
+        const isFavorited = bubble._favoritedByMe || (bubbleInteractions[bubble.id] && bubbleInteractions[bubble.id].favorited) || false;
     
     // 创建信息窗口内容
     const content = `
