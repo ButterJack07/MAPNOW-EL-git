@@ -368,12 +368,31 @@ function connectWebSocket() {
                 
             // ⭐ vA1.3: 气泡交互状态查询结果
             case "bubbleInteractionStatus":
+                refreshCurrentBubbleWindow(data.bubbleId, data.liked, data.favorited);
+                break;
+
+            // ⭐ vA1.3: 点赞确认
+            case "bubbleLiked":
                 if (!bubbleInteractions[data.bubbleId]) {
                     bubbleInteractions[data.bubbleId] = {};
                 }
                 bubbleInteractions[data.bubbleId].liked = data.liked;
+                if (typeof currentOpenBubbleId !== 'undefined' && currentOpenBubbleId === data.bubbleId) {
+                    updateBubbleCardButtons(data.bubbleId, data.liked, bubbleInteractions[data.bubbleId].favorited);
+                }
+                if (typeof updateUserStats === 'function') updateUserStats();
+                break;
+
+            // ⭐ vA1.3: 收藏确认
+            case "bubbleFavorited":
+                if (!bubbleInteractions[data.bubbleId]) {
+                    bubbleInteractions[data.bubbleId] = {};
+                }
                 bubbleInteractions[data.bubbleId].favorited = data.favorited;
-                updateBubbleCardButtons(data.bubbleId, data.liked, data.favorited);
+                if (typeof currentOpenBubbleId !== 'undefined' && currentOpenBubbleId === data.bubbleId) {
+                    updateBubbleCardButtons(data.bubbleId, bubbleInteractions[data.bubbleId].liked, data.favorited);
+                }
+                if (typeof updateUserStats === 'function') updateUserStats();
                 break;
 
             // ⭐ 新增：处理点赞记录查询结果

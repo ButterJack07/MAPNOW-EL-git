@@ -1868,6 +1868,7 @@ if (data.type === "getUserFullInfo") {
               console.error("❌ 点赞失败:", err);
             } else {
               console.log(`❤️ ${user.nickname} 点赞了气泡: ${data.bubbleId}`);
+              ws.send(JSON.stringify({ type: "bubbleLiked", bubbleId: data.bubbleId, liked: true }));
               // 更新用户统计
               db.run(`UPDATE user_stats SET likes_count = likes_count + 1 WHERE user_id = ?`, [user.id]);
               
@@ -1897,6 +1898,7 @@ if (data.type === "getUserFullInfo") {
               console.error("❌ 取消点赞失败:", err);
             } else {
               console.log(`💔 ${user.nickname} 取消点赞: ${data.bubbleId}`);
+              ws.send(JSON.stringify({ type: "bubbleLiked", bubbleId: data.bubbleId, liked: false }));
               // 更新用户统计
               db.run(`UPDATE user_stats SET likes_count = likes_count - 1 WHERE user_id = ?`, [user.id]);
             }
@@ -1920,6 +1922,7 @@ if (data.type === "getUserFullInfo") {
               console.error("❌ 收藏失败:", err);
             } else {
               console.log(`⭐ ${user.nickname} 收藏了气泡: ${data.bubbleId}`);
+              ws.send(JSON.stringify({ type: "bubbleFavorited", bubbleId: data.bubbleId, favorited: true }));
               // 更新用户统计
               db.run(`UPDATE user_stats SET favorites_count = favorites_count + 1 WHERE user_id = ?`, [user.id]);
               
@@ -1949,6 +1952,7 @@ if (data.type === "getUserFullInfo") {
               console.error("❌ 取消收藏失败:", err);
             } else {
               console.log(`☆ ${user.nickname} 取消收藏: ${data.bubbleId}`);
+              ws.send(JSON.stringify({ type: "bubbleFavorited", bubbleId: data.bubbleId, favorited: false }));
               // 更新用户统计
               db.run(`UPDATE user_stats SET favorites_count = favorites_count - 1 WHERE user_id = ?`, [user.id]);
             }

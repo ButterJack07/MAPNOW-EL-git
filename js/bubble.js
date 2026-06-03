@@ -3,13 +3,37 @@
 function updateBubbleCardButtons(bubbleId, liked, favorited) {
     const likeBtn = document.getElementById('likeBtn-' + bubbleId);
     if (likeBtn) {
-        likeBtn.textContent = (liked ? '❤️' : '🤍') + ' 点赞';
+        likeBtn.innerHTML = '<span>' + (liked ? '❤️' : '🤍') + ' 点赞</span>';
         likeBtn.style.color = liked ? '#FF6B6B' : '#666';
     }
     const favBtn = document.getElementById('favBtn-' + bubbleId);
     if (favBtn) {
-        favBtn.textContent = (favorited ? '⭐' : '☆') + ' 收藏';
+        favBtn.innerHTML = '<span>' + (favorited ? '⭐' : '☆') + ' 收藏</span>';
         favBtn.style.color = favorited ? '#FFD700' : '#666';
+    }
+}
+
+// ⭐ vA1.3: 根据服务器返回的交互状态刷新当前气泡信息窗口
+function refreshCurrentBubbleWindow(bubbleId, liked, favorited) {
+    if (!bubbleInteractions[bubbleId]) {
+        bubbleInteractions[bubbleId] = {};
+    }
+    bubbleInteractions[bubbleId].liked = liked;
+    bubbleInteractions[bubbleId].favorited = favorited;
+    
+    if (currentOpenBubbleId !== bubbleId) return;
+    
+    const bubble = bubbles.find(b => b.id === bubbleId);
+    if (!bubble) return;
+    
+    if (currentInfoWindow) {
+        currentInfoWindow.close();
+        currentInfoWindow = null;
+    }
+    
+    const markerInfo = bubbleMarkers.get(bubbleId);
+    if (markerInfo && markerInfo.label) {
+        showBubbleInfoWindow(bubble, markerInfo.label);
     }
 }
 
@@ -19,25 +43,21 @@ function likeBubble(bubbleId) {
     }
 
     const wasLiked = bubbleInteractions[bubbleId].liked;
-    bubbleInteractions[bubbleId].liked = !wasLiked;
+    const newLiked = !wasLiked;
+    bubbleInteractions[bubbleId].liked = newLiked;
+    
+    refreshCurrentBubbleWindow(bubbleId, newLiked, bubbleInteractions[bubbleId].favorited);
 
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({
             type: 'likeBubble',
             bubbleId: bubbleId,
-            liked: !wasLiked
+            liked: newLiked
         }));
     }
 
-    const likeBtn = document.getElementById('likeBtn-' + bubbleId);
-    if (likeBtn) {
-        likeBtn.textContent = (!wasLiked ? '❤️' : '🤍') + ' 点赞';
-        likeBtn.style.color = !wasLiked ? '#FF6B6B' : '#666';
-    }
-
     updateUserStats();
-
-    console.log((!wasLiked ? '❤️' : '💔') + ' 气泡点赞:', bubbleId);
+    console.log((newLiked ? '❤️' : '💔') + ' 气泡点赞:', bubbleId);
 }
 
 function favoriteBubble(bubbleId) {
@@ -46,25 +66,21 @@ function favoriteBubble(bubbleId) {
     }
 
     const wasFavorited = bubbleInteractions[bubbleId].favorited;
-    bubbleInteractions[bubbleId].favorited = !wasFavorited;
+    const newFavorited = !wasFavorited;
+    bubbleInteractions[bubbleId].favorited = newFavorited;
+    
+    refreshCurrentBubbleWindow(bubbleId, bubbleInteractions[bubbleId].liked, newFavorited);
 
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({
             type: 'favoriteBubble',
             bubbleId: bubbleId,
-            favorited: !wasFavorited
+            favorited: newFavorited
         }));
     }
 
-    const favBtn = document.getElementById('favBtn-' + bubbleId);
-    if (favBtn) {
-        favBtn.textContent = (!wasFavorited ? '⭐' : '☆') + ' 收藏';
-        favBtn.style.color = !wasFavorited ? '#FFD700' : '#666';
-    }
-
     updateUserStats();
-
-    console.log((!wasFavorited ? '⭐' : '☆') + ' 气泡收藏:', bubbleId);
+    console.log((newFavorited ? '⭐' : '☆') + ' 气泡收藏:', bubbleId);
 }
 
 function commentBubble(bubbleId) {
