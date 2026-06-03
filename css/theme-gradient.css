@@ -39,6 +39,8 @@
     --dock-active-bg: #8B7E9E;
     --dock-active-text: #F6F5F1;
     --dock-active-outline: #9A8EAE;
+    --dock-glow-color: rgba(139, 126, 158, 0.32);
+    --dock-glow-shadow: rgba(100, 90, 120, 0.28);
     --btn-soft-bg: #D4D0D6;
     --btn-soft-bg-hover: #C8C4CA;
     --btn-soft-border: #BDB8C0;
@@ -315,7 +317,7 @@
 [data-theme="gradient"] .mobile-user-btn.active {
     background: var(--dock-active-bg) !important;
     color: var(--dock-active-text) !important;
-    outline-color: var(--dock-active-outline) !important;
+    box-shadow: 0 0 0 3px var(--dock-glow-color), 0 6px 24px var(--dock-glow-shadow) !important;
 }
 
 /* ── 气泡聚合 ──────────────────────────────────────────── */

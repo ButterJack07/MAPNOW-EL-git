@@ -39,6 +39,8 @@
     --dock-active-bg: #9a938b;
     --dock-active-text: #f6f3ee;
     --dock-active-outline: #a29d95;
+    --dock-glow-color: rgba(160, 152, 144, 0.32);
+    --dock-glow-shadow: rgba(82, 78, 72, 0.28);
     --btn-soft-bg: #d8d3cc;
     --btn-soft-bg-hover: #ccc7c0;
     --btn-soft-border: #c1bbb3;

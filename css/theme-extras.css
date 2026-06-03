@@ -31,6 +31,8 @@
     --dock-active-bg: #7A9BAE;
     --dock-active-text: #F6F5F1;
     --dock-active-outline: #8DABBC;
+    --dock-glow-color: rgba(122, 155, 174, 0.32);
+    --dock-glow-shadow: rgba(90, 130, 150, 0.28);
     --btn-soft-bg: #D0D4D6;
     --btn-soft-bg-hover: #C4C8CA;
     --btn-soft-border: #B8BDC0;
@@ -290,7 +292,7 @@
 [data-theme="ocean"] .mobile-user-btn.active {
     background: var(--dock-active-bg) !important;
     color: var(--dock-active-text) !important;
-    outline-color: var(--dock-active-outline) !important;
+    box-shadow: 0 0 0 3px var(--dock-glow-color), 0 6px 24px var(--dock-glow-shadow) !important;
 }
 
 [data-theme="ocean"] .bubble-cluster {
@@ -336,6 +338,8 @@
     --dock-active-bg: #8DAE8D;
     --dock-active-text: #F6F5F1;
     --dock-active-outline: #9DBD9D;
+    --dock-glow-color: rgba(141, 174, 141, 0.32);
+    --dock-glow-shadow: rgba(110, 150, 110, 0.28);
     --btn-soft-bg: #D0D6D0;
     --btn-soft-bg-hover: #C4CAC4;
     --btn-soft-border: #B8C0B8;
@@ -595,7 +599,7 @@
 [data-theme="green"] .mobile-user-btn.active {
     background: var(--dock-active-bg) !important;
     color: var(--dock-active-text) !important;
-    outline-color: var(--dock-active-outline) !important;
+    box-shadow: 0 0 0 3px var(--dock-glow-color), 0 6px 24px var(--dock-glow-shadow) !important;
 }
 
 [data-theme="green"] .bubble-cluster {
@@ -641,6 +645,8 @@
     --dock-active-bg: #C4A882;
     --dock-active-text: #F6F5F1;
     --dock-active-outline: #D0B892;
+    --dock-glow-color: rgba(196, 168, 130, 0.32);
+    --dock-glow-shadow: rgba(160, 130, 90, 0.28);
     --btn-soft-bg: #D4D1CA;
     --btn-soft-bg-hover: #C8C5BE;
     --btn-soft-border: #BDBAB2;
@@ -900,7 +906,7 @@
 [data-theme="yellow"] .mobile-user-btn.active {
     background: var(--dock-active-bg) !important;
     color: var(--dock-active-text) !important;
-    outline-color: var(--dock-active-outline) !important;
+    box-shadow: 0 0 0 3px var(--dock-glow-color), 0 6px 24px var(--dock-glow-shadow) !important;
 }
 
 [data-theme="yellow"] .bubble-cluster {
