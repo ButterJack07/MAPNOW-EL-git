@@ -1,51 +1,75 @@
 # 此刻地图
 
-> 一款轻量级交互地图应用
+> 记录此刻，分享此地。一款基于地理位置的轻量级实时社交地图应用。
 >
-> 记录此刻，分享此地。
+> 南京大学 EL 程序设计大赛参赛作品
 >
 > **GitHub**：[ButterJack07/MAPNOW-EL-git](https://github.com/ButterJack07/MAPNOW-EL-git)
 
-## 1. 项目定位
+---
 
-**此刻地图（A1.0）** 是一款 Web 端（同时可打包进 Android WebView）运行的实时地图社交应用。用户可以在地图上发布"气泡"——临时存在、带位置、带主题的图文消息，并可与同区域内的人聊天、加好友、组队。
+## 1. 项目简介
+
+### 1.1 产品定位
+
+**此刻地图** 是一款基于地理位置的实时社交工具。它以"地图"为界面、以"气泡"为语言——用户可以在当前位置发布即时信息（求助、组队、推荐、避雷、见闻、建群），同一时空下附近的人几秒内即可看到并回应。
+
+面向的场景是 **"你已经在线下现场"** 之后的那段时间——音乐节、漫展、商圈、校园活动、citywalk——任何需要即时连接附近陌生人的场合。
 
 * **核心形态**：H5 页面 + Node.js WebSocket 后端
 * **目标用户**：18-35 岁、喜欢线下探索、需要在陌生地点快速找到同好的人群
-* **当前版本**：`A1.0.3`（标题）、`v10.0.1`（功能号，详见 problems.md 中的版本号混乱问题）
+* **当前版本**：`A1.0.3`（EL 大赛参赛版本）
+
+### 1.2 设计理念
+
+- **「此刻即响应」** — WebSocket 全双工长连接，气泡/消息推送延迟秒级；以地理围栏 + 时效性作为信息分发基础
+- **「地图即界面，气泡即语言」** — 4 步完成发布，浏览信息像看地图标注一样简单
+
+### 1.3 与现有工具的差别
+
+- **小红书 / 微博** → 过去式攻略，无法满足"此刻"需求
+- **微信群 / QQ群** → 信息易淹没，建群流程繁琐，无法匹配"此地的"用户
+- **高德 / 大众点评** → 静态地点信息，缺少现场动态与同好连接
+- **此刻地图** → 信息按地理位置锚定在地图上，时效性强，一键可聊
+
+---
 
 ## 2. 技术栈
 
 | 层 | 技术 |
 | --- | --- |
-| 前端 | 原生 HTML / CSS / JavaScript（ES5 + 少量 ES6），无构建工具 |
-| 地图 SDK | 腾讯地图 JavaScript API v2.exp（key 内置在 `index.html`） |
+| 前端 | 原生 HTML / CSS / JavaScript（无框架，无构建工具） |
+| 地图 | 腾讯地图 JavaScript API v2.exp |
 | 图片裁剪 | Cropper.js 1.6.2（CDN） |
-| 后端 | Node.js + `ws` 库（纯 WebSocket，无 Express） |
-| 数据库 | SQLite 3（`sqlite3` Node 库，文件型 `users.db`） |
+| 后端 | Node.js + `ws` 库（纯 WebSocket，无 HTTP 框架） |
+| 数据库 | SQLite 3（`sqlite3`，文件型 `users.db`） |
 | 监控面板 | 纯 HTML 模板字符串（端口 3001） |
-| 部署 | Vercel（前端静态）+ 自建 Node（后端 + WebSocket） |
+| 部署 | Vercel（前端静态）+ 自建 Node 服务器（后端） |
+| Android | Android Studio WebView 嵌入，`sync-android.bat` 同步 |
+| 小程序 | 计划中 |
 | 版本控制 | Git + 10 分钟自动提交脚本 `auto-git.bat` |
-| 同步 | `sync-android.bat` 同步到 Android Studio 的 assets 目录 |
+
+---
 
 ## 3. 目录结构
 
 ```
 A1.0/
-├── index.html               # 单页入口，所有 UI 都在这里（1752 行）
-├── SERVER.js                # Node 后端：WebSocket + HTTP 监控（3997 行）
-├── vercel.json              # Vercel 路由：/api/* 代理到后端
-├── auto-git.bat             # 每 10 分钟自动 git commit + push
-├── sync-android.bat         # 同步前端到 Android assets
+├── index.html               # 单页入口（≈1750 行）
+├── SERVER.js                # Node 后端：WebSocket + HTTP 监控（≈4000 行）
+├── vercel.json              # Vercel 路由代理配置
+├── LICENSE                  # MIT 协议
+├── intro.md                 # 项目概述文档
 ├── problems.md              # 已知的架构/安全问题清单
 ├── todo.md                  # 待办事项
+├── 商业计划.md              # 商业计划书
 │
 ├── js/                      # 前端逻辑（25 个文件，按加载顺序）
-│   ├── globals.js           # **全局状态变量**（socket/map/currentUser 等，原内联于 index.html）
+│   ├── globals.js           # 全局状态变量（原内联于 index.html）
 │   ├── utils.js             # 通用工具：localStorage 缓存、距离计算、ID 生成
 │   ├── auth.js              # 登录/注册面板逻辑
 │   ├── publish.js           # 发布气泡向导
-│   ├── user-center.js       # 个人中心：6 个 Tab（发布/点赞/收藏/评论/历史/搜索）
+│   ├── user-center.js       # 个人中心：6 个 Tab
 │   ├── inbox.js             # 收件箱 / 通知
 │   ├── theme.js             # 主题切换
 │   ├── records.js           # 个人中心各 Tab 数据查询 + 切换
@@ -53,11 +77,11 @@ A1.0/
 │   ├── bubble.js            # 气泡 UI
 │   ├── filter.js            # 气泡类型筛选
 │   ├── websocket.js         # WebSocket 连接 + 消息路由
-│   ├── bubbleCore.js        # 气泡核心：聚合、spiderfy、地图操作
+│   ├── bubbleCore.js        # 气泡核心：聚合、spiderfy、地图重绘
 │   ├── chat.js              # 私聊 / 群聊界面
 │   ├── viewport-fix.js      # 移动端视口修复
 │   ├── back-handler.js      # 安卓返回键处理
-│   ├── settings.js          # 设置页（含地区修改等，1780 行）
+│   ├── settings.js          # 设置页面
 │   ├── init-extras.js       # 初始化补充
 │   ├── tutorial.js          # 新手引导
 │   ├── range-core.js        # 范围圈核心
@@ -74,13 +98,15 @@ A1.0/
 │   ├── chat.css             # 聊天界面
 │   └── floating-nav.css     # 浮动导航
 │
-└── 已清理
-    └── src/panels/          # 已删除，无引用
+├── auto-git.bat             # 每 10 分钟自动 git commit + push
+└── sync-android.bat         # 同步前端到 Android Studio assets
 ```
+
+---
 
 ## 4. 数据库设计
 
-后端使用 SQLite，所有表在 `SERVER.js:37` 的 `initDatabase()` 中创建（`CREATE TABLE IF NOT EXISTS`）。
+后端使用 SQLite，所有表在 `SERVER.js` 的 `initDatabase()` 中创建（`CREATE TABLE IF NOT EXISTS`）。
 
 | 表 | 用途 | 关键字段 |
 | --- | --- | --- |
@@ -99,13 +125,15 @@ A1.0/
 | `group_members` | 群成员 | group_id, user_id |
 | `group_messages` | 群消息 | group_id, user_id, content |
 
-> ⚠️ **安全提示**（见 problems.md）：`password` 字段明文存储，管理员密码 `admin123` 硬编码在 `SERVER.js:577`，需尽快改造。
+> ⚠️ **安全提示**（见 problems.md）：`password` 字段明文存储，管理员密码 `admin123` 硬编码在 `SERVER.js`，需尽快改造。
+
+---
 
 ## 5. WebSocket 消息协议
 
-前后端通过 WebSocket 通信（端口未在 SERVER.js 中显式监听，依赖部署平台转发）。客户端 `socket.send(JSON.stringify({ type: "xxx", ... }))`，服务端 `data.type === "xxx"` 分发。
+前后端通过 WebSocket 通信（端口 3000）。客户端 `socket.send(JSON.stringify({ type: "xxx", ... }))`，服务端按 `data.type` 分发。
 
-消息类型分类（**共计 60+ 种**，详见 SERVER.js 1219-3770 行）：
+消息类型分类（**共计 60+ 种**，详见 SERVER.js）：
 
 ### 认证 / 用户
 * `register` / `authLogin` / `login` — 注册与登录
@@ -122,7 +150,7 @@ A1.0/
 * `queryBubbleComments` — 评论列表
 
 ### 个人中心
-* `getUserCenterData` — **一次性拉取** 个人中心所有数据（用户信息 + 统计 + 发布列表 + 收件箱 + VIP）
+* `getUserCenterData` — **一次性拉取** 个人中心所有数据
 * `queryUserStats` / `queryUserPublished` / `queryUserLikes` / `queryUserFavorites` / `queryUserComments` / `queryUserViews` — 独立查询
 * `searchRecords` — 个人中心内搜索
 * `deleteRecords` — 删除记录
@@ -144,6 +172,8 @@ A1.0/
 
 ### 管理
 * `adminCommand` / `clearBubbles` — 管理员指令
+
+---
 
 ## 6. 启动与运行
 
@@ -182,9 +212,7 @@ DEBUG_WS=1 pm2 restart SERVER
 
 ### 6.3 本地全栈部署（前后端一体）
 
-将项目在本地跑通（前端访问本地 Node 后端，而非远程服务器）需要修改以下两处：
-
-#### 修改 `js/websocket.js`
+将项目在本地跑通需要修改 `js/websocket.js`：
 
 **第 19 行** — WebSocket 连接的目标地址：
 
@@ -197,20 +225,13 @@ DEBUG_WS=1 pm2 restart SERVER
 
 ```diff
 - if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '') {
--     // 本地开发环境 - 使用服务器外网IP
 -     host = SERVER_IP;
--     console.log("📍 本地环境，连接到外网服务器:", host);
 - } else if (hostname === SERVER_IP) {
 + if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '' || hostname === SERVER_IP) {
 +     host = SERVER_IP;
-+     console.log("📍 本地模式，连接到:", host);
 ```
 
-> **注意**：前端加载腾讯地图 SDK 需要公网环境。如果本地开发需要地图显示，必须**保持电脑联网**（SDK 从 `https://map.qq.com/api/js` 加载）。
-
-#### 修改 `vercel.json`
-
-Vercel 部署时为云环境，本地全栈部署**不需要 `vercel.json`**。但如果你用 `npx serve .` 启动前端静态文件，需要在 `SERVER.js` 中确认 WebSocket 监听端口：
+> **注意**：腾讯地图 SDK 需要联网加载（`https://map.qq.com/api/js`），本地开发需保持联网。
 
 ```bash
 # 启动后端（端口 3000）
@@ -220,22 +241,15 @@ node SERVER.js
 npx serve . -p 5500
 ```
 
-然后浏览器访问 `http://localhost:5500/index.html`。
-
-#### 验证本地连通
-
-1. 终端 1：`node SERVER.js`  → 看到 `✅ 服务器已启动，WebSocket 端口: 3000`
-2. 终端 2：`npx serve . -p 5500` → 看到 `Accepting connections at http://localhost:5500`
-3. 浏览器打开 `http://localhost:5500/index.html` → 右上角状态显示 ✅ 已连接
-4. 如果能注册/登录、地图加载、气泡显示，说明前后端联通正常
+浏览器访问 `http://localhost:5500/index.html`，右上角状态显示 ✅ 已连接即表示前后端联通正常。
 
 #### 已知本地限制
 
 | 限制 | 原因 | 对策 |
 | --- | --- | --- |
 | 腾讯地图 SDK 必须在联网环境加载 | SDK 从 CDN 加载 | 开发时保持联网 |
-| WebSocket 默认端口 3000 可能被占用 | 其他进程占用 | `taskkill /F /PID <pid>` 或修改 `:3000` |
-| 地址搜索（searchPlaces）依赖外网 | 后端调用第三方 API | 本地开发时搜索可能无效，`register`/`login`/`气泡`不受影响 |
+| WebSocket 默认端口 3000 可能被占用 | 其他进程占用 | `taskkill /F /PID <pid>` 或修改端口 |
+| 地址搜索依赖外网 | 后端调用第三方 API | 本地开发搜索可能无效，不影响登录/气泡 |
 | 数据库文件 `users.db` 与 `SERVER.js` 同目录 | SQLite 文件写入 | `gitignore` 建议忽略 `users.db` |
 
 ### 6.4 部署
@@ -243,91 +257,173 @@ npx serve . -p 5500
 * **前端静态文件**：部署到 Vercel（`vercel.json` 把 `/api/*` 代理到后端 `http://121.199.161.5:3000`）
 * **后端 + WebSocket**：部署到 `121.199.161.5:3000`（自建）
 * **监控大屏**：`http://<server>:3001/` 提供清除气泡、强制下线按钮
-* **Android 端**：`sync-android.bat` 同步 `index.html` + `css/` + `js/` 到 `AndroidStudioProjects/MomentMap/app/src/main/assets/`
+* **Android 端**：`sync-android.bat` 同步到 `AndroidStudioProjects/MomentMap/app/src/main/assets/`
 
-## 7. 关键功能模块
+---
 
-### 7.1 地图与气泡
-* 基于腾讯地图 SDK
-* 气泡支持 8 种类型（推荐、求助、出租、拼车、活动、约饭、其他等）
-* 用户可设置持续时长（默认 60 分钟）
-* 附近气泡按距离聚合显示（`bubbleCore.js`）
-* 点击聚合点 spiderfy 展开
+## 7. 功能模块
 
-### 7.2 个人中心（6 个 Tab）
-* **我的发布** — 列出本人发布的所有气泡
-* **我的点赞** — 点赞过的气泡
-* **我的收藏** — 收藏的气泡
-* **我的评论** — 评论记录
-* **历史浏览** — 浏览过的气泡
-* **气泡搜索** — 在个人中心内搜索
+### 7.1 已完成功能
 
-打开时一次性 `getUserCenterData` 拉取核心数据，切换 Tab 时单独刷新对应列表（已带缓存）。
+| 模块 | 功能 | 状态 |
+| --- | --- | --- |
+| **地图** | 腾讯地图 SDK 渲染，支持缩放/平移/倾斜 | ✅ |
+| | 3 种定位模式：GPS、搜索定位 | ✅ |
+| | 6 档可见范围（100m / 500m / 1km / 2km / 3km / 4km） | ✅ |
+| | 范围圈可视化（圆圈实时显示可见边界） | ✅ |
+| | 显示附近用户（可开关，含互相可见性校验） | ✅ |
+| **气泡** | 6 种类型：求助/组队/建群/推荐/避雷/见闻 | ✅ |
+| | 按距离聚合与 spiderfy 展开 | ✅ |
+| | 自定义有效期（15/30/60/120 分钟） | ✅ |
+| | 公开/私密气泡（私密永久保存） | ✅ |
+| | 发气泡配图（最多 1 张） | ✅ |
+| | 气泡互动：点赞/收藏/评论 | ✅ |
+| | 气泡编辑与删除 | ✅ |
+| | 气泡浏览记录 | ✅ |
+| **建群** | 建群气泡 = 聊天室入口，一键进入无需加好友 | ✅ |
+| | 24h 自清理（≤2 人自动解散） | ✅ |
+| **社交** | 私聊（从气泡发起 / 从好友列表发起） | ✅ |
+| | 好友系统：添加/接受/拒绝/搜索用户 | ✅ |
+| | 群聊：创建/邀请/踢人/退出/解散 | ✅ |
+| **用户** | 注册/登录（手机号+密码） | ✅ |
+| | 个人中心 6 Tab（发布/点赞/收藏/评论/历史/搜索） | ✅ |
+| | 6 种状态标识（空闲可约/正在路上/活动ing/乐于助人/寻找同伴/暂时勿扰） | ✅ |
+| | 头像更换（Emoji 选择 + 图片上传 + 裁剪） | ✅ |
+| | 个人资料修改（昵称/性别/生日/地区/简介） | ✅ |
+| | 收件箱（未读通知：点赞/收藏/评论/好友申请） | ✅ |
+| **设置** | 主题切换（5 种）：清新灰/深邃紫/海洋蓝/青春绿/温暖黄 | ✅ |
+| | 隐私设置（显示附近用户开关） | ✅ |
+| | 修改密码 | ✅ |
+| **VIP** | 月卡（¥1.8）/ 年卡（¥8.8）/ 终身（¥18.8） | ✅ |
+| | 自定义气泡时长（VIP 专属） | ✅ |
+| **引导** | 新手引导教程（注册后首次登录自动弹出） | ✅ |
+| **监控** | 管理后台（端口 3001）：在线人数/气泡统计/清除气泡/强制下线 | ✅ |
 
-### 7.3 收件箱
-* 4 类未读通知：点赞、收藏、评论、好友申请
-* 角标实时显示在 Tab 与顶部入口
+### 7.2 进行中 / 待完成
 
-### 7.4 VIP 系统
-* 支持 `month` / `year` / `lifetime` 三种类型
-* 激活后服务端写 `is_vip` 与 `vip_expire_time`
+| 功能 | 优先级 | 说明 |
+| --- | --- | --- |
+| 密码 bcrypt 加密 | 🔴 高 | 当前明文存储，需改为哈希存储 |
+| 服务器稳定性优化 | 🔴 高 | 部署环境不稳定，网页端已暂关联网访问 |
+| API Key 安全 | 🔴 高 | 腾讯地图 Key 明文在 HTML 中，需域名白名单限制 |
+| 管理员密码可配置 | 🟡 中 | 硬编码 `admin123`，应改为环境变量 |
+| 后端清理失效数据 | 🟡 中 | 过期气泡定时清理策略 |
+| 图片上传优化 | 🟡 中 | 后端存储 / CDN 集成 |
+| 小程序端 | 🟢 低 | 已列入计划，待开发 |
+| 多图片支持 | 🟢 低 | 当前限制 1 张 |
 
-### 7.5 私聊与群聊
-* 一对一私聊（消息表 `private_messages`）
-* 创建群、邀请成员、群消息广播（`chat_groups` + `group_members` + `group_messages`）
+### 7.3 已修复的问题
 
-### 7.6 好友
-* 发起申请 → 接受 / 拒绝 → 进入好友列表
-* 双向确认
+| 问题 | 修复内容 |
+| --- | --- |
+| index.html 内联全局变量 | 已迁移至 `js/globals.js` |
+| SERVER.js 含前端 DOM 代码 | 已删除，`js/region.js` 有完整实现 |
+| 地区选择设置失败 | `selectSearchResult` 补全 `updateUserInfo` 调用 |
+| 地图缩放气泡位置不准确 | 改用地图容器实际尺寸、去除 `transition: all`、`requestAnimationFrame` 平滑刷新 |
+| src/panels/settings.js 残留 | 已清理 |
 
-### 7.7 监控大屏
-访问 `http://<server>:3001/`：
-* 实时统计：气泡数、在线人数、累计发布、累计查询
-* 在线用户列表
-* **清除所有气泡**（POST `/api/clearBubbles`）
-* **强制所有用户下线**（POST `/api/forceLogoutAll`）
+---
 
-## 8. 已知问题与改进方向
+## 8. 进度概览
+
+### 8.1 版本迭代
+
+| 阶段 | 时间 | 内容 |
+| --- | --- | --- |
+| 原型开发 | 第 1-2 月 | 地图渲染、基础气泡发布/浏览、附近范围查询 |
+| 功能扩展 | 第 3-4 月 | 社交系统（私聊/好友/群聊）、个人中心 6 Tab、建群机制、VIP 系统 |
+| 打磨提交 | 第 5-6 月 | UI 完善（5 套主题）、新手引导、稳定性修复、Android 打包、文档 |
+
+### 8.2 整体完成度
+
+```
+地图渲染    ████████████ 100%
+气泡系统    ████████████ 100%
+社交系统    ████████████ 100%
+用户中心    ████████████ 100%
+建群机制    ████████████ 100%
+设置/主题   ████████████ 100%
+VIP 系统    ████████████ 100%
+Android 端  ██████████░░  80%
+后端架构    ██████████░░  85%
+安全修复    ████████░░░░  70%
+小程序端    ██░░░░░░░░░░  10%
+```
+
+### 8.3 用户情况
+
+- 当前阶段：**少量内测用户**
+- 访问渠道：Android 安装包 + 网页端（momentmap.top，因服务器不稳定暂关联网）
+- 现有服务器：`121.199.161.5:3000`（WebSocket）+ `:3001`（监控面板）
+
+---
+
+## 9. 人员分工
+
+| 角色 | 人员 | 贡献 |
+| --- | --- | --- |
+| **全栈开发** | ButterJack | 前端 UI/交互、地图集成、后端 WebSocket/SQLite、数据库设计、部署运维、文档 |
+
+单人独立完成全部代码、设计、部署工作。
+
+| 领域 | 具体工作 |
+| --- | --- |
+| **前端** | HTML/CSS 整体页面架构、地图交互、气泡系统、社交面板、个人中心 6 Tab、主题切换、设置 |
+| **后端** | Node.js WebSocket 服务（≈4000 行）、SQLite 数据库（14 张表）、60+ 消息协议、管理监控面板 |
+| **设计** | UI 风格设计（5 套主题）、交互流程设计、气泡/聚合/动画样式 |
+| **部署** | Vercel 前端托管、自建 Node 后端（121.199.161.5）、Android WebView 打包同步 |
+| **文档** | README / USER_GUIDE / 商业计划 / intro |
+
+---
+
+## 10. 已知问题与改进方向
 
 > 摘自 `problems.md`
 
-### 8.1 架构
+### 10.1 架构
 * ~~`index.html` 内联 `<script>` 残留 ~110 行全局变量声明~~ ✅ 已移至 `js/globals.js`
-* ~~`SERVER.js:688-1021` 含纯前端 DOM 代码（`document.createElement`、`editRegion` 等），在 Node 环境下崩溃~~ ✅ 已删除，`js/region.js` 已有完整实现
+* ~~`SERVER.js:688-1021` 含纯前端 DOM 代码~~ ✅ 已删除，`js/region.js` 已有完整实现
 * `src/panels/settings.js` 拆分残留（已清理）
 
-### 8.2 安全
+### 10.2 安全
 * 密码明文存储与比对 → 应改 bcrypt
 * 腾讯地图 API Key 明文写在 `index.html` → 域名白名单限制
 * 管理员密码 `admin123` 硬编码 → 配置文件 + 环境变量
-* 模板字符串拼接用户输入到 HTML → XSS 风险，必须用 `textContent` 或转义
+* 模板字符串拼接用户输入到 HTML → XSS 风险
 
-### 8.3 代码冗余
+### 10.3 代码冗余
 * `calculateDistance` 在 `js/utils.js` 与 `SERVER.js` 重复定义
 * CSS 拆 17 个文件，命名风格不统一
 * 版本号在标题 / 关于弹窗 / 内联脚本处不一致
 
-### 8.4 前后端职责
+### 10.4 前后端职责
 * 后端无 HTTP 静态文件服务，部署依赖 Vercel
 * `SERVER.js` 缺乏路由层，所有消息走一个 switch
 
-## 9. 后续路线图
+---
+
+## 11. 后续路线图
 
 参见 `todo.md`：
 * 【安全】密码管理（bcrypt 迁移）
 * 【多功能】图片上传（头像 / 气泡配图）
 * 【功能修复】发起私聊、Marker 展示异常
 * 【后端】清理失效数据策略
+* 【小程序】微信小程序端开发
 
-## 10. 维护提示
+---
+
+## 12. 维护提示
 
 * 修改全局状态变量时，**先看 `js/globals.js`** —— 那里集中声明了 `socket` / `map` / `currentUser` / `bubbles` 等，所有 `js/*.js` 文件共享这些变量。
-* 修改气泡类型或时长时，**同步修改 `js/publish.js` 的类型定义和 `SERVER.js:65` 的字段约束**。
+* 修改气泡类型或时长时，**同步修改 `js/publish.js` 的类型定义和 `SERVER.js` 的字段约束**。
 * 修改个人中心协议时，**保持 `getUserCenterData`（一次拉取）和 6 个独立查询双轨兼容**，前端已用缓存策略平滑切换。
 * 调试时务必先 `DEBUG_WS=1`，否则日志被静默。
 * 监控大屏 3001 端口**不要暴露到公网**，包含管理员级操作。
 
-## 11. License
+---
+
+## 13. License
 
 MIT License — 详见 [LICENSE](LICENSE)。
 
