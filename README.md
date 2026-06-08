@@ -1,6 +1,8 @@
-# 此刻地图 · 设计端
+# 此刻地图
 
-> 记录此刻，分享此地。一款基于地理位置的轻量级实时社交地图应用。
+> 一款轻量级交互地图应用
+>
+> 记录此刻，分享此地。
 >
 > **GitHub**：[ButterJack07/MAPNOW-EL-git](https://github.com/ButterJack07/MAPNOW-EL-git)
 
@@ -327,4 +329,6 @@ npx serve . -p 5500
 
 ## 11. License
 
-私有项目，未指定开源协议。
+MIT License — 详见 [LICENSE](LICENSE)。
+
+Copyright © 2025 ButterJack
