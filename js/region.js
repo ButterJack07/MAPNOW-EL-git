@@ -244,8 +244,10 @@ function selectSearchResult(provinceName, cityName) {
     window.selectedRegion = fullRegion;
     document.getElementById('selectedRegion').textContent = fullRegion;
 
-    document.getElementById('regionSearchInput').value = '';
-    document.getElementById('provinceList').style.display = 'block';
-    document.getElementById('cityList').style.display = 'none';
-    document.getElementById('searchResultList').style.display = 'none';
+    if (fullRegion !== currentUser?.region) {
+        updateUserInfo('region', fullRegion);
+    }
+
+    const overlay = document.querySelector('.settings-modal-overlay');
+    if (overlay) overlay.remove();
 }

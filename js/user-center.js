@@ -453,7 +453,7 @@
                 : '';
             html += `
                 <div class="chat-item" onclick="openGroupChat(${g.id})">
-                    <div class="chat-avatar">${g.avatar || '💬'}</div>
+                    <div class="chat-avatar">${renderAvatarPreview(g.avatar || '💬')}</div>
                     <div class="chat-info">
                         <div class="chat-name">${escapeHtml(g.name)} <span style="font-size:11px;color:var(--text-tertiary);font-weight:400;">${memberInfo}</span></div>
                         <div class="chat-last-message">${escapeHtml(lastMsg)}</div>
@@ -541,8 +541,8 @@
         currentChatGroupOwner = cached ? (cached.creator_id || null) : null;
         document.getElementById('chatListOverlay').style.display = 'none';
         document.getElementById('groupChatOverlay').style.display = 'flex';
-        const avatarEl = document.getElementById('groupChatUserAvatar');
-        if (avatarEl) avatarEl.textContent = currentChatGroupAvatar;
+        var avatarEl = document.getElementById('groupChatUserAvatar');
+        if (avatarEl) avatarEl.innerHTML = renderAvatarPreview(currentChatGroupAvatar);
         const nameEl = document.getElementById('groupChatUserName');
         if (nameEl) nameEl.textContent = currentChatGroupName || '群聊';
         document.getElementById('groupChatInput').value = '';
@@ -566,7 +566,7 @@
         if (!overlay) return;
         overlay.style.display = 'flex';
         document.getElementById('groupInfoName').textContent = currentChatGroupName || '群聊';
-        document.getElementById('groupInfoAvatar').textContent = currentChatGroupAvatar || '💬';
+        document.getElementById('groupInfoAvatar').innerHTML = renderAvatarPreview(currentChatGroupAvatar || '💬');
         const isOwner = currentUser && currentChatGroupOwner === currentUser.id;
         document.getElementById('groupInfoOwnerBadge').style.display = isOwner ? 'inline-block' : 'none';
         document.getElementById('groupInfoOwnerActions').style.display = isOwner ? 'flex' : 'none';
@@ -713,22 +713,6 @@
      */
     function updateChatBadge(count) {
         chatUnreadCount = count;
-        let badge = document.getElementById('chatBadge');
-        if (!badge) {
-            badge = document.createElement('span');
-            badge.id = 'chatBadge';
-            badge.className = 'chat-badge';
-            badge.style.display = 'none';
-            badge.textContent = '0';
-            const chatBtn = document.getElementById('chatButton');
-            if (chatBtn) chatBtn.appendChild(badge);
-        }
-        if (count > 0) {
-            badge.textContent = count > 99 ? '99+' : count;
-            badge.style.display = 'flex';
-        } else {
-            badge.style.display = 'none';
-        }
         if (typeof refreshHeaderBadge === 'function') refreshHeaderBadge();
     }
 
@@ -784,6 +768,7 @@
     
         // 关闭当前信息窗口
         if (currentInfoWindow) {
+    window._skipBubbleRestore = true;
     currentInfoWindow.close();
     currentInfoWindow = null;
         }
@@ -869,7 +854,7 @@
             border-bottom: 1px solid #e0e0e0;
             flex-shrink: 0;
         ">
-            <span style="font-size: 24px;">${bubbleAvatar || '👤'}</span>
+            <span style="font-size: 24px; display: flex; align-items: center;">${renderAvatarPreview(bubbleAvatar || '👤', 24)}</span>
             <span style="font-size: 13px; font-weight: 500; color: var(--text-primary);">${escapeHtml(bubbleAuthor)}</span>
         </div>
             
@@ -1245,6 +1230,95 @@
      * 拉取最新统计数据并展示
      */
 
+    // 从缓存渲染个人中心
+    function renderUserCenterFromCache(cache) {
+        if (!cache) return;
+        console.log('📦 从缓存渲染个人中心数据');
+
+        // 1. 统计数据
+        if (cache.userStats) {
+            const stats = cache.userStats;
+            const publishedEl = document.getElementById('publishedCount');
+            if (publishedEl) publishedEl.textContent = stats.publishedCount || 0;
+            const likesEl = document.getElementById('likesCount');
+            if (likesEl) likesEl.textContent = stats.likesCount || 0;
+            const favoritesEl = document.getElementById('favoritesCount');
+            if (favoritesEl) favoritesEl.textContent = stats.favoritesCount || 0;
+            const commentsEl = document.getElementById('commentsCount');
+            if (commentsEl) commentsEl.textContent = stats.commentsCount || 0;
+        }
+
+        // 2. 发布记录
+        if (cache.userPublished) {
+            displayPublishedList(cache.userPublished);
+        }
+
+        // 3. 收件箱未读数
+        if (cache.inboxUnread) {
+            updateInboxBadge(cache.inboxUnread.total || 0);
+            const counts = cache.inboxUnread.counts || {};
+            const likeBadge = document.getElementById('tabLikeBadge');
+            if (likeBadge) {
+                const likeCount = counts.like || 0;
+                likeBadge.textContent = likeCount;
+                likeBadge.style.display = likeCount > 0 ? 'inline-block' : 'none';
+            }
+            const favoriteBadge = document.getElementById('tabFavoriteBadge');
+            if (favoriteBadge) {
+                const favCount = counts.favorite || 0;
+                favoriteBadge.textContent = favCount;
+                favoriteBadge.style.display = favCount > 0 ? 'inline-block' : 'none';
+            }
+            const commentBadge = document.getElementById('tabCommentBadge');
+            if (commentBadge) {
+                const cmtCount = counts.comment || 0;
+                commentBadge.textContent = cmtCount;
+                commentBadge.style.display = cmtCount > 0 ? 'inline-block' : 'none';
+            }
+            const friendBadge = document.getElementById('tabFriendRequestBadge');
+            if (friendBadge) {
+                const frCount = counts.friend_request || 0;
+                friendBadge.textContent = frCount;
+                friendBadge.style.display = frCount > 0 ? 'inline-block' : 'none';
+            }
+        }
+
+        // 4. VIP状态
+        if (cache.vipStatus) {
+            updateVipDisplay(cache.vipStatus);
+        }
+
+        // 5. 子标签页缓存（打开对应标签时使用）
+        if (cache.userLikes && document.getElementById('uc-likes')) {
+            const container = document.getElementById('uc-likes');
+            if (container && container.getAttribute('data-from-cache') !== 'true') {
+                container.setAttribute('data-cached-data', JSON.stringify(cache.userLikes));
+                container.setAttribute('data-from-cache', 'true');
+            }
+        }
+        if (cache.userFavorites && document.getElementById('uc-favorites')) {
+            const container = document.getElementById('uc-favorites');
+            if (container && container.getAttribute('data-from-cache') !== 'true') {
+                container.setAttribute('data-cached-data', JSON.stringify(cache.userFavorites));
+                container.setAttribute('data-from-cache', 'true');
+            }
+        }
+        if (cache.userComments && document.getElementById('uc-comments')) {
+            const container = document.getElementById('uc-comments');
+            if (container && container.getAttribute('data-from-cache') !== 'true') {
+                container.setAttribute('data-cached-data', JSON.stringify(cache.userComments));
+                container.setAttribute('data-from-cache', 'true');
+            }
+        }
+        if (cache.userViews && document.getElementById('uc-history')) {
+            const container = document.getElementById('uc-history');
+            if (container && container.getAttribute('data-from-cache') !== 'true') {
+                container.setAttribute('data-cached-data', JSON.stringify(cache.userViews));
+                container.setAttribute('data-from-cache', 'true');
+            }
+        }
+    }
+
     // 打开用户中心
     function openUserCenter() {
         const overlay = document.getElementById('userCenterOverlay');
@@ -1252,40 +1326,30 @@
         overlay.classList.add('show');
         setBottomNavActive('mobileUserButton');
 
-        // 打开时如果尚未预加载，立即预取一次发布记录
-        if (!window.userPublishedPrefetched) {
-            queryUserPublished();
+        // ⭐ 先从本地缓存渲染，保证秒开
+        const cached = getCachedUserCenterData();
+        if (cached) {
+            renderUserCenterFromCache(cached);
         }
 
-        // 更新用户信息
+        // ⭐ 更新用户信息（来自内存，即时显示）
         if (currentUser) {
             updateAvatarDisplay(currentUser.avatar || '👤');
             document.getElementById('ucUsername').textContent = currentUser.nickname || currentUser.username;
             document.getElementById('ucUserId').textContent = 'ID: ' + currentUser.id;
-            
-            // ⭐ v9.6.6: 更新性别、年龄、地区、简介
             updateUserDetails();
         }
 
-        // 首次打开先给基础占位，避免长时间显示“加载中...”
+        // 首次打开先给基础占位
         const publishedEl = document.getElementById('uc-published');
         if (publishedEl && !publishedEl.innerHTML.trim()) {
             publishedEl.innerHTML = '<div class="uc-empty">暂无发布记录</div>';
         }
 
-        // ⭐ 请求完整用户信息（从数据库获取最新数据）
+        // ⭐ 每次打开都从服务器拉取一次完整个人中心数据并缓存
         if (socket && socket.readyState === WebSocket.OPEN && currentUser) {
-            console.log("📤 请求完整用户信息...");
-            socket.send(JSON.stringify({
-                type: "getUserFullInfo"
-            }));
+            socket.send(JSON.stringify({ type: "getUserCenterData" }));
         }
-
-        // ⭐ 查询收件箱未读数
-        queryInboxUnread();
-
-        // ⭐ 查询会员状态
-        queryVipStatus();
 
         console.log('📊 打开用户中心');
     }
@@ -1373,12 +1437,12 @@
         
 
     // 辅助函数：渲染头像预览
-    function renderAvatarPreview(avatar) {
+    function renderAvatarPreview(avatar, size = 32) {
         if (!avatar) return '👤';
     
         const isBase64 = avatar && avatar.startsWith('data:image');
         if (isBase64) {
-    return `<img src="${avatar}" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover;">`;
+    return `<img src="${avatar}" style="width: ${size}px; height: ${size}px; border-radius: 50%; object-fit: cover;">`;
         } else {
     return avatar;  // 返回 emoji 或文字
         }
@@ -1435,7 +1499,7 @@
         <!-- 当前头像预览 -->
         <div style="text-align: center; margin-bottom: 20px;">
 
-            <div style="font-size: 60px; margin-bottom: 10px;" id="avatarPreview">${renderAvatarPreview(currentUser.avatar)}</div>
+            <div style="font-size: 60px; margin-bottom: 10px; display: flex; align-items: center; justify-content: center;" id="avatarPreview">${renderAvatarPreview(currentUser.avatar, 60)}</div>
             <div style="color: var(--text-secondary); font-size: 12px;">当前头像</div>
         </div>
             
@@ -1549,49 +1613,151 @@
         document.getElementById('avatarFileInput').click();
     }
 
-    // 处理头像上传
+    // 处理头像上传（支持裁剪）
     function handleAvatarUpload(input) {
-        const file = input.files[0];
+        var file = input.files[0];
         if (!file) return;
-    
-        // 检查文件大小
-        if (file.size > 5 * 1024 * 1024) {
-    return;
-        }
-    
-    
-        const reader = new FileReader();
-        reader.onload = (e) => {
-    const img = new Image();
-    img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxSize = 100;
-        canvas.width = maxSize;
-        canvas.height = maxSize;
-        const ctx = canvas.getContext('2d');
-            
-        // 绘制圆形裁剪
-        ctx.beginPath();
-        ctx.arc(maxSize/2, maxSize/2, maxSize/2, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.clip();
-            
-        // 绘制图片
-        ctx.drawImage(img, 0, 0, maxSize, maxSize);
-            
-        // 转为base64
-        const base64 = canvas.toDataURL('image/jpeg', 0.7);
-            
-        // 保存选中的头像
-        selectedAvatar = base64;
-            
-        // 预览
-        const preview = document.getElementById('avatarPreview');
-        preview.innerHTML = `<img src="${base64}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">`;
-    };
-    img.src = e.target.result;
+        if (file.size > 5 * 1024 * 1024) return;
+
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            var imgSrc = e.target.result;
+            if (typeof Cropper !== 'undefined') {
+                showCropModal(imgSrc, function (croppedBase64) {
+                    selectedAvatar = croppedBase64;
+                    var preview = document.getElementById('avatarPreview');
+                    preview.innerHTML = '<img src="' + croppedBase64 + '" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">';
+                });
+            } else {
+                processImageDirectly(imgSrc, function (base64) {
+                    selectedAvatar = base64;
+                    var preview = document.getElementById('avatarPreview');
+                    preview.innerHTML = '<img src="' + base64 + '" style="width:60px;height:60px;border-radius:50%;object-fit:cover;">';
+                });
+            }
         };
         reader.readAsDataURL(file);
+        input.value = '';
+    }
+
+    // 直接处理（无裁剪库时回退）
+    function processImageDirectly(imgSrc, callback) {
+        var img = new Image();
+        img.onload = function () {
+            var canvas = document.createElement('canvas');
+            var size = 100;
+            canvas.width = size;
+            canvas.height = size;
+            var ctx = canvas.getContext('2d');
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+            ctx.closePath();
+            ctx.clip();
+            ctx.drawImage(img, 0, 0, size, size);
+            var base64 = canvas.toDataURL('image/jpeg', 0.7);
+            if (typeof callback === 'function') callback(base64);
+        };
+        img.src = imgSrc;
+    }
+
+    // Cropper.js 裁剪弹窗
+    function showCropModal(imgSrc, onCropDone) {
+        var overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:99999;display:flex;align-items:center;justify-content:center;';
+        overlay.innerHTML =
+            '<div style="background:var(--card-bg,#fff);border-radius:16px;width:92%;max-width:400px;overflow:hidden;animation:slideUp 0.25s ease;display:flex;flex-direction:column;">' +
+                '<div style="padding:16px 20px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between;">' +
+                    '<span style="font-weight:600;font-size:16px;">裁剪头像</span>' +
+                    '<button id="cropCloseBtn" style="width:30px;height:30px;border:none;background:#f0f0f0;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>' +
+                '</div>' +
+                '<div style="padding:16px;background:#f5f5f5;">' +
+                    '<div style="max-height:50vh;overflow:hidden;">' +
+                        '<img id="cropImage" style="max-width:100%;display:block;">' +
+                    '</div>' +
+                '</div>' +
+                '<div style="padding:12px 16px;border-top:1px solid #eee;display:flex;gap:10px;">' +
+                    '<button id="cropCancelBtn" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:10px;background:#fff;color:#666;font-weight:600;cursor:pointer;">取消</button>' +
+                    '<button id="cropConfirmBtn" style="flex:1;padding:10px;border:none;border-radius:10px;background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;font-weight:600;cursor:pointer;">确认</button>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(overlay);
+
+        var imgEl = document.getElementById('cropImage');
+        imgEl.src = imgSrc;
+
+        var cropper = null;
+
+        function initCropper() {
+            try {
+                if (cropper) cropper.destroy();
+                cropper = new Cropper(imgEl, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 1,
+                    cropBoxMovable: true,
+                    cropBoxResizable: true,
+                    rotatable: true,
+                    scalable: true,
+                    zoomable: true,
+                    minCropBoxWidth: 100,
+                    minCropBoxHeight: 100
+                });
+            } catch (e) {
+                processImageDirectly(imgSrc, onCropDone);
+                overlay.remove();
+            }
+        }
+
+        imgEl.onload = function () {
+            if (typeof Cropper !== 'undefined') {
+                initCropper();
+            } else {
+                processImageDirectly(imgSrc, onCropDone);
+                overlay.remove();
+            }
+        };
+        if (imgEl.complete) {
+            if (typeof Cropper !== 'undefined') {
+                setTimeout(initCropper, 50);
+            } else {
+                processImageDirectly(imgSrc, onCropDone);
+                overlay.remove();
+            }
+        }
+
+        function cleanup() {
+            try { if (cropper) cropper.destroy(); } catch (e) {}
+            overlay.remove();
+        }
+
+        document.getElementById('cropCloseBtn').onclick = cleanup;
+        document.getElementById('cropCancelBtn').onclick = cleanup;
+        document.getElementById('cropConfirmBtn').onclick = function () {
+            if (!cropper) return;
+            try {
+                var canvas = cropper.getCroppedCanvas({ width: 200, height: 200, imageSmoothingQuality: 'high' });
+                var size = 200;
+                var roundCanvas = document.createElement('canvas');
+                roundCanvas.width = size;
+                roundCanvas.height = size;
+                var rctx = roundCanvas.getContext('2d');
+                rctx.beginPath();
+                rctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+                rctx.closePath();
+                rctx.clip();
+                rctx.drawImage(canvas, 0, 0, size, size);
+                var base64 = roundCanvas.toDataURL('image/jpeg', 0.8);
+                cleanup();
+                if (typeof onCropDone === 'function') onCropDone(base64);
+            } catch (e) {
+                cleanup();
+                processImageDirectly(imgSrc, onCropDone);
+            }
+        };
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) cleanup();
+        });
     }
 
     // 保存头像
@@ -1614,6 +1780,9 @@
         currentUser.avatar = selectedAvatar;
         updateAvatarDisplay(selectedAvatar);
         updateUserInfo('avatar', selectedAvatar);
+    
+        // 立即更新地图上的头像标记
+        try { if (typeof updateMyMarker === 'function') updateMyMarker(); } catch (e) {}
     
         modal.remove();
     }
@@ -1650,8 +1819,8 @@
                     img.style.width = '55px';  // 与按钮大小一致
                     img.style.height = '55px';
                 } else {
-                    img.style.width = '24px';
-                    img.style.height = '24px';
+                    img.style.width = '32px';
+                    img.style.height = '32px';
                 }
                 
                 img.style.borderRadius = '50%';

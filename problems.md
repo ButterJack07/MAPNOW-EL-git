@@ -2,9 +2,9 @@
 
 1. 架构混乱（最严重）
 
-index.html 内联 <script> 仍包含 ~1000 行前端代码，与 js/ 目录文件功能重叠 → 函数被定义两次，后加载的覆盖前者
-SERVER.js 第 600-935 行是纯前端 DOM 操作代码（editRegion、loadProvinces 等），在 Node.js 环境下会直接报错崩溃
-src/panels/settings.js 是拆分尝试的垃圾残留，未被任何页面引用
+index.html 内联 <script> 仍包含 ~1000 行前端代码，与 js/ 目录文件功能重叠 → 函数被定义两次，后加载的覆盖前者（✅ 已修复：全局变量移至 js/globals.js）
+SERVER.js 第 600-935 行是纯前端 DOM 操作代码（editRegion、loadProvinces 等），在 Node.js 环境下会直接报错崩溃（✅ 已修复：删除 SERVER.js 中的前端 DOM 代码，js/region.js 已有完整实现）
+src/panels/settings.js 是拆分尝试的垃圾残留，未被任何页面引用（已清理，docs 已更新）
 2. 安全性问题（严重）
 
 密码明文存储、明文比对（SERVER.js:525）

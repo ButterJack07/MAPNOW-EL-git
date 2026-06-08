@@ -21,9 +21,8 @@
         map = new qq.maps.Map(document.getElementById('map'), mapOptions);
 
         let zoomRefreshTimer = null;
-        let _suppressRefresh = false; // 聚合交互时临时禁止刷新
         qq.maps.event.addListener(map, 'zoom_changed', function() {
-            if (_suppressRefresh) return;
+            if (window._suppressRefresh) return;
             if (zoomRefreshTimer) clearTimeout(zoomRefreshTimer);
             zoomRefreshTimer = setTimeout(() => {
                 refreshBubbleMarkersForCurrentZoom();
@@ -33,7 +32,7 @@
         // 平移时重新聚合（bounds 变化 → 像素坐标变化）
         let panRefreshTimer = null;
         qq.maps.event.addListener(map, 'bounds_changed', function() {
-            if (_suppressRefresh) return;
+            if (window._suppressRefresh) return;
             if (panRefreshTimer) clearTimeout(panRefreshTimer);
             panRefreshTimer = setTimeout(() => {
                 refreshBubbleMarkersForCurrentZoom();
@@ -203,9 +202,9 @@
                     lng: gcj02.lng
                 };
                     
-                // 如果当前是GPS模式，更新位置
+                // 如果当前是GPS模式，更新位置（不自动回拉地图中心）
                 if (locationMode === 'gps') {
-                    updateMyPosition(gpsPosition);
+                    updateMyPosition(gpsPosition, false);
                 }
                     
                 updateLocationStatus("📍 实时定位中");
@@ -249,9 +248,9 @@
     // 激活GPS模式按钮
     if (gpsCircleBtn) gpsCircleBtn.classList.add('active');
         
-    // 启用GPS定位
+    // 启用GPS定位（用户主动切换，回拉中心）
     if (gpsPosition) {
-        updateMyPosition(gpsPosition);
+        updateMyPosition(gpsPosition, true);
     } else {
         getGPSLocation();
     }
@@ -341,15 +340,15 @@
         }
 
     // ==================== 更新我的位置（核心函数） ====================
-    function updateMyPosition(position) {
+    function updateMyPosition(position, pan = false) {
         myPosition = position;
         console.log("📍 更新我的位置:", position);
 
         // 更新标记（内部会按模式决定是画圆圈还是 marker）
         updateMyMarker();
 
-        // 更新地图中心（平滑移动）
-        if (map) {
+        // 仅当显式要求时才回拉地图中心（如用户点击定位按钮）
+        if (map && pan) {
             map.panTo(new qq.maps.LatLng(position.lat, position.lng));
         }
 

@@ -193,4 +193,46 @@
     window.formatTime = formatTime;
     window.showPublishSuccessNotification = showPublishSuccessNotification;
     window.hidePublishNotification = hidePublishNotification;
+
+    // ==================== 用户中心缓存系统 ====================
+    const UC_CACHE_PREFIX = 'ucCache_';
+
+    function getUcCacheKey() {
+        return currentUser && currentUser.id ? UC_CACHE_PREFIX + currentUser.id : null;
+    }
+
+    function cacheUserCenterData(dataType, data) {
+        const key = getUcCacheKey();
+        if (!key) return;
+        try {
+            let cache = JSON.parse(localStorage.getItem(key) || '{}');
+            cache[dataType] = data;
+            cache._updatedAt = Date.now();
+            localStorage.setItem(key, JSON.stringify(cache));
+        } catch (e) {
+            console.warn('⚠️ 用户中心缓存写入失败:', e);
+        }
+    }
+
+    function getCachedUserCenterData() {
+        const key = getUcCacheKey();
+        if (!key) return null;
+        try {
+            return JSON.parse(localStorage.getItem(key) || 'null');
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function clearUserCenterCache() {
+        const key = getUcCacheKey();
+        if (key) {
+            try { localStorage.removeItem(key); } catch (e) {}
+        }
+    }
+
+    window.getUcCacheKey = getUcCacheKey;
+    window.cacheUserCenterData = cacheUserCenterData;
+    window.getCachedUserCenterData = getCachedUserCenterData;
+    window.clearUserCenterCache = clearUserCenterCache;
 })();

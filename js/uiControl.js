@@ -37,37 +37,16 @@
             
         // 创建新的定时器，每10秒全量同步一次
         refreshTimer = setInterval(() => {
-            console.log("⏰ 定时刷新触发 - " + new Date().toLocaleTimeString());
-                
-            // 如果清除模式中，不请求气泡
-            if (clearBubblesFlag) {
-                console.log("⏸️ 清除模式中，跳过气泡请求");
-                return;
-            }
+            if (clearBubblesFlag) return;
 
-            // 如果已登录且有地图，就刷新标记
             if (currentUser && map && myPosition) {
-                // 1. 先请求在线用户列表
                 if (socket && socket.readyState === WebSocket.OPEN) {
-                    socket.send(JSON.stringify({
-                        type: "requestOnlineUsers"
-                    }));
+                    socket.send(JSON.stringify({ type: "requestOnlineUsers" }));
                 }
-                    
-                // 2. 刷新标记（即使位置不变也刷新）
-                refreshAllMarkers();
-                    
-                // 3. 请求附近气泡 - 关键！（全量同步由 queryResult 处理）
                 requestNearbyBubbles();
-                    
-                // 4. 清理过期气泡
                 cleanupExpiredBubbles();
-            } else {
-                console.log("⏸️ 定时刷新暂停：用户未登录或地图未初始化");
             }
-        }, 10000); // 改为10000毫秒 = 10秒
-            
-        console.log("✅ 自动刷新定时器已启动，间隔10秒");
+        }, 5000);
     }
 
     // ⭐ 新增：清理过期气泡函数

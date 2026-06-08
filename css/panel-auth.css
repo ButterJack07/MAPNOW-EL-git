@@ -12,15 +12,15 @@
         z-index: 10000;
         animation: fadeIn 0.3s ease;
     }
-    
+
     .auth-container {
-        animation: slideUp 0.4s ease;
         background: var(--card-bg);
         border-radius: 20px;
-        padding: 30px 25px;
-        width: 90%;
+        padding: 40px;
         max-width: 400px;
+        width: 90%;
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.4s ease;
     }
 
     @keyframes slideUp {

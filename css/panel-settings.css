@@ -150,15 +150,15 @@
         z-index: 20000;
         animation: fadeIn 0.2s ease;
     }
-    
+
     .settings-modal-container {
-        animation: slideUp 0.25s ease;
         background: var(--card-bg, #fff);
         border-radius: 20px;
         width: 90%;
         max-width: 420px;
         overflow: hidden;
         box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        animation: slideUp 0.25s ease;
     }
 
     .settings-modal-header {

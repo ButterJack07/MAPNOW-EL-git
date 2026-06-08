@@ -11,20 +11,19 @@ align-items: center;
 justify-content: center;
 z-index: 10007;
 animation: fadeIn 0.3s ease;
-    }
-    
-    .chat-list-container {
-        animation: slideUp 0.3s ease;
-        background: var(--card-bg);
-        border-radius: 16px;
-        width: 90%;
-        max-width: 450px;
-        height: 80vh;
-        max-height: 650px;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.chat-list-container, .chat-container {
+background: var(--card-bg);
+border-radius: 20px;
+max-width: 500px;
+width: 90%;
+height: 80vh;
+max-height: 700px;
+display: flex;
+flex-direction: column;
+overflow: hidden;
+animation: slideUp 0.3s ease;
 box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
 }
 

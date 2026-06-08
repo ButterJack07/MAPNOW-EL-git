@@ -213,12 +213,17 @@
 
 
             
-    // ⭐ 聚合距离阈值（占屏幕宽度的百分比），可通过调试按钮实时调整
+    // ⭐ 聚合距离阈值（占地图宽度的百分比），可通过调试按钮实时调整
     let bubbleClusterThresholdPct = 5.0; // 默认 5%
 
     function getBubbleClusterThresholdPx() {
-        // 将屏幕宽度百分比转换为像素距离
-        return window.innerWidth * (bubbleClusterThresholdPct / 100);
+        // ⭐ 用地图容器实际宽度（桌面端地图被侧栏挤压时与窗口不同）
+        // 同时取较短边作为参考，避免宽屏/竖屏下阈值过松或过紧
+        const container = map && map.getContainer && map.getContainer();
+        const w = (container && container.clientWidth)  || window.innerWidth;
+        const h = (container && container.clientHeight) || window.innerHeight;
+        const minSide = Math.min(w, h);
+        return minSide * (bubbleClusterThresholdPct / 100);
     }
 
     function groupBubblesByDistance(sourceBubbles) {
@@ -232,14 +237,18 @@
 
         const sw = bounds.getSouthWest();
         const ne = bounds.getNorthEast();
-        const mapW = window.innerWidth;
-        const mapH = window.innerHeight;
+
+        // ⭐ 关键修复：用地图容器的实际尺寸，而不是 window.innerWidth/Height
+        // 桌面端地图被侧边栏挤压，container 尺寸远小于窗口；
+        // 之前用窗口尺寸计算像素位置，导致聚合阈值与缩放完全脱钩
+        const container = map.getContainer();
+        const mapW = (container && container.clientWidth)  || window.innerWidth;
+        const mapH = (container && container.clientHeight) || window.innerHeight;
 
         const lngSpan = ne.getLng() - sw.getLng();
         const latSpan = ne.getLat() - sw.getLat();
         if (lngSpan <= 0 || latSpan <= 0) return sourceBubbles.map(b => [b]);
 
-        // 只聚合当前视口内的气泡，视口外的不参与
         const inBounds = sourceBubbles.filter(b =>
             b.lat >= sw.getLat() && b.lat <= ne.getLat() &&
             b.lng >= sw.getLng() && b.lng <= ne.getLng()
@@ -252,9 +261,9 @@
             y: ((ne.getLat() - b.lat) / latSpan) * mapH
         }));
 
-        // 单链接聚合（single-linkage）：
-        // 新成员加入后，以该新成员为起点继续扩展，
-        // 确保链式分布也能被完整合并。
+        // 重心邻近聚合（centroid-proximity）：
+        // 气泡必须与聚类重心在阈值内才合并，而非与任意单个成员。
+        // 每次新增成员后重算重心继续扩展，自然杜绝链式误合并。
         const used = new Set();
         const groups = [];
 
@@ -262,65 +271,27 @@
             if (used.has(i)) continue;
             used.add(i);
 
-            const groupIdxs = [i];
-            const queue = [i];
+            let cluster = [pts[i]];
+            let stable = false;
 
-            while (queue.length) {
-                const cur = queue.shift();
-                const ax = pts[cur].x, ay = pts[cur].y;
+            while (!stable) {
+                const cx = cluster.reduce((s, p) => s + p.x, 0) / cluster.length;
+                const cy = cluster.reduce((s, p) => s + p.y, 0) / cluster.length;
 
+                stable = true;
                 for (let j = 0; j < pts.length; j++) {
                     if (used.has(j)) continue;
-                    const dx = ax - pts[j].x;
-                    const dy = ay - pts[j].y;
+                    const dx = cx - pts[j].x;
+                    const dy = cy - pts[j].y;
                     if (Math.sqrt(dx * dx + dy * dy) <= thresholdPx) {
                         used.add(j);
-                        groupIdxs.push(j);
-                        queue.push(j);
+                        cluster.push(pts[j]);
+                        stable = false;
                     }
                 }
             }
 
-            groups.push(groupIdxs.map(idx => pts[idx].bubble));
-        }
-
-        // 第二遍：将视觉上与某聚合重心重叠的单气泡并入该聚合
-        // （处理"聚合重心滑到单气泡旁边"的边界情况）
-        const singles = groups.filter(g => g.length === 1);
-        const clusters = groups.filter(g => g.length > 1);
-
-        if (singles.length && clusters.length) {
-            // 计算各聚合重心像素坐标
-            const clusterCentroids = clusters.map(cl => {
-                const xs = cl.map(b => ((b.lng - sw.getLng()) / lngSpan) * mapW);
-                const ys = cl.map(b => ((ne.getLat() - b.lat) / latSpan) * mapH);
-                return {
-                    cx: xs.reduce((a, v) => a + v, 0) / xs.length,
-                    cy: ys.reduce((a, v) => a + v, 0) / ys.length
-                };
-            });
-
-            const absorbed = new Set();
-            singles.forEach((sg, si) => {
-                const b = sg[0];
-                const bx = ((b.lng - sw.getLng()) / lngSpan) * mapW;
-                const by = ((ne.getLat() - b.lat) / latSpan) * mapH;
-                for (let ci = 0; ci < clusters.length; ci++) {
-                    const { cx, cy } = clusterCentroids[ci];
-                    const dx = bx - cx, dy = by - cy;
-                    if (Math.sqrt(dx * dx + dy * dy) <= thresholdPx) {
-                        clusters[ci].push(b);
-                        absorbed.add(si);
-                        break;
-                    }
-                }
-            });
-
-            // 重建最终分组：未被吸收的单气泡 + 所有聚合
-            return [
-                ...singles.filter((_, si) => !absorbed.has(si)),
-                ...clusters
-            ];
+            groups.push(cluster.map(p => p.bubble));
         }
 
         return groups;
@@ -337,6 +308,38 @@
         bubbleMarkers.clear();
         clusterLookup.clear();
     }
+
+    function panToBubble(lat, lng, skipSnap) {
+        try {
+            if (!skipSnap) {
+                preBubbleZoomSnap = { zoom: map.getZoom(), center: map.getCenter() };
+                console.log('📸 已记录气泡打开前视角:', preBubbleZoomSnap.zoom);
+            }
+            var container = map.getContainer();
+            var h = container.clientHeight;
+            var bubblePixel = map.fromLatLngToDivPixel(new qq.maps.LatLng(lat, lng));
+            if (!bubblePixel) return;
+            var targetY = h * 0.6;
+            var dy = targetY - (bubblePixel.y || 0);
+            var center = map.getCenter();
+            var centerPixel = map.fromLatLngToDivPixel(center);
+            if (!centerPixel) return;
+            var newCenter = map.fromDivPixelToLatLng(new qq.maps.Point(centerPixel.x, centerPixel.y - dy));
+            if (newCenter) map.panTo(newCenter);
+        } catch (e) {
+            console.warn('panToBubble error:', e);
+        }
+    }
+
+    function restorePreBubbleView() {
+        if (preBubbleZoomSnap && map) {
+            console.log('🔄 恢复气泡打开前视角:', preBubbleZoomSnap.zoom);
+            map.setZoom(preBubbleZoomSnap.zoom);
+            map.setCenter(preBubbleZoomSnap.center);
+            preBubbleZoomSnap = null;
+        }
+    }
+    window.restorePreBubbleView = restorePreBubbleView;
 
     function addBubbleToMap(bubble) {
         if (!map || !bubble) return null;
@@ -365,6 +368,7 @@
                 currentOpenBubbleId = null;
             } else {
                 showBubbleInfoWindow(bubble, label);
+                panToBubble(bubble.lat, bubble.lng);
             }
         });
 
@@ -372,7 +376,7 @@
     }
 
     function clearSpiderfy() {
-        _suppressRefresh = false;
+        window._suppressRefresh = false;
         spiderfyState.labels.forEach(l => l && l.setMap && l.setMap(null));
         spiderfyState.lines.forEach(p => p && p.setMap && p.setMap(null));
         spiderfyState.clusterId = null;
@@ -464,6 +468,7 @@
             qq.maps.event.addListener(spiderLabel, 'click', function() {
                 clearSpiderfy();
                 showBubbleInfoWindow(bubble, spiderLabel);
+                panToBubble(bubble.lat, bubble.lng);
             });
 
             spiderfyState.labels.push(spiderLabel);
@@ -587,18 +592,18 @@
             qq.maps.event.addListener(clusterLabel, 'click', function() {
                 const mode = localStorage.getItem('clusterInteractionMode') || 'A';
                 preClusterZoomSnap = { zoom: map.getZoom(), center: map.getCenter() };
-                _suppressRefresh = true;
+                window._suppressRefresh = true;
                 map.setCenter(new qq.maps.LatLng(centerLat, centerLng));
                 if (mode === 'B') {
                     if (spiderfyState.clusterId === clusterId) {
-                        _suppressRefresh = false;
+                        window._suppressRefresh = false;
                         clearSpiderfy();
                     } else {
                         spiderfyCluster(clusterId, centerLat, centerLng);
-                        setTimeout(() => { _suppressRefresh = false; showSpiderfyOverlay(); }, 320);
+                        setTimeout(() => { window._suppressRefresh = false; showSpiderfyOverlay(); }, 320);
                     }
                 } else {
-                    setTimeout(() => { _suppressRefresh = false; }, 320);
+                    setTimeout(() => { window._suppressRefresh = false; }, 320);
                     if (currentInfoWindow) { currentInfoWindow.close(); currentInfoWindow = null; }
                     showOverlapBubbleList(clusterId, centerLat, centerLng);
                 }
@@ -685,18 +690,18 @@
             qq.maps.event.addListener(clusterLabel, 'click', function() {
                 const mode = localStorage.getItem('clusterInteractionMode') || 'A';
                 preClusterZoomSnap = { zoom: map.getZoom(), center: map.getCenter() };
-                _suppressRefresh = true;
+                window._suppressRefresh = true;
                 map.setCenter(new qq.maps.LatLng(centerLat, centerLng));
                 if (mode === 'B') {
                     if (spiderfyState.clusterId === clusterId) {
-                        _suppressRefresh = false;
+                        window._suppressRefresh = false;
                         clearSpiderfy();
                     } else {
                         spiderfyCluster(clusterId, centerLat, centerLng);
-                        setTimeout(() => { _suppressRefresh = false; showSpiderfyOverlay(); }, 320);
+                        setTimeout(() => { window._suppressRefresh = false; showSpiderfyOverlay(); }, 320);
                     }
                 } else {
-                    setTimeout(() => { _suppressRefresh = false; }, 320);
+                    setTimeout(() => { window._suppressRefresh = false; }, 320);
                     if (currentInfoWindow) { currentInfoWindow.close(); currentInfoWindow = null; }
                     showOverlapBubbleList(clusterId, centerLat, centerLng);
                 }
@@ -798,8 +803,8 @@
 
     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0e0e0; font-size: 12px; color: #6c757d;">
         <div style="display: flex; align-items: center; gap: 5px;">
-    <span style="font-size: 16px; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px;">
-        ${renderAvatarPreview(bubble.avatar)}
+    <span style="font-size: 16px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
+        ${renderAvatarPreview(bubble.avatar, 32)}
     </span>
     <span style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escapeHtml(bubble.author || '匿名')}</span>
         </div>
@@ -879,6 +884,11 @@
         if (bubbleEl) {
             bubbleEl.classList.remove('active');
         }
+        // ⭐ 恢复气泡打开前视角（切换到评论区时不恢复）
+        if (!window._skipBubbleRestore) {
+            restorePreBubbleView();
+        }
+        window._skipBubbleRestore = false;
     });
         
     console.log("✅ 气泡信息窗口已打开");
@@ -907,6 +917,8 @@
         }
         // 移除所有气泡的高亮状态
         document.querySelectorAll('.bubble').forEach(el => el.classList.remove('active'));
+        // ⭐ 恢复气泡打开前视角
+        restorePreBubbleView();
     }
 
 
@@ -1047,6 +1059,20 @@
             if (!b.createdAt) b.createdAt = now;
             if (!b.time) b.time = b.createdAt;
         });
+
+        // 检查是否有变动（比较 id + expiresAt 签名）
+        var sig = function(b) { return b.id + '|' + (b.expiresAt || b.createdAt || 0) + '|' + (b.lat || 0).toFixed(4) + '|' + (b.lng || 0).toFixed(4); };
+        if (bubbles.length === filtered.length) {
+            var changed = false;
+            var oldMap = {};
+            for (var i = 0; i < bubbles.length; i++) oldMap[sig(bubbles[i])] = true;
+            for (var j = 0; j < filtered.length; j++) {
+                if (!oldMap[sig(filtered[j])]) { changed = true; break; }
+            }
+            if (!changed) {
+                return;
+            }
+        }
 
         // 替换全局气泡数组
         bubbles.length = 0;

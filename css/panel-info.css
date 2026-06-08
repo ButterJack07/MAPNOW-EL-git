@@ -14,7 +14,6 @@
     }
     
     .info-modal-container {
-        animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         background: var(--card-bg);
         border-radius: 20px;
         width: 90%;
@@ -22,6 +21,7 @@
         max-height: 85vh;
         overflow: hidden;
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
     @keyframes slideInUp {

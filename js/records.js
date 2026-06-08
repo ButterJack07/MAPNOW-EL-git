@@ -547,6 +547,26 @@ function recordBubbleView(bubbleId) {
         contentElement.style.display = 'block';
             
         console.log('📑 切换到标签:', tabName);
+
+        // ⭐ 优先从缓存渲染
+        const cachedData = contentElement.getAttribute('data-cached-data');
+        if (cachedData && !contentElement.getAttribute('data-cache-rendered')) {
+            try {
+                const data = JSON.parse(cachedData);
+                if (data && data.length > 0) {
+                    if (tabName === 'likes' && typeof displayLikesList === 'function') {
+                        displayLikesList(data);
+                    } else if (tabName === 'favorites' && typeof displayFavoritesList === 'function') {
+                        displayFavoritesList(data);
+                    } else if (tabName === 'comments' && typeof displayCommentsList === 'function') {
+                        displayCommentsList(data);
+                    } else if (tabName === 'history' && typeof displayViewsList === 'function') {
+                        displayViewsList(data);
+                    }
+                }
+            } catch (e) {}
+            contentElement.setAttribute('data-cache-rendered', 'true');
+        }
             
         // ⭐ 根据标签类型查询数据（先显示加载提示）
         if (tabName === 'published') {

@@ -12,9 +12,8 @@
         z-index: 10001;
         animation: fadeIn 0.3s ease;
     }
-    
+
     .vip-modal-container {
-        animation: slideUp 0.3s ease;
         background: var(--card-bg);
         border-radius: 20px;
         padding: 30px;
@@ -23,6 +22,7 @@
         max-height: 90vh;
         overflow-y: auto;
         position: relative;
+        animation: slideUp 0.3s ease;
     }
 
     @keyframes slideUp {
@@ -343,13 +343,13 @@
     }
 
     .payment-container {
-        animation: slideUp 0.25s ease;
         background: #fff;
         border-radius: 20px;
         padding: 28px 24px 24px;
         max-width: 360px;
         width: 92%;
         position: relative;
+        animation: slideUp 0.25s ease;
         box-shadow: 0 16px 48px rgba(0,0,0,.22);
     }
 

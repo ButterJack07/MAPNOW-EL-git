@@ -12,9 +12,8 @@
         z-index: 10006;
         animation: fadeIn 0.3s ease;
     }
-    
+
     .notifications-container {
-        animation: slideUp 0.3s ease;
         background: var(--card-bg);
         border-radius: 20px;
         padding: 30px;
@@ -23,6 +22,7 @@
         max-height: 80vh;
         overflow-y: auto;
         position: relative;
+        animation: slideUp 0.3s ease;
     }
 
     .notifications-back {

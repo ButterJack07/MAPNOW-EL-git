@@ -54,6 +54,10 @@ function connectWebSocket() {
                 setTimeout(() => {
                     requestNearbyBubbles();
                 }, 500);
+                // 重新连接后重新预取个人中心数据并更新缓存
+                setTimeout(() => {
+                    prefetchAndCacheUserCenterData();
+                }, 1500);
             }
         };
 
@@ -69,7 +73,7 @@ function connectWebSocket() {
         socket.onclose = () => {
             console.log("📡 连接已关闭");
             updateConnectionStatus("❌ 连接断开");
-            
+
             // 3秒后重连
             setTimeout(() => {
                 if (currentUser) {
@@ -232,6 +236,9 @@ function connectWebSocket() {
             }
         }
 
+        // 缓存完整用户信息
+        cacheUserCenterData('userFullInfo', data.user);
+
         // 重新加载设置页面显示
         loadUserSettings();
         break;
@@ -241,17 +248,28 @@ function connectWebSocket() {
             // ⭐ 新增：登录界面用户信息查询结果
 
             case "loginSuccess":
-                // 认证登录成功
                 if (data.message) {
                     showAuthMessage(data.message, 'success');
                 }
-                // 设置当前用户
-                currentUser = {
-                    id: data.user.id,
-                    nickname: data.user.nickname,
-                    phone: data.user.phone,
-                    avatar: data.user.avatar
-                };
+                if (data.user) {
+                    var u = data.user;
+                    if (!currentUser) currentUser = {};
+                    if (u.userId || u.id) currentUser.userId = u.userId || u.id;
+                    if (u.id) currentUser.id = u.id;
+                    if (u.nickname || u.username) currentUser.nickname = u.nickname || u.username;
+                    if (u.phone !== undefined) currentUser.phone = u.phone;
+                    if (u.avatar) currentUser.avatar = u.avatar;
+                    if (u.username !== undefined) currentUser.username = u.username;
+                    if (u.gender !== undefined) currentUser.gender = u.gender;
+                    if (u.birthday !== undefined) currentUser.birthday = u.birthday;
+                    if (u.region !== undefined) currentUser.region = u.region;
+                    if (u.bio !== undefined) currentUser.bio = u.bio;
+                    if (u.background !== undefined) currentUser.background = u.background;
+                    if (u.theme !== undefined) currentUser.theme = u.theme;
+                    if (u.isVip !== undefined) currentUser.isVip = u.isVip;
+                    if (u.vipExpireTime !== undefined) currentUser.vipExpireTime = u.vipExpireTime;
+                    if (u.vipType !== undefined) currentUser.vipType = u.vipType;
+                }
                     
                 // ⭐ v9.4.3: 保存登录信息（如果勾选了记住密码或自动登录）
                 const loginId = document.getElementById('loginId').value.trim();
@@ -417,18 +435,108 @@ function connectWebSocket() {
             // ⭐ 新增：处理点赞记录查询结果
             case "userLikesResult":
                 console.log("📊 收到点赞记录:", data.likes.length, "条");
+                cacheUserCenterData('userLikes', data.likes);
                 displayLikesList(data.likes);
+                break;
+                
+            // ⭐ 个人中心数据：一次性接收所有数据并缓存
+            case "userCenterData":
+                console.log("📦 收到个人中心完整数据");
+                
+                if (currentUser && data.userInfo) {
+                    currentUser = {
+                        ...currentUser,
+                        id: data.userInfo.id,
+                        phone: data.userInfo.phone,
+                        username: data.userInfo.username,
+                        nickname: data.userInfo.username,
+                        avatar: data.userInfo.avatar || '👤',
+                        gender: data.userInfo.gender || '保密',
+                        birthday: data.userInfo.birthday || '',
+                        region: data.userInfo.region || '未设置',
+                        bio: data.userInfo.bio || '',
+                        background: data.userInfo.background || '#667eea',
+                        theme: data.userInfo.theme || 'light'
+                    };
+                    updateAvatarDisplay(currentUser.avatar);
+                    updateUserDetails();
+                }
+                
+                cacheUserCenterData('userFullInfo', data.userInfo);
+                cacheUserCenterData('userStats', data.stats);
+                cacheUserCenterData('userPublished', data.published);
+                cacheUserCenterData('inboxUnread', data.inboxUnread);
+                cacheUserCenterData('vipStatus', data.vipStatus);
+                
+                if (data.stats) {
+                    userStats = data.stats;
+                    const publishedEl = document.getElementById('publishedCount');
+                    if (publishedEl) publishedEl.textContent = data.stats.publishedCount;
+                    const likesEl = document.getElementById('likesCount');
+                    if (likesEl) likesEl.textContent = data.stats.likesCount;
+                    const favoritesEl = document.getElementById('favoritesCount');
+                    if (favoritesEl) favoritesEl.textContent = data.stats.favoritesCount;
+                    const commentsEl = document.getElementById('commentsCount');
+                    if (commentsEl) commentsEl.textContent = data.stats.commentsCount;
+                }
+                
+                if (data.published) {
+                    displayPublishedList(data.published);
+                }
+                
+                if (data.inboxUnread) {
+                    updateInboxBadge(data.inboxUnread.total || 0);
+                    const counts = data.inboxUnread.counts || {};
+                    const likeBadge = document.getElementById('tabLikeBadge');
+                    if (likeBadge) {
+                        const likeCount = counts.like || 0;
+                        likeBadge.textContent = likeCount;
+                        likeBadge.style.display = likeCount > 0 ? 'inline-block' : 'none';
+                    }
+                    const favoriteBadge = document.getElementById('tabFavoriteBadge');
+                    if (favoriteBadge) {
+                        const favCount = counts.favorite || 0;
+                        favoriteBadge.textContent = favCount;
+                        favoriteBadge.style.display = favCount > 0 ? 'inline-block' : 'none';
+                    }
+                    const commentBadge = document.getElementById('tabCommentBadge');
+                    if (commentBadge) {
+                        const cmtCount = counts.comment || 0;
+                        commentBadge.textContent = cmtCount;
+                        commentBadge.style.display = cmtCount > 0 ? 'inline-block' : 'none';
+                    }
+                    const friendBadge = document.getElementById('tabFriendRequestBadge');
+                    if (friendBadge) {
+                        const frCount = counts.friend_request || 0;
+                        friendBadge.textContent = frCount;
+                        friendBadge.style.display = frCount > 0 ? 'inline-block' : 'none';
+                    }
+                }
+                
+                if (data.vipStatus) {
+                    if (currentUser) {
+                        currentUser.isVip = data.vipStatus.isVip;
+                        currentUser.vipExpireTime = data.vipStatus.expireTime || 0;
+                        if (data.vipStatus.vipType) currentUser.vipType = data.vipStatus.vipType;
+                    }
+                    updateVipDisplay(data.vipStatus);
+                    updateCustomTimeButtonState();
+                }
+                
+                loadUserSettings();
                 break;
                 
             // ⭐ 新增：处理收藏记录查询结果
             case "userFavoritesResult":
                 console.log("📊 收到收藏记录:", data.favorites.length, "条");
+                cacheUserCenterData('userFavorites', data.favorites);
                 displayFavoritesList(data.favorites);
                 break;
                 
             // ⭐ 新增：处理评论记录查询结果
             case "userCommentsResult":
                 console.log("📊 收到评论记录:", data.comments.length, "条");
+                cacheUserCenterData('userComments', data.comments);
                 displayCommentsList(data.comments);
                 break;
                 
@@ -436,6 +544,8 @@ function connectWebSocket() {
             case "userStatsResult":
                 console.log("📊 收到统计数据:", data.stats);
                 userStats = data.stats;
+
+                cacheUserCenterData('userStats', data.stats);
                     
                 // ✅ 添加安全检查
                 const publishedEl = document.getElementById('publishedCount');
@@ -454,12 +564,14 @@ function connectWebSocket() {
             // ⭐ 新增：处理我发布的查询结果
             case "userPublishedResult":
                 console.log("📊 发布记录:", data.bubbles.length, "条");
+                cacheUserCenterData('userPublished', data.bubbles);
                 displayPublishedList(data.bubbles);
                 break;
                 
             // ⭐ 新增：处理浏览记录查询结果
             case "userViewsResult":
                 console.log("📊 浏览记录:", data.views.length, "条");
+                cacheUserCenterData('userViews', data.views);
                 displayViewsList(data.views);
                 break;
                 
@@ -493,6 +605,7 @@ function connectWebSocket() {
             // ⭐ 新增：会员状态查询结果
             case "vipStatusResult":
                 console.log("💎 会员状态:", data);
+                cacheUserCenterData('vipStatus', { isVip: data.isVip, expireTime: data.expireTime, vipType: data.vipType });
                 if (currentUser) {
                     currentUser.isVip = data.isVip;
                     currentUser.vipExpireTime = data.expireTime || 0;
@@ -522,6 +635,8 @@ function connectWebSocket() {
             // ✅ 如果是头像更新，刷新所有头像显示
             if (data.field === 'avatar') {
                 updateAvatarDisplay(data.value);
+                // 同时更新地图上的头像标记
+                try { if (typeof updateMyMarker === 'function') updateMyMarker(); } catch (e) {}
             }
             // ⭐ 应用界面风格
             if (data.field === 'theme') {
@@ -546,6 +661,7 @@ function connectWebSocket() {
     // ⭐ 新增：收件箱未读数查询结果
     case "inboxUnreadResult":
         console.log(`📨 收件箱未读:`, data.counts);
+        cacheUserCenterData('inboxUnread', { counts: data.counts, total: data.total });
         // 更新总未读数小红点
         updateInboxBadge(data.total);
             
@@ -900,39 +1016,29 @@ function connectWebSocket() {
     }
 
 function handleLoginSuccess(user) {
-    console.log("✅ 登录成功:", user);  
+    console.log("✅ 登录成功:", user);
+    if (!currentUser) {
+        currentUser = {};
+    }
+    currentUser.userId = user.userId || user.id;
+    currentUser.id = user.id;
+    currentUser.nickname = user.nickname || user.username || currentUser.nickname;
+    currentUser.phone = user.phone || currentUser.phone || '';
+    currentUser.avatar = user.avatar || currentUser.avatar || '👤';
+    currentUser.username = user.username || currentUser.username || '';
+    currentUser.gender = user.gender || currentUser.gender || '保密';
+    currentUser.birthday = user.birthday || currentUser.birthday || '';
+    currentUser.region = user.region || currentUser.region || '未设置';
+    currentUser.bio = user.bio || currentUser.bio || '';
+    currentUser.background = user.background || currentUser.background || '#667eea';
+    currentUser.theme = user.theme || currentUser.theme || 'light';
+    currentUser.isVip = user.isVip || currentUser.isVip || false;
+    currentUser.vipExpireTime = user.vipExpireTime || currentUser.vipExpireTime || 0;
+    currentUser.vipType = user.vipType || currentUser.vipType || 'none';
+
     queryPrivateUnreadCount();
     if (typeof queryMyGroups === 'function') queryMyGroups();
     if (typeof queryInboxUnread === 'function') queryInboxUnread();
-    // 更新用户信息
-    if (!currentUser) {
-        currentUser = {
-            userId: user.userId || user.id,
-            id: user.id,
-            nickname: user.nickname || user.username,
-            avatar: user.avatar || '👤',
-            username: user.username,
-            gender: user.gender || '保密',
-            birthday: user.birthday || '',
-            region: user.region || '未设置',
-            bio: user.bio || '',
-            background: user.background || '#667eea',
-            theme: user.theme || 'light',
-            isVip: user.isVip || false,
-            vipExpireTime: user.vipExpireTime || 0,
-            vipType: user.vipType || 'none'
-        };
-    } else {
-        currentUser.userId = user.userId || user.id;
-        currentUser.id = user.id;
-        currentUser.theme = user.theme || 'light';
-        currentUser.isVip = user.isVip || false;
-        currentUser.vipExpireTime = user.vipExpireTime || 0;
-        currentUser.vipType = user.vipType || 'none';
-        if (user.avatar) {
-            currentUser.avatar = user.avatar;
-        }
-    }
     
     updateAvatarDisplay(currentUser.avatar);
     applyTheme(currentUser.theme);
@@ -948,7 +1054,12 @@ function handleLoginSuccess(user) {
     
     updateMyMarker();   // 内部按模式决定是画圆圈还是 marker
     refreshAllMarkers();
-    
+
+    // ⭐ 登录后将地图视角移到GPS位置
+    if (gpsPosition && map) {
+        map.panTo(new qq.maps.LatLng(gpsPosition.lat, gpsPosition.lng));
+    }
+
     setTimeout(() => {
         requestNearbyBubbles();
     }, 500);
@@ -966,6 +1077,11 @@ function handleLoginSuccess(user) {
     // ⭐ 更新自定义时长按钮状态
     setTimeout(updateCustomTimeButtonState, 500);
 
+    // ⭐ 登录后预取个人中心所有数据并缓存到本地
+    setTimeout(() => {
+        prefetchAndCacheUserCenterData();
+    }, 1000);
+
     // 注册后首次登录时自动弹出新手教程（仅触发一次）
     try {
         if (localStorage.getItem('showTutorialOnFirstLogin') === '1') {
@@ -979,6 +1095,14 @@ function handleLoginSuccess(user) {
     } catch (e) {
         console.warn('无法访问 localStorage');
     }
+}
+
+// ==================== 用户中心数据预取与缓存 ====================
+
+function prefetchAndCacheUserCenterData() {
+    if (!socket || socket.readyState !== WebSocket.OPEN || !currentUser) return;
+    console.log('📦 预取个人中心数据...');
+    socket.send(JSON.stringify({ type: "getUserCenterData" }));
 }
 
 // 检查当前用户是否为VIP

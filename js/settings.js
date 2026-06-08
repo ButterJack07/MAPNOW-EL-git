@@ -23,8 +23,8 @@
     // 加载设置页显示
     function loadUserSettings() {
         if (!currentUser) return;
-        const avatarEl = document.getElementById('settingsAvatar');
-        if (avatarEl) avatarEl.textContent = currentUser.avatar || '👤';
+        var avatarEl = document.getElementById('settingsAvatar');
+        if (avatarEl) avatarEl.innerHTML = renderAvatarPreview(currentUser.avatar);
         const nickEl = document.getElementById('settingsNickname');
         if (nickEl) nickEl.textContent = currentUser.nickname || currentUser.username || '未设置';
         const genderEl = document.getElementById('settingsGender');
@@ -308,6 +308,7 @@ function updateUserInfo(field, value) {
 
     function confirmLogout() {
         localStorage.setItem('autoLogin', '0');
+        clearUserCenterCache();
         if (socket) socket.close();
         currentUser = null;
         location.reload();
@@ -550,22 +551,36 @@ function updateUserInfo(field, value) {
         map = new qq.maps.Map(document.getElementById('map'), mapOptions);
 
         let zoomRefreshTimer = null;
-        let _suppressRefresh = false;
         qq.maps.event.addListener(map, 'zoom_changed', function() {
-            if (_suppressRefresh) return;
+            if (window._suppressRefresh) return;
             if (zoomRefreshTimer) clearTimeout(zoomRefreshTimer);
             zoomRefreshTimer = setTimeout(() => {
-                if (typeof refreshClusterLabels === 'function') refreshClusterLabels();
-            }, 120);
+                if (typeof refreshBubbleMarkersForCurrentZoom === 'function') refreshBubbleMarkersForCurrentZoom();
+            }, 50);
         });
 
         let panRefreshTimer = null;
+        let panRefreshRaf = null;
+        let lastBounds = null;
         qq.maps.event.addListener(map, 'bounds_changed', function() {
-            if (_suppressRefresh) return;
-            if (panRefreshTimer) clearTimeout(panRefreshTimer);
-            panRefreshTimer = setTimeout(() => {
-                if (typeof refreshClusterLabels === 'function') refreshClusterLabels();
-            }, 200);
+            if (window._suppressRefresh) return;
+
+            const bounds = map.getBounds();
+            const sw = bounds.getSouthWest();
+            const ne = bounds.getNorthEast();
+            const signature = `${sw.getLat().toFixed(4)}_${sw.getLng().toFixed(4)}_${ne.getLat().toFixed(4)}_${ne.getLng().toFixed(4)}`;
+
+            // 边界完全未变，跳过
+            if (signature === lastBounds) return;
+            lastBounds = signature;
+
+            // 平移时只需要刷新聚合位置（聚类成员不变），不重建标签以避免闪烁
+            if (panRefreshRaf) cancelAnimationFrame(panRefreshRaf);
+            panRefreshRaf = requestAnimationFrame(() => {
+                if (typeof refreshClusterLabels === 'function') {
+                    refreshClusterLabels();
+                }
+            });
         });
     
         console.log(`✅ 地图初始化完成，主题: ${currentTheme || 'light'}`);
@@ -687,6 +702,16 @@ function updateUserInfo(field, value) {
                 updateMyPosition(gpsPosition);
             }
                 
+            // 首次获取到GPS时，将视角移到当前位置
+            if (map) {
+                try {
+                    console.log('📍 首次获取GPS，移动视角到:', gpsPosition);
+                    map.panTo(new qq.maps.LatLng(gpsPosition.lat, gpsPosition.lng));
+                } catch (e) {
+                    console.warn('panTo失败:', e);
+                }
+            }
+                
             console.log('✅ 获取到GPS定位 (已转GCJ-02):', gpsPosition, '原始WGS-84:', { lat, lng });
             resolve(gpsPosition);
                 
@@ -763,7 +788,6 @@ function updateUserInfo(field, value) {
 
     function setLocationMode(mode) {
         locationMode = mode;
-        try { window._forcePanTo = true; } catch (e) {}
     
         // 获取所有相关按钮
         const gpsCircleBtn = document.getElementById('gpsModeBtn');
@@ -781,6 +805,9 @@ function updateUserInfo(field, value) {
     // 启用GPS定位
     if (gpsPosition) {
         updateMyPosition(gpsPosition);
+        if (map) {
+            map.panTo(new qq.maps.LatLng(gpsPosition.lat, gpsPosition.lng));
+        }
     } else {
         getGPSLocation();
     }
@@ -878,18 +905,6 @@ function updateUserInfo(field, value) {
         // 更新标记（内部会按模式决定是画圆圈还是 marker）
         updateMyMarker();
 
-        // 更新地图中心（平滑移动）
-        if (map) {
-            try {
-                if (!window._userInteractingWithMap && !window._forcePanTo) {
-                    map.panTo(new qq.maps.LatLng(position.lat, position.lng));
-                } else if (window._forcePanTo) {
-                    map.panTo(new qq.maps.LatLng(position.lat, position.lng));
-                    window._forcePanTo = false;
-                }
-            } catch (e) { console.warn('panTo 失败', e); }
-        }
-
         // 更新发布位置显示
         updatePublishLocationDisplay();
 
@@ -948,25 +963,25 @@ function updateUserInfo(field, value) {
                     centerAndZoomToRange();
                 });
             } catch (e) {}
-            // 首次创建时异步生成头像
-            (async () => {
-                try {
-                    const avatar  = currentUser?.avatar || '👤';
-                    const iconUrl = await generateAvatarIconUrl(avatar, 48, '#FFAA00', true);
-                    if (!map || !myMarker) return;
-                    const icon = new qq.maps.MarkerImage(
-                        iconUrl,
-                        new qq.maps.Size(48, 48),
-                        new qq.maps.Point(0, 0),
-                        new qq.maps.Point(24, 24)
-                    );
-                    myMarker.setIcon(icon);
-                    myMarker.setTitle(currentUser ? currentUser.nickname : '我的位置');
-                } catch (e) {
-                    console.warn('异步生成头像失败，保留占位图标', e);
-                }
-            })();
         }
+        // 异步更新头像图标（每次调用都刷新，保证头像变更后即时更新）
+        (async () => {
+            try {
+                const avatar  = currentUser?.avatar || '👤';
+                const iconUrl = await generateAvatarIconUrl(avatar, 48, '#FFAA00', true);
+                if (!map || !myMarker) return;
+                const icon = new qq.maps.MarkerImage(
+                    iconUrl,
+                    new qq.maps.Size(48, 48),
+                    new qq.maps.Point(0, 0),
+                    new qq.maps.Point(24, 24)
+                );
+                myMarker.setIcon(icon);
+                myMarker.setTitle(currentUser ? currentUser.nickname : '我的位置');
+            } catch (e) {
+                console.warn('异步生成头像失败，保留占位图标', e);
+            }
+        })();
     }
 
     // ==================== 更新我的可见范围圆圈 ====================
@@ -1064,9 +1079,6 @@ function updateUserInfo(field, value) {
         function centerAndZoomToRange() {
             if (!map || !myPosition) return;
             const centerPos = (locationMode === 'manual' && manualPosition) ? manualPosition : myPosition;
-            try {
-                window._forcePanTo = true;
-            } catch (e) {}
             try {
                 map.panTo(new qq.maps.LatLng(centerPos.lat, centerPos.lng));
             } catch (e) {}
@@ -1470,37 +1482,17 @@ function updateUserInfo(field, value) {
             clearInterval(refreshTimer);
         }
             
-        // 创建新的定时器，每10秒全量同步一次
         refreshTimer = setInterval(() => {
-            console.log("⏰ 定时刷新触发 - " + new Date().toLocaleTimeString());
-                
-            // 如果清除模式中，不请求气泡
-            if (clearBubblesFlag) {
-                console.log("⏸️ 清除模式中，跳过气泡请求");
-                return;
-            }
+            if (clearBubblesFlag) return;
 
-            // 如果已登录且有地图，就刷新标记
             if (currentUser && map && myPosition) {
-                // 1. 先请求在线用户列表
                 if (socket && socket.readyState === WebSocket.OPEN) {
-                    socket.send(JSON.stringify({
-                        type: "requestOnlineUsers"
-                    }));
+                    socket.send(JSON.stringify({ type: "requestOnlineUsers" }));
                 }
-                    
-                // 2. 刷新标记（即使位置不变也刷新）
-                refreshAllMarkers();
-                    
-                // 3. 请求附近气泡 - 关键！（全量同步由 queryResult 处理）
                 requestNearbyBubbles();
-                    
-                // 4. 清理过期气泡
                 cleanupExpiredBubbles();
-            } else {
-                console.log("⏸️ 定时刷新暂停：用户未登录或地图未初始化");
             }
-        }, 10000); // 改为10000毫秒 = 10秒
+        }, 5000);
             
         console.log("✅ 自动刷新定时器已启动，间隔10秒");
     }
